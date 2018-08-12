@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyembroidery",
-    version="1.2.25",
+    version="1.2.27",
     author="Tatarize",
     author_email="tatarize@gmail.com",
     description="Embroidery IO library",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pyembroidery/pyembroidery",
+    url="https://github.com/EmbroidePy/pyembroidery",
     packages=setuptools.find_packages(),
     classifiers=(
         "Programming Language :: Python :: 2",
