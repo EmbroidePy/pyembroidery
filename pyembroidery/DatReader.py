@@ -66,12 +66,14 @@ def read_sunstar_dat_stitches(f, out):
             out.move(x, y)
             continue
         if ctrl == 0x80:
-            out.trim(x, y)
+            out.trim()
+            if x != 0 or y != 0:
+                out.move(x, y)
             continue
         if ctrl == 0x87:
             out.color_change()
             if x != 0 or y != 0:
-                out.stitch(x, y)
+                out.move(x, y)
             continue
         if ctrl == 0x84:  # Initialized info.
             out.stitch(x, y)

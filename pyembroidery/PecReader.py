@@ -151,7 +151,8 @@ def read_pec_stitches(f, out):
         if jump:
             out.move(x, y)
         elif trim:
-            out.trim(x, y)
+            out.trim()
+            out.move(x, y)
         else:
             out.stitch(x, y)
     out.end()

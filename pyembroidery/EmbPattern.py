@@ -81,7 +81,7 @@ class EmbPattern:
                 except KeyError:
                     color = thread["rgb"]
                 if isinstance(color, int):
-                    thread_object.color = thread["color"]
+                    thread_object.color = color
                 elif isinstance(color, str):
                     if color == "random":
                         thread_object.color = 0xFF000000 | random.randint(0, 0xFFFFFF)
