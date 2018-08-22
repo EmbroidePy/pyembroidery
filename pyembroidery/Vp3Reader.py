@@ -87,7 +87,7 @@ def vp3_read_colorblock(f, read_object, center_x, center_y):
                 y = signed16(stitch_bytes[i], stitch_bytes[i + 1])
                 i += 2
                 if abs(x) > 255 or abs(y) > 255:
-                    read_object.trim(0, 0)
+                    read_object.trim()
                     read_object.move(x, y)
                 else:
                     read_object.stitch(x, y)
@@ -98,8 +98,8 @@ def vp3_read_colorblock(f, read_object, center_x, center_y):
                 return
         else:
             read_object.stitch(x, y)
-    read_object.trim(0, 0)
-    read_object.color_change(0, 0)
+    read_object.trim()
+    read_object.color_change()
 
 
 def vp3_read_thread(f):

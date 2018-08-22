@@ -16,7 +16,6 @@ def read_u01_stitches(f, out):
         if (ctrl & 0x40) != 0:
             dy = -dy
         command = ctrl & 0b11111
-        # print(str(count), " ", str("{0:b}").format(ctrl), " 0x%0.2X " % ctrl, str(command), " " + str(dx), " ", str(dy))
         if command == 0x0:
             # Stitch
             out.stitch(dx, dy)
@@ -51,20 +50,28 @@ def read_u01_stitches(f, out):
             continue
         if command == 0x06:
             # T1 Top Thread Trimming, TTrim.
-            out.trim(dx, dy)
+            out.trim()
+            if dx != 0 or dy != 0:
+                out.move(dx, dy)
             continue
         if command == 0x07:
             # T2 Bobbin Threading
-            out.trim(dx, dy)
+            out.trim()
+            if dx != 0 or dy != 0:
+                out.move(dx, dy)
             continue
         if command == 0x08:  # ww, stop file had proper A8 rather than E8 and displacement
             # C00 Stop
-            out.stop(dx, dy)
+            out.stop()
+            if dx != 0 or dy != 0:
+                out.move(dx, dy)
             continue
         if 0x09 <= command <= 0x17:
             # C01 - C14
             if count > 1:
-                out.color_change(dx, dy)
+                out.color_change()
+            if dx != 0 or dy != 0:
+                out.move(dx, dy)
             continue
         if command == 0x18:
             break

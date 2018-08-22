@@ -94,8 +94,8 @@ def draw_scaled(extends, points, graphic, stride, buffer=5):
     if diagram_height == 0:
         diagram_height = 1
 
-    scale_x = (graphic_width - buffer) / diagram_width
-    scale_y = (graphic_height - buffer) / diagram_height
+    scale_x = (graphic_width - buffer) / float(diagram_width)
+    scale_y = (graphic_height - buffer) / float(diagram_height)
 
     scale = min(scale_x, scale_y)
 
