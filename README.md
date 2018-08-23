@@ -434,7 +434,6 @@ Thanks to,
 * Trever Adams
 * Linus Torvalds
 * Rudolfo @ http://www.achatina.de/sewing/main/TECHNICL.HTM
-* Lex Neva, lexelby
 * wwderw
 * Purple-bobby
 * Jason Weiler
