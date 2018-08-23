@@ -20,10 +20,10 @@ EMB_SEG = "CSewSeg"
 
 def write(pattern, f, settings=None):
     if settings is not None:
-        version = settings.get("pes version", VERSION_6)
+        version = settings.get("pes version", VERSION_1)
         truncated = settings.get("truncated", False)
     else:
-        version = VERSION_6
+        version = VERSION_1
         truncated = False
     if truncated:
         if version == VERSION_1:
