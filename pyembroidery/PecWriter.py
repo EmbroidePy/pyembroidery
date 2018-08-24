@@ -28,9 +28,10 @@ def write_pec(pattern, f, threadlist=None):
         threadlist = pattern.threadlist
     extends = pattern.extends()
 
-    write_pec_header(pattern, f, threadlist)
+    color_info = write_pec_header(pattern, f, threadlist)
     write_pec_block(pattern, f, extends)
     write_pec_graphics(pattern, f, extends)
+    return color_info
 
 
 def write_pec_header(pattern, f, threadlist):
@@ -53,8 +54,10 @@ def write_pec_header(pattern, f, threadlist):
         chart[index] = thread
 
     color_index_list = []
+    rgb_list = []
     for thread in threadlist:
         color_index_list.append(thread.find_nearest_color_index(chart))
+        rgb_list.append(thread.color)
 
     current_thread_count = len(color_index_list)
     if current_thread_count is not 0:
@@ -67,6 +70,7 @@ def write_pec_header(pattern, f, threadlist):
 
     for i in range(current_thread_count, 463):
         f.write(b'\x20')  # 520
+    return color_index_list, rgb_list
 
 
 def write_pec_block(pattern, f, extends):
