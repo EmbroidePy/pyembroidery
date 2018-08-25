@@ -25,6 +25,7 @@ def read(f, out, settings=None):
     f.seek(file_offset + 14, 0)
 
     color_count2 = read_int_8(f)
-    f.seek(color_count2 + 23, 1)
+    # 10 bytes unknown, PEC extends.
+    f.seek(color_count2 + 0x15, 1)
 
     read_pec_stitches(f, out)

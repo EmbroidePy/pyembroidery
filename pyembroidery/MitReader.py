@@ -1,3 +1,7 @@
+
+MIT_SIZE_CONVERSION_RATIO = 2.0 / 1.0
+
+
 def read(f, out, settings=None):
     count = 0
     previous_ctrl = -1
@@ -8,6 +12,8 @@ def read(f, out, settings=None):
             break
         x = byte[0] & 0x1F
         y = - (byte[1] & 0x1F)
+        x *= MIT_SIZE_CONVERSION_RATIO
+        y *= MIT_SIZE_CONVERSION_RATIO
         if byte[0] & 0b10000000:
             x = -x
         if byte[1] & 0b10000000:
