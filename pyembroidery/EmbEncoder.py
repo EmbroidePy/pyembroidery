@@ -424,16 +424,25 @@ class Transcoder:
         self.declare_not_trimmed()
 
     def sequin_at(self, new_x, new_y):
+        """Sequin Ejects at position with the proper Sequin Contingency
+
+        If long stitch contingency is required and since JUMP is often
+        sequin eject, the contingency for long stitch is always sew to.
+        This shouldn't be exceptionally rare."""
         contingency = self.sequin_contingency
+        if contingency == CONTINGENCY_SEQUIN_REMOVE:
+            # Do not update the needle position or declare untrimmed.
+            return
+        x0 = self.needle_x
+        y0 = self.needle_y
+        max_length = self.max_stitch
+        self.interpolate_gap_stitches(x0, y0, new_x, new_y, max_length, STITCH)
         if contingency == CONTINGENCY_SEQUIN_UTILIZE:
             self.add(SEQUIN_EJECT, new_x, new_y)
         elif contingency == CONTINGENCY_SEQUIN_JUMP:
             self.add(JUMP, new_x, new_y)
         elif contingency == CONTINGENCY_SEQUIN_STITCH:
             self.add(STITCH, new_x, new_y)
-        elif contingency == CONTINGENCY_SEQUIN_REMOVE:
-            # Do not update the needle position or declare untrimmed.
-            return
         self.update_needle_position(new_x, new_y)
         self.declare_not_trimmed()
 
