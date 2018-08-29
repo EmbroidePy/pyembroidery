@@ -81,3 +81,49 @@ class EmbThread:
             self.color = int(h[:6], 16)
         elif size == 4 or size == 3:
             self.color = int(h[2] + h[2] + h[1] + h[1] + h[0] + h[0], 16)
+
+    def set(self, thread):
+        if isinstance(thread, EmbThread):
+            self.color = thread.color
+            self.description = thread.description
+            self.catalog_number = thread.catalog_number
+            self.details = thread.details
+            self.brand = thread.brand
+            self.chart = thread.chart
+            self.weight = thread.weight
+        elif isinstance(thread, int):
+            self.color = thread
+        elif isinstance(thread, dict):
+            if "name" in thread:
+                self.description = thread["name"]
+            if "description" in thread:
+                self.description = thread["description"]
+            if "desc" in thread:
+                self.description = thread["desc"]
+            if "brand" in thread:
+                self.brand = thread["brand"]
+            if "manufacturer" in thread:
+                self.brand = thread["manufacturer"]
+            if "color" in thread or "rgb" in thread:
+                try:
+                    color = thread["color"]
+                except KeyError:
+                    color = thread["rgb"]
+                if isinstance(color, int):
+                    self.color = color
+                elif isinstance(color, str):
+                    if color == "random":
+                        import random
+                        self.color = 0xFF000000 | random.randint(0, 0xFFFFFF)
+                    if color[0:1] == "#":
+                        self.set_hex_color(color[1:])
+                elif isinstance(color, tuple) or isinstance(color, list):
+                    self.color = (color[0] & 0xFF) << 16 | \
+                                 (color[1] & 0xFF) << 8 | \
+                                 (color[2] & 0xFF)
+            if "hex" in thread:
+                self.set_hex_color(thread["hex"])
+            if "id" in thread:
+                self.catalog_number = thread["id"]
+            if "catalog" in thread:
+                self.catalog_number = thread["catalog"]
