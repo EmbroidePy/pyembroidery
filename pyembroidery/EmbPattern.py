@@ -244,6 +244,38 @@ class EmbPattern:
          that require an update"""
         self.stitches.append([x, y, cmd])
 
+    def add_block(self, block, thread=None):
+        if thread is not None:
+            self.add_thread(thread)
+            self.add_command(COLOR_BREAK)
+        if block is None:
+            return
+
+        if isinstance(block, list) or isinstance(block, tuple):
+            if len(block) == 0:
+                return
+            v = block[0]
+            if isinstance(v, list) or isinstance(v, tuple):
+                for v in block:
+                    x = v[0]
+                    y = v[1]
+                    try:
+                        cmd = v[2]
+                    except IndexError:
+                        cmd = STITCH
+                    self.add_stitch_absolute(cmd, x, y)
+            elif isinstance(v, complex):
+                for v in block:
+                    x = v.real
+                    y = v.imag
+                    self.add_stitch_absolute(STITCH, x, y)
+            elif isinstance(v, int) or isinstance(v, float):
+                i = 0
+                ie = len(block)
+                while i < ie:
+                    self.add_stitch_absolute(STITCH, block[i], block[i + 1])
+                    i += 2
+
     def add_stitchblock(self, stitchblock):
         threadlist = self.threadlist
         block = stitchblock[0]

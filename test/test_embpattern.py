@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-# External dependencies:
 import unittest
 from pyembroidery import *
 
@@ -82,3 +81,22 @@ class TestEmbpattern(unittest.TestCase):
         self.assertNotEqual(csv_pattern.stitches[-1][0], 0)
         self.assertNotEqual(csv_pattern.stitches[-1][1], 0)
         print("csv: ", csv_pattern.stitches)
+
+    def position_equals(self, stitches, j, k):
+        self.assertEqual(stitches[j][0], stitches[k][0])
+        self.assertEqual(stitches[j][1], stitches[k][1])
+
+    def test_matrix(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_command(MATRIX_ROTATE, 45)
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_command(MATRIX_ROTATE, 45)
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "aqua")
+        pattern = pattern.get_normalized_pattern()
+        self.position_equals(pattern.stitches, 5, 6)
+        self.position_equals(pattern.stitches, 10, 11)
+        print(pattern.stitches)
+        write_svg(pattern, "file.svg")
+
+        self.assertIsNotNone(pattern.stitches)
