@@ -1,6 +1,7 @@
 import math
 
 from .EmbConstant import *
+from .EmbMatrix import EmbMatrix
 
 
 class Transcoder:
@@ -38,34 +39,28 @@ class Transcoder:
         self.long_stitch_contingency = \
             settings.get("long_stitch_contingency", CONTINGENCY_LONG_STITCH_JUMP_NEEDLE)
 
-        self.matrix = get_identity()
+        self.matrix = EmbMatrix()
         translate = settings.get("translate", None)
         if translate is not None:
             try:
-                m = get_translate(translate[0], translate[1])
-                self.matrix = matrix_multiply(self.matrix, m)
+                self.matrix.post_translate(translate[0], translate[1])
             except IndexError:
                 try:
-                    m = get_translate(translate.x, translate.y)
-                    self.matrix = matrix_multiply(self.matrix, m)
+                    self.matrix.post_translate(translate.x, translate.y)
                 except AttributeError:
                     pass
         scale = settings.get("scale", None)
         if scale is not None:
             try:
-                m = get_scale(scale[0], scale[1])
-                self.matrix = matrix_multiply(self.matrix, m)
+                self.matrix.post_scale(scale[0], scale[1])
             except (IndexError, TypeError):
                 try:
-                    m = get_scale(scale.x, scale.y)
-                    self.matrix = matrix_multiply(self.matrix, m)
+                    self.matrix.post_scale(scale.x, scale.y)
                 except AttributeError:
-                    m = get_scale(scale, scale)
-                    self.matrix = matrix_multiply(self.matrix, m)
+                    self.matrix.post_scale(scale, scale)
         rotate = settings.get("rotate", None)
         if rotate is not None:
-            m = get_rotate(rotate)
-            self.matrix = matrix_multiply(self.matrix, m)
+            self.matrix.post_rotate(rotate)
         self.source_pattern = None
         self.destination_pattern = None
         self.position = 0
@@ -178,7 +173,7 @@ class Transcoder:
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
-            p = point_in_matrix_space(self.matrix, self.stitch)
+            p = self.matrix.point_in_matrix_space(self.stitch)
             x = p[0]
             y = p[1]
             flags = self.stitch[2] & COMMAND_MASK
@@ -305,30 +300,20 @@ class Transcoder:
             elif flags == CONTINGENCY_SEQUIN_UTILIZE:
                 self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
             elif flags == MATRIX_TRANSLATE:
-                m = get_translate(self.stitch[0], self.stitch[1])
-                self.matrix = matrix_multiply(self.matrix, m)
+                self.matrix.post_translate(self.stitch[0], self.stitch[1])
             elif flags == MATRIX_SCALE_ORIGIN:
-                m = get_scale(self.stitch[0], self.stitch[1])
-                self.matrix = matrix_multiply(self.matrix, m)
+                self.matrix.post_scale(self.stitch[0], self.stitch[1])
             elif flags == MATRIX_ROTATE_ORIGIN:
-                m = get_rotate(self.stitch[0])
-                self.matrix = matrix_multiply(self.matrix, m)
+                self.matrix.post_rotate(self.stitch[0])
             elif flags == MATRIX_SCALE:
-                pos = point_in_matrix_space(self.matrix, (self.needle_x, self.needle_y))
-                m0 = get_translate(-pos[0], -pos[1])
-                m1 = get_scale(self.stitch[0], self.stitch[1])
-                m2 = get_translate(pos[0], pos[1])
-                m = post_matrix_cat((m0, m1, m2))
-                self.matrix = matrix_multiply(self.matrix, m)
+                p = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
+                self.matrix.post_scale(self.stitch[0], self.stitch[1], p[0], p[1])
             elif flags == MATRIX_ROTATE:
-                pos = point_in_matrix_space(self.matrix, (self.needle_x, self.needle_y))
-                m0 = get_translate(-pos[0], -pos[1])
-                m1 = get_rotate(self.stitch[0])
-                m2 = get_translate(pos[0], pos[1])
-                m = post_matrix_cat((m0, m1, m2))
-                self.matrix = matrix_multiply(self.matrix, m)
+                # p = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
+                # self.matrix.post_rotate(self.stitch[0], p[0], p[1])
+                self.matrix.post_rotate(self.stitch[0], self.needle_x, self.needle_y)
             elif flags == MATRIX_RESET:
-                self.matrix = get_identity()
+                self.matrix.reset()
         if flags != END:
             self.end_here()
 
@@ -404,9 +389,8 @@ class Transcoder:
     def tie_off(self):
         if self.tie_off_contingency == CONTINGENCY_TIE_OFF_THREE_SMALL:
             try:
-                b = point_in_matrix_space(
-                    self.matrix,
-                    self.source_pattern.stitches[self.position - 1],
+                b = self.matrix.point_in_matrix_space(
+                    self.source_pattern.stitches[self.position - 1]
                 )
                 flags = b[2]
                 if flags == STITCH or flags == NEEDLE_AT or \
@@ -419,8 +403,7 @@ class Transcoder:
     def tie_on(self):
         if self.tie_on_contingency == CONTINGENCY_TIE_ON_THREE_SMALL:
             try:
-                b = point_in_matrix_space(
-                    self.matrix,
+                b = self.matrix.point_in_matrix_space(
                     self.source_pattern.stitches[self.position + 1]
                 )
                 flags = b[2]
@@ -567,9 +550,7 @@ class Transcoder:
         if length is None:
             length = self.max_stitch
         if new_x is None or new_y is None:
-            p = point_in_matrix_space(self.matrix,
-                                      self.stitch[0],
-                                      self.stitch[1])
+            p = self.matrix.point_in_matrix_space(self.stitch[0], self.stitch[1])
             new_x = p[0]
             new_y = p[1]
         distance_x = new_x - self.needle_x
@@ -694,23 +675,23 @@ def get_rotate(theta):
 
 
 def post_matrix_cat(matrix_list):
-    m = get_identity()
-    for mx in matrix_list:
+    m = matrix_list[0]
+    for mx in matrix_list[1:]:
         m = matrix_multiply(m, mx)
     return m
 
 
-def matrix_multiply(a, b):
+def matrix_multiply(m0, m1):
     return [
-        a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
-        a[0] * b[1] + a[1] * b[4] + a[2] * b[7],
-        a[0] * b[2] + a[1] * b[5] + a[2] * b[8],
-        a[3] * b[0] + a[4] * b[3] + a[5] * b[6],
-        a[3] * b[1] + a[4] * b[4] + a[5] * b[7],
-        a[3] * b[2] + a[4] * b[5] + a[5] * b[8],
-        a[6] * b[0] + a[7] * b[3] + a[8] * b[6],
-        a[6] * b[1] + a[7] * b[4] + a[8] * b[7],
-        a[6] * b[2] + a[7] * b[5] + a[8] * b[8]]
+        m1[0] * m0[0] + m1[1] * m0[3] + m1[2] * m0[6],
+        m1[0] * m0[1] + m1[1] * m0[4] + m1[2] * m0[7],
+        m1[0] * m0[2] + m1[1] * m0[5] + m1[2] * m0[8],
+        m1[3] * m0[0] + m1[4] * m0[3] + m1[5] * m0[6],
+        m1[3] * m0[1] + m1[4] * m0[4] + m1[5] * m0[7],
+        m1[3] * m0[2] + m1[4] * m0[5] + m1[5] * m0[8],
+        m1[6] * m0[0] + m1[7] * m0[3] + m1[8] * m0[6],
+        m1[6] * m0[1] + m1[7] * m0[4] + m1[8] * m0[7],
+        m1[6] * m0[2] + m1[7] * m0[5] + m1[8] * m0[8]]
 
 
 def point_in_matrix_space(matrix, v0, v1=None):
