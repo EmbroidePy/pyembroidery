@@ -105,8 +105,6 @@ class EmbThread:
             self.weight = thread.weight
         elif isinstance(thread, int):
             self.color = thread
-        elif isinstance(thread,long):
-            self.color = int(thread)
         elif isinstance(thread, dict):
             if "name" in thread:
                 self.description = thread["name"]
@@ -139,6 +137,12 @@ class EmbThread:
                 self.catalog_number = thread["catalog"]
         elif isinstance(thread, str):
             self.color = self.parse_string_color(thread)
+        else:
+            try:  # We might be using python 3.
+                if isinstance(thread, long):
+                    self.color = int(thread)
+            except NameError:
+                pass
 
     @staticmethod
     def parse_string_color(color):
