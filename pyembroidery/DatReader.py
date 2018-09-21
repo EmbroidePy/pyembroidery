@@ -1,4 +1,4 @@
-from EmbConstant import FAST, SLOW
+from .EmbConstant import FAST, SLOW
 
 
 def read_barudan_dat(f, out):
