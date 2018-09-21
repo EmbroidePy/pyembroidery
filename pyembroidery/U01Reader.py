@@ -68,8 +68,8 @@ def read_u01_stitches(f, out):
             continue
         if 0x09 <= command <= 0x17:
             # C01 - C14
-            if count > 1:
-                out.color_change()
+            needle = command - 0x08
+            out.needle_change(needle)
             if dx != 0 or dy != 0:
                 out.move(dx, dy)
             continue

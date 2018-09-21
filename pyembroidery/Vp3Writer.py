@@ -29,11 +29,11 @@ def vp3_write_length_and_bytes(stream, bytestring):
 
 
 def vp3_patch_byte_offset(stream, offset):
-    currentPos = stream.tell()
+    current_pos = stream.tell()
     stream.seek(offset, 0)  # Absolute position seek.
-    position = currentPos - offset - 4  # 4 bytes int32
+    position = current_pos - offset - 4  # 4 bytes int32
     write_int_32be(stream, position)
-    stream.seek(currentPos, 0)  # Absolute position seek.
+    stream.seek(current_pos, 0)  # Absolute position seek.
 
 
 def get_as_colorblocks(pattern):
@@ -41,7 +41,8 @@ def get_as_colorblocks(pattern):
     last_pos = 0
     end = len(pattern.stitches)
     for pos, stitch in enumerate(pattern.stitches):
-        if stitch[2] != COLOR_CHANGE:
+        command = stitch[2] & COMMAND_MASK
+        if command != COLOR_CHANGE:
             continue
         thread = pattern.get_thread_or_filler(thread_index)
         thread_index += 1
@@ -213,7 +214,7 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
     # Embroidermodder code has
     # vp3_write_string(f, "\x00");
     # The 0, x, 0 bytes come before placeholders
-    # Given this consisistency, it's doubtful this is a string.
+    # Given this consistency, it's doubtful this is a string.
     # Those aren't
     f.write(b'\x00\x01\x00')
     placeholder_distance_to_end_of_stitches_block_010 = f.tell()
@@ -226,7 +227,7 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
     for stitch in stitches:
         x = stitch[0]
         y = stitch[1]
-        flags = stitch[2]
+        flags = stitch[2] & COMMAND_MASK
         if flags == END:
             f.write(b'\x80\x03')
             break

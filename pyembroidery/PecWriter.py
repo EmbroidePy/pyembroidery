@@ -120,12 +120,12 @@ def encode_long_form(value):
     return value
 
 
-def flag_jump(longForm):
-    return longForm | (JUMP_CODE << 8)
+def flag_jump(long_form):
+    return long_form | (JUMP_CODE << 8)
 
 
-def flag_trim(longForm):
-    return longForm | (TRIM_CODE << 8)
+def flag_trim(long_form):
+    return long_form | (TRIM_CODE << 8)
 
 
 def pec_encode(pattern, f):
@@ -138,7 +138,7 @@ def pec_encode(pattern, f):
     for stitch in stitches:
         x = stitch[0]
         y = stitch[1]
-        data = stitch[2]
+        data = stitch[2] & COMMAND_MASK
         dx = int(round(x - xx))
         dy = int(round(y - yy))
         xx += dx
@@ -188,10 +188,6 @@ def pec_encode(pattern, f):
                 f.write(b'\x01')
             color_two = not color_two
         elif data == STOP:
-            # if jumping:
-            #     f.write(b'\x00\x00')
-            #     jumping = False
-            # f.write(b'\x80\x01\x00\x00')
             pass
         elif data == END:
             if jumping:

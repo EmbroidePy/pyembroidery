@@ -1,6 +1,7 @@
 from .EmbConstant import *
 from .WriteHelper import write_int_16le, write_int_32le
 
+THREAD_CHANGE_COMMAND = NEEDLE_SET
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 STRIP_SPEEDS = False
 FULL_JUMP = False
@@ -30,14 +31,12 @@ def write(pattern, f, settings=None):
         f.write(b'\x00')
     xx = 0
     yy = 0
-    needle = 1
-    f.write(b'\xE9\x00\x00')  # Needle to C1
     trigger_fast = False
     trigger_slow = False
     for stitch in stitches:
         x = stitch[0]
         y = stitch[1]
-        data = stitch[2]
+        data = stitch[2] & COMMAND_MASK
         dx = int(round(x - xx))
         dy = int(round(y - yy))
         xx += dx
@@ -78,10 +77,12 @@ def write(pattern, f, settings=None):
         elif data == TRIM:
             cmd |= 0x07
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))
-        elif data == COLOR_CHANGE:
-            needle %= 7
-            needle += 1
-            cmd = cmd + 8 + needle
+        elif data == NEEDLE_SET:
+            decoded = decode_thread_change(stitch[2])
+            needle = decoded[2]
+            needle %= 15
+            cmd |= 0x08
+            cmd += needle
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))
         elif data == END:
             f.write(b'\xF8\x00\x00')

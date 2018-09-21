@@ -24,6 +24,22 @@ def find_nearest_color_index(find_color, values):
     return closest_index
 
 
+def color_rgb(r, g, b):
+    return int(0xFF000000 |
+               ((r & 255) << 16) |
+               ((g & 255) << 8) |
+               (b & 255))
+
+
+def color_hex(hex_string):
+    h = hex_string.lstrip('#')
+    size = len(h)
+    if size == 6 or size == 8:
+        return int(h[:6], 16)
+    elif size == 4 or size == 3:
+        return int(h[2] + h[2] + h[1] + h[1] + h[0] + h[0], 16)
+
+
 def color_distance_red_mean(
         r1, g1, b1,
         r2, g2, b2):
@@ -50,37 +66,33 @@ class EmbThread:
         # description, catalog_number, details, brand, chart, weight
 
     def set_color(self, r, g, b):
-        self.color = 0xFF000000 | (
-                (r & 255) << 16) | (
-                             (g & 255) << 8) | (
-                             b & 255)
+        self.color = color_rgb(r, g, b)
 
     def get_opaque_color(self):
         return 0xFF000000 | self.color
 
     def get_red(self):
-        return (self.color >> 16) & 0xFF
+        red = self.color >> 16
+        return red & 0xFF
 
     def get_green(self):
-        return (self.color >> 8) & 0xFF
+        green = self.color >> 8
+        return green & 0xFF
 
     def get_blue(self):
-        return self.color & 0xFF
+        blue = self.color
+        return blue & 0xFF
 
     def find_nearest_color_index(self, values):
-        return find_nearest_color_index(self.color, values)
+        return find_nearest_color_index(int(self.color), values)
 
     def hex_color(self):
         return "#%02x%02x%02x" % (
-            self.get_red(), self.get_green(), self.get_blue())
+            self.get_red(), self.get_green(), self.get_blue()
+        )
 
     def set_hex_color(self, hex_string):
-        h = hex_string.lstrip('#')
-        size = len(h)
-        if size == 6 or size == 8:
-            self.color = int(h[:6], 16)
-        elif size == 4 or size == 3:
-            self.color = int(h[2] + h[2] + h[1] + h[1] + h[0] + h[0], 16)
+        self.color = color_hex(hex_string)
 
     def set(self, thread):
         if isinstance(thread, EmbThread):
@@ -93,6 +105,8 @@ class EmbThread:
             self.weight = thread.weight
         elif isinstance(thread, int):
             self.color = thread
+        elif isinstance(thread,long):
+            self.color = int(thread)
         elif isinstance(thread, dict):
             if "name" in thread:
                 self.description = thread["name"]
@@ -112,11 +126,7 @@ class EmbThread:
                 if isinstance(color, int):
                     self.color = color
                 elif isinstance(color, str):
-                    if color == "random":
-                        import random
-                        self.color = 0xFF000000 | random.randint(0, 0xFFFFFF)
-                    if color[0:1] == "#":
-                        self.set_hex_color(color[1:])
+                    self.color = self.parse_string_color(color)
                 elif isinstance(color, tuple) or isinstance(color, list):
                     self.color = (color[0] & 0xFF) << 16 | \
                                  (color[1] & 0xFF) << 8 | \
@@ -127,3 +137,165 @@ class EmbThread:
                 self.catalog_number = thread["id"]
             if "catalog" in thread:
                 self.catalog_number = thread["catalog"]
+        elif isinstance(thread, str):
+            self.color = self.parse_string_color(thread)
+
+    @staticmethod
+    def parse_string_color(color):
+        if color == "random":
+            import random
+            return 0xFF000000 | random.randint(0, 0xFFFFFF)
+        if color[0:1] == "#":
+            return color_hex(color[1:])
+        color_dict = {
+            "aliceblue": color_rgb(240, 248, 255),
+            "antiquewhite": color_rgb(250, 235, 215),
+            "aqua": color_rgb(0, 255, 255),
+            "aquamarine": color_rgb(127, 255, 212),
+            "azure": color_rgb(240, 255, 255),
+            "beige": color_rgb(245, 245, 220),
+            "bisque": color_rgb(255, 228, 196),
+            "black": color_rgb(0, 0, 0),
+            "blanchedalmond": color_rgb(255, 235, 205),
+            "blue": color_rgb(0, 0, 255),
+            "blueviolet": color_rgb(138, 43, 226),
+            "brown": color_rgb(165, 42, 42),
+            "burlywood": color_rgb(222, 184, 135),
+            "cadetblue": color_rgb(95, 158, 160),
+            "chartreuse": color_rgb(127, 255, 0),
+            "chocolate": color_rgb(210, 105, 30),
+            "coral": color_rgb(255, 127, 80),
+            "cornflowerblue": color_rgb(100, 149, 237),
+            "cornsilk": color_rgb(255, 248, 220),
+            "crimson": color_rgb(220, 20, 60),
+            "cyan": color_rgb(0, 255, 255),
+            "darkblue": color_rgb(0, 0, 139),
+            "darkcyan": color_rgb(0, 139, 139),
+            "darkgoldenrod": color_rgb(184, 134, 11),
+            "darkgray": color_rgb(169, 169, 169),
+            "darkgreen": color_rgb(0, 100, 0),
+            "darkgrey": color_rgb(169, 169, 169),
+            "darkkhaki": color_rgb(189, 183, 107),
+            "darkmagenta": color_rgb(139, 0, 139),
+            "darkolivegreen": color_rgb(85, 107, 47),
+            "darkorange": color_rgb(255, 140, 0),
+            "darkorchid": color_rgb(153, 50, 204),
+            "darkred": color_rgb(139, 0, 0),
+            "darksalmon": color_rgb(233, 150, 122),
+            "darkseagreen": color_rgb(143, 188, 143),
+            "darkslateblue": color_rgb(72, 61, 139),
+            "darkslategray": color_rgb(47, 79, 79),
+            "darkslategrey": color_rgb(47, 79, 79),
+            "darkturquoise": color_rgb(0, 206, 209),
+            "darkviolet": color_rgb(148, 0, 211),
+            "deeppink": color_rgb(255, 20, 147),
+            "deepskyblue": color_rgb(0, 191, 255),
+            "dimgray": color_rgb(105, 105, 105),
+            "dimgrey": color_rgb(105, 105, 105),
+            "dodgerblue": color_rgb(30, 144, 255),
+            "firebrick": color_rgb(178, 34, 34),
+            "floralwhite": color_rgb(255, 250, 240),
+            "forestgreen": color_rgb(34, 139, 34),
+            "fuchsia": color_rgb(255, 0, 255),
+            "gainsboro": color_rgb(220, 220, 220),
+            "ghostwhite": color_rgb(248, 248, 255),
+            "gold": color_rgb(255, 215, 0),
+            "goldenrod": color_rgb(218, 165, 32),
+            "gray": color_rgb(128, 128, 128),
+            "grey": color_rgb(128, 128, 128),
+            "green": color_rgb(0, 128, 0),
+            "greenyellow": color_rgb(173, 255, 47),
+            "honeydew": color_rgb(240, 255, 240),
+            "hotpink": color_rgb(255, 105, 180),
+            "indianred": color_rgb(205, 92, 92),
+            "indigo": color_rgb(75, 0, 130),
+            "ivory": color_rgb(255, 255, 240),
+            "khaki": color_rgb(240, 230, 140),
+            "lavender": color_rgb(230, 230, 250),
+            "lavenderblush": color_rgb(255, 240, 245),
+            "lawngreen": color_rgb(124, 252, 0),
+            "lemonchiffon": color_rgb(255, 250, 205),
+            "lightblue": color_rgb(173, 216, 230),
+            "lightcoral": color_rgb(240, 128, 128),
+            "lightcyan": color_rgb(224, 255, 255),
+            "lightgoldenrodyellow": color_rgb(250, 250, 210),
+            "lightgray": color_rgb(211, 211, 211),
+            "lightgreen": color_rgb(144, 238, 144),
+            "lightgrey": color_rgb(211, 211, 211),
+            "lightpink": color_rgb(255, 182, 193),
+            "lightsalmon": color_rgb(255, 160, 122),
+            "lightseagreen": color_rgb(32, 178, 170),
+            "lightskyblue": color_rgb(135, 206, 250),
+            "lightslategray": color_rgb(119, 136, 153),
+            "lightslategrey": color_rgb(119, 136, 153),
+            "lightsteelblue": color_rgb(176, 196, 222),
+            "lightyellow": color_rgb(255, 255, 224),
+            "lime": color_rgb(0, 255, 0),
+            "limegreen": color_rgb(50, 205, 50),
+            "linen": color_rgb(250, 240, 230),
+            "magenta": color_rgb(255, 0, 255),
+            "maroon": color_rgb(128, 0, 0),
+            "mediumaquamarine": color_rgb(102, 205, 170),
+            "mediumblue": color_rgb(0, 0, 205),
+            "mediumorchid": color_rgb(186, 85, 211),
+            "mediumpurple": color_rgb(147, 112, 219),
+            "mediumseagreen": color_rgb(60, 179, 113),
+            "mediumslateblue": color_rgb(123, 104, 238),
+            "mediumspringgreen": color_rgb(0, 250, 154),
+            "mediumturquoise": color_rgb(72, 209, 204),
+            "mediumvioletred": color_rgb(199, 21, 133),
+            "midnightblue": color_rgb(25, 25, 112),
+            "mintcream": color_rgb(245, 255, 250),
+            "mistyrose": color_rgb(255, 228, 225),
+            "moccasin": color_rgb(255, 228, 181),
+            "navajowhite": color_rgb(255, 222, 173),
+            "navy": color_rgb(0, 0, 128),
+            "oldlace": color_rgb(253, 245, 230),
+            "olive": color_rgb(128, 128, 0),
+            "olivedrab": color_rgb(107, 142, 35),
+            "orange": color_rgb(255, 165, 0),
+            "orangered": color_rgb(255, 69, 0),
+            "orchid": color_rgb(218, 112, 214),
+            "palegoldenrod": color_rgb(238, 232, 170),
+            "palegreen": color_rgb(152, 251, 152),
+            "paleturquoise": color_rgb(175, 238, 238),
+            "palevioletred": color_rgb(219, 112, 147),
+            "papayawhip": color_rgb(255, 239, 213),
+            "peachpuff": color_rgb(255, 218, 185),
+            "peru": color_rgb(205, 133, 63),
+            "pink": color_rgb(255, 192, 203),
+            "plum": color_rgb(221, 160, 221),
+            "powderblue": color_rgb(176, 224, 230),
+            "purple": color_rgb(128, 0, 128),
+            "red": color_rgb(255, 0, 0),
+            "rosybrown": color_rgb(188, 143, 143),
+            "royalblue": color_rgb(65, 105, 225),
+            "saddlebrown": color_rgb(139, 69, 19),
+            "salmon": color_rgb(250, 128, 114),
+            "sandybrown": color_rgb(244, 164, 96),
+            "seagreen": color_rgb(46, 139, 87),
+            "seashell": color_rgb(255, 245, 238),
+            "sienna": color_rgb(160, 82, 45),
+            "silver": color_rgb(192, 192, 192),
+            "skyblue": color_rgb(135, 206, 235),
+            "slateblue": color_rgb(106, 90, 205),
+            "slategray": color_rgb(112, 128, 144),
+            "slategrey": color_rgb(112, 128, 144),
+            "snow": color_rgb(255, 250, 250),
+            "springgreen": color_rgb(0, 255, 127),
+            "steelblue": color_rgb(70, 130, 180),
+            "tan": color_rgb(210, 180, 140),
+            "teal": color_rgb(0, 128, 128),
+            "thistle": color_rgb(216, 191, 216),
+            "tomato": color_rgb(255, 99, 71),
+            "turquoise": color_rgb(64, 224, 208),
+            "violet": color_rgb(238, 130, 238),
+            "wheat": color_rgb(245, 222, 179),
+            "white": color_rgb(255, 255, 255),
+            "whitesmoke": color_rgb(245, 245, 245),
+            "yellow": color_rgb(255, 255, 0),
+            "yellowgreen": color_rgb(154, 205, 50)
+        }
+        if color in color_dict:
+            return color_dict[color]
+        return 0xFF000000  # Failed, so black.

@@ -47,13 +47,13 @@ def read_pec(f, out, pes_chart=None):
 
 
 def read_pec_graphics(f, out, size, stride, count, values):
-    # TODO: Breaking Change PEC GRAPHIC names to pec_graphic_0...
     v = values[:]
     v.insert(0, None)
     for i in range(0, count):
         graphic = bytearray(f.read(size))
         if f is not None:
-            out.metadata(i, (graphic, stride, v[i]))
+            name = "pec_graphic_" + str(i)
+            out.metadata(name, (graphic, stride, v[i]))
 
 
 def process_pec_colors(colorbytes, out, values):

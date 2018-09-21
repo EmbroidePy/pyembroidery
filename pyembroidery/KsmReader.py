@@ -39,7 +39,7 @@ def read_ksm_stitches(f, out):
             continue
         if 0x0B <= ctrl <= 0x12:
             needle = ctrl - 0x0A
-            out.color_change()
+            out.needle_change(needle)
             trimmed = True
             continue
         if ctrl == 0x05:

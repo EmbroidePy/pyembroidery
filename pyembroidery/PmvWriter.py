@@ -55,7 +55,7 @@ def write(pattern, f, settings=None):
         point_index += 1
         if point_index >= point_count:
             break
-        data = stitch[2]
+        data = stitch[2] & COMMAND_MASK
         x = stitch[0]
         y = stitch[1]
         x *= scale_x
@@ -122,7 +122,7 @@ def write_width_lookup_table(f, width_range):
         return
     steps = 15
     write_int_8(f, steps)
-    second_max = other_step = 28000.0 / float(width_range)
+    second_max = 28000.0 / float(width_range)
     second_step = second_max / float(steps - 1)
     for i in range(0, steps):
         width_at_step = 50 * i

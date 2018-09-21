@@ -22,7 +22,7 @@ def stc_stitch_encoding_read(f, out):
             break
         else:
             needle = ctrl - 2
-            out.color_change()
+            out.needle_change(needle)
     out.end()
 
 

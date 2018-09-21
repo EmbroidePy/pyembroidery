@@ -310,7 +310,7 @@ def get_as_segments_blocks(pattern, chart, adjust_x, adjust_y):
     stitched_y = 0
     for command_block in pattern.get_as_command_blocks():
         block = []
-        command = command_block[0][2]
+        command = command_block[0][2] & COMMAND_MASK
         if command == JUMP:
             block.append([stitched_x - adjust_x, stitched_y - adjust_y])
             last_pos = command_block[-1]

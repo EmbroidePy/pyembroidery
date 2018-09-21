@@ -47,6 +47,8 @@ def write(pattern, f, settings=None):
     csv(f, ('>', 'STITCH_COUNT:', str(count_stitches)))
     count_threads = pattern.count_color_changes()
     csv(f, ('>', 'THREAD_COUNT:', str(count_threads)))
+    count_set_needles = pattern.count_needle_sets()
+    csv(f, ('>', 'NEEDLE_COUNT:', str(count_set_needles)))
     csv(f, ('>', 'EXTENTS_LEFT:', str(extends[0])))
     csv(f, ('>', 'EXTENTS_TOP:', str(extends[1])))
     csv(f, ('>', 'EXTENTS_RIGHT:', str(extends[2])))
@@ -56,7 +58,7 @@ def write(pattern, f, settings=None):
 
     stitch_counts = {}
     for s in pattern.stitches:
-        command = s[2]
+        command = s[2] & COMMAND_MASK
         if command in stitch_counts:
             stitch_counts[command] += 1
         else:
@@ -65,6 +67,7 @@ def write(pattern, f, settings=None):
     if len(stitch_counts) != 0:
         for the_key, the_value in stitch_counts.items():
             try:
+                the_key &= COMMAND_MASK
                 name = "COMMAND_" + names[the_key]
             except (IndexError, KeyError):
                 name = "COMMAND_UNKNOWN_" + str(the_key)
@@ -149,8 +152,15 @@ def write(pattern, f, settings=None):
         current_x = 0
         current_y = 0
         for i, stitch in enumerate(pattern.stitches):
+            command = decode_thread_change(stitch[2])
             try:
-                name = names[stitch[2]]
+                name = names[command[0]]
+                if command[1] != -1:
+                    name = name + " t" + str(command[1])
+                if command[2] != -1:
+                    name = name + " n" + str(command[2])
+                if command[3] != -1:
+                    name = name + " o" + str(command[3])
             except (IndexError, KeyError):
                 name = "UNKNOWN " + str(stitch[2])
             if displacement:
@@ -189,42 +199,3 @@ def write(pattern, f, settings=None):
                 ))
             current_x = stitch[0]
             current_y = stitch[1]
-
-
-def get_common_name_dictionary():
-    return {
-        NO_COMMAND: "NO_COMMAND",
-        STITCH: "STITCH",
-        JUMP: "JUMP",
-        TRIM: "TRIM",
-        STOP: "STOP",
-        END: "END",
-        SLOW: "SLOW",
-        FAST: "FAST",
-        COLOR_CHANGE: "COLOR_CHANGE",
-        SEQUIN_MODE: "SEQUIN_MODE",
-        SEQUIN_EJECT: "SEQUIN_EJECT",
-        SEW_TO: "SEW_TO",
-        NEEDLE_AT: "NEEDLE_AT",
-        STITCH_BREAK: "STITCH_BREAK",
-        SEQUENCE_BREAK: "SEQUENCE_BREAK",
-        COLOR_BREAK: "COLOR_BREAK",
-        TIE_ON: "TIE_ON",
-        TIE_OFF: "TIE_OFF",
-        FRAME_EJECT: "FRAME_EJECT",
-        MATRIX_TRANSLATE: "MATRIX_TRANSLATE",
-        MATRIX_SCALE: "MATRIX_SCALE",
-        MATRIX_ROTATE: "MATRIX_ROTATE",
-        MATRIX_RESET: "MATRIX_RESET",
-        OPTION_ENABLE_TIE_ON: "OPTION_ENABLE_TIE_ON",
-        OPTION_ENABLE_TIE_OFF: "OPTION_ENABLE_TIE_OFF",
-        OPTION_DISABLE_TIE_ON: "OPTION_DISABLE_TIE_ON",
-        OPTION_DISABLE_TIE_OFF: "OPTION_DISABLE_TIE_OFF",
-        OPTION_MAX_STITCH_LENGTH: "OPTION_MAX_STITCH_LENGTH",
-        OPTION_MAX_JUMP_LENGTH: "OPTION_MAX_JUMP_LENGTH",
-        OPTION_IMPLICIT_TRIM: "OPTION_IMPLICIT_TRIM",
-        OPTION_EXPLICIT_TRIM: "OPTION_EXPLICIT_TRIM",
-        CONTINGENCY_NONE: "CONTINGENCY_NONE",
-        CONTINGENCY_JUMP_NEEDLE: "CONTINGENCY_JUMP_NEEDLE",
-        CONTINGENCY_SEW_TO: "CONTINGENCY_SEW_TO",
-    }

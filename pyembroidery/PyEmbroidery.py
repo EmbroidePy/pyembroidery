@@ -495,6 +495,11 @@ def write_embroidery(writer, pattern, stream, settings=None):
                 settings["sequin_contingency"] = writer.SEQUIN_CONTINGENCY
             except AttributeError:
                 pass
+        if not ("thread_change_command" in settings):
+            try:
+                settings["thread_change_command"] = writer.THREAD_CHANGE_COMMAND
+            except AttributeError:
+                pass
         pattern = pattern.get_normalized_pattern(settings)
 
     if isinstance(stream, str):

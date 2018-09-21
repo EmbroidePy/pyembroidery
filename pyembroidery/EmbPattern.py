@@ -1,5 +1,3 @@
-import random
-
 from .EmbThread import EmbThread
 from .EmbEncoder import Transcoder as Normalizer
 from .EmbConstant import *
@@ -13,6 +11,22 @@ class EmbPattern:
         # filename, name, category, author, keywords, comments, are typical
         self._previousX = 0  # type: float
         self._previousY = 0  # type: float
+
+    def copy(self):
+        emb_pattern = EmbPattern()
+        emb_pattern.stitches = self.stitches[:]
+        emb_pattern.threadlist = self.threadlist[:]
+        emb_pattern.extras.update(self.extras)
+        emb_pattern._previousX = self._previousX
+        emb_pattern._previousY = self._previousY
+        return emb_pattern
+
+    def clear(self):
+        self.stitches = []
+        self.threadlist = []
+        self.extras = {}
+        self._previousX = 0
+        self._previousY = 0
 
     def move(self, dx=0, dy=0):
         """Move dx, dy"""
@@ -41,6 +55,11 @@ class EmbPattern:
     def color_change(self, dx=0, dy=0):
         """Color Change dx, dy"""
         self.add_stitch_relative(COLOR_CHANGE, dx, dy)
+
+    def needle_change(self, needle=0, dx=0, dy=0):
+        """Needle change, needle, dx, dy"""
+        cmd = encode_thread_change(NEEDLE_SET, None, needle)
+        self.add_stitch_relative(cmd, dx, dy)
 
     def sequin_eject(self, dx=0, dy=0):
         """Eject Sequin dx, dy"""
@@ -92,13 +111,16 @@ class EmbPattern:
     def count_stitch_commands(self, command):
         count = 0
         for stitch in self.stitches:
-            flags = stitch[2]
+            flags = stitch[2] & COMMAND_MASK
             if flags == command:
                 count += 1
         return count
 
     def count_color_changes(self):
         return self.count_stitch_commands(COLOR_CHANGE)
+
+    def count_needle_sets(self):
+        return self.count_stitch_commands(NEEDLE_SET)
 
     def count_stitches(self):
         return len(self.stitches)
@@ -109,7 +131,7 @@ class EmbPattern:
     @staticmethod
     def get_random_thread():
         thread = EmbThread()
-        thread.color = 0xFF000000 | random.randint(0, 0xFFFFFF)
+        thread.set("random")
         thread.description = "Random"
         return thread
 
@@ -119,12 +141,15 @@ class EmbPattern:
         else:
             return self.threadlist[index]
 
+    def get_thread(self, index):
+        return self.threadlist[index]
+
     def get_as_stitchblock(self):
         stitchblock = []
         thread = self.get_thread_or_filler(0)
         thread_index = 1
         for stitch in self.stitches:
-            flags = stitch[2]
+            flags = stitch[2] & COMMAND_MASK
             if flags == STITCH:
                 stitchblock.append(stitch)
             else:
@@ -141,7 +166,7 @@ class EmbPattern:
         last_pos = 0
         last_command = NO_COMMAND
         for pos, stitch in enumerate(self.stitches):
-            command = stitch[2]
+            command = stitch[2] & COMMAND_MASK
             if command == last_command or last_command == NO_COMMAND:
                 last_command = command
                 continue
@@ -154,7 +179,8 @@ class EmbPattern:
         thread_index = 0
         last_pos = 0
         for pos, stitch in enumerate(self.stitches):
-            if stitch[2] != COLOR_CHANGE:
+            command = stitch[2] & COMMAND_MASK
+            if command != COLOR_CHANGE:
                 continue
             thread = self.get_thread_or_filler(thread_index)
             thread_index += 1
@@ -186,7 +212,7 @@ class EmbPattern:
             stitch[0] += dx
             stitch[1] += dy
 
-    def fix_color_count(self):
+    def fix_color_count(self):  # TODO: FIX COLOR COUNT is basically part of the encoder now.
         """Ensure the there are threads for all color blocks."""
         thread_index = 0
         init_color = True
@@ -247,7 +273,7 @@ class EmbPattern:
         while i < ie:
             i += 1
             stitch = self.stitches[i]
-            command = stitch[2]
+            command = stitch[2] & COMMAND_MASK
             if command == STITCH or command == SEQUIN_EJECT:
                 trimmed = False
             elif command == COLOR_CHANGE or command == TRIM:
@@ -284,7 +310,8 @@ class EmbPattern:
         while i < ie:
             i += 1
             stitch = self.stitches[i]
-            if stitch[2] == JUMP:
+            command = stitch[2] & COMMAND_MASK
+            if command == JUMP:
                 if stitch_break:
                     continue
                 new_pattern.add_command(STITCH_BREAK)
@@ -306,7 +333,7 @@ class EmbPattern:
         return stable_pattern
 
     def get_normalized_pattern(self, encode_settings=None):
-        """Encodes"""
+        """Encodes pattern typically for saving."""
         normal_pattern = EmbPattern()
         transcoder = Normalizer(encode_settings)
         transcoder.transcode(self, normal_pattern)
@@ -317,23 +344,3 @@ class EmbPattern:
         All commands will be translated by the given amount,
         including absolute location commands."""
         self.add_stitch_relative(MATRIX_TRANSLATE, x, y, )
-
-    def append_enable_tie_on(self, x=0, y=0):
-        """Appends enable tie on.
-        All starts of new stitching will be tied on"""
-        self.add_stitch_relative(OPTION_ENABLE_TIE_ON, x, y)
-
-    def append_enable_tie_off(self, x=0, y=0):
-        """Appends enable tie off.
-        All ends of stitching will be tied off"""
-        self.add_stitch_relative(OPTION_ENABLE_TIE_OFF, x, y)
-
-    def append_disable_tie_on(self, x=0, y=0):
-        """Appends disable tie on.
-        New stitching will no longer be tied on"""
-        self.add_stitch_relative(OPTION_DISABLE_TIE_ON, x, y)
-
-    def append_disable_tie_off(self, x=0, y=0):
-        """Appends enable tie off.
-        Ends of stitching will no longer be tied off"""
-        self.add_stitch_relative(OPTION_DISABLE_TIE_OFF, x, y)

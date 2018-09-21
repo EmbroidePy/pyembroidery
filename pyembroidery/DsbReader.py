@@ -2,7 +2,6 @@ from .DstReader import dst_read_header
 
 
 def b_stitch_encoding_read(f, out):
-    stitched_yet = False
     count = 0
     while True:
         count += 1
@@ -20,7 +19,6 @@ def b_stitch_encoding_read(f, out):
             x = -x
 
         if (ctrl & 0b11111) == 0:
-            stitched_yet = True
             out.stitch(x, y)
             continue
         if (ctrl & 0b11111) == 1:
@@ -36,8 +34,7 @@ def b_stitch_encoding_read(f, out):
             continue
         if 0xE9 <= ctrl < 0xF8:
             needle = ctrl - 0xE8
-            if stitched_yet:
-                out.color_change()
+            out.needle_change(needle)
             continue
         break  # Uncaught Control
     out.end()

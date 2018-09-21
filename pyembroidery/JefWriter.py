@@ -85,7 +85,7 @@ def write(pattern, f, settings=None):
     for stitch in pattern.stitches:
         x = stitch[0]
         y = stitch[1]
-        data = stitch[2]
+        data = stitch[2] & COMMAND_MASK
         dx = int(round(x - xx))
         dy = int(round(y - yy))
         xx += dx

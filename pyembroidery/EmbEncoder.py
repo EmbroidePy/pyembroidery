@@ -10,20 +10,33 @@ class Transcoder:
         self.max_stitch = settings.get("max_stitch", float('inf'))
         self.max_jump = settings.get("max_jump", float('inf'))
         self.full_jump = settings.get("full_jump", False)
+        self.needle_count = settings.get("needle_count", 1)
+        self.thread_change_command = settings.get("thread_change_command", COLOR_CHANGE)
         strip_sequins = settings.get("strip_sequins", True)
+        # deprecated, use sequin_contingency.
         if strip_sequins:
-            self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
-        else:
             self.sequin_contingency = CONTINGENCY_SEQUIN_JUMP
+        else:
+            self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
         self.sequin_contingency = settings.get("sequin_contingency", self.sequin_contingency)
 
         self.strip_speeds = settings.get("strip_speeds", True)
-        self.explicit_trim = settings.get("explicit_trim", True)
+        self.explicit_trim = settings.get("explicit_trim", False)
 
-        self.has_tie_on = settings.get("tie_on", False)
-        self.has_tie_off = settings.get("tie_off", False)
+        self.tie_on_contingency = settings.get("tie_on", CONTINGENCY_TIE_ON_NONE)
+        if self.tie_on_contingency is True:
+            self.tie_on_contingency = CONTINGENCY_TIE_ON_THREE_SMALL
+        if self.tie_on_contingency is False:
+            self.tie_on_contingency = CONTINGENCY_TIE_ON_NONE
+
+        self.tie_off_contingency = settings.get("tie_off", CONTINGENCY_TIE_OFF_NONE)
+        if self.tie_off_contingency is True:
+            self.tie_off_contingency = CONTINGENCY_TIE_OFF_THREE_SMALL
+        if self.tie_off_contingency is False:
+            self.tie_off_contingency = CONTINGENCY_TIE_OFF_NONE
+
         self.long_stitch_contingency = \
-            settings.get("long_stitch_contingency", CONTINGENCY_JUMP_NEEDLE)
+            settings.get("long_stitch_contingency", CONTINGENCY_LONG_STITCH_JUMP_NEEDLE)
 
         self.matrix = get_identity()
         translate = settings.get("translate", None)
@@ -56,15 +69,20 @@ class Transcoder:
         self.source_pattern = None
         self.destination_pattern = None
         self.position = 0
-        self.color_index = -1
+        self.order_index = -1
+        self.change_sequence = {}
         self.stitch = None
         self.state_trimmed = True
         self.state_sequin_mode = False
+        self.state_jumping = False
         self.needle_x = 0
         self.needle_y = 0
-        self.state_jumping = False
 
     def transcode(self, source_pattern, destination_pattern):
+        if source_pattern is destination_pattern:
+            # both objects are same. Source is copy, destination is cleared.
+            source_pattern = destination_pattern.copy()
+            destination_pattern.clear()
         self.source_pattern = source_pattern
         self.destination_pattern = destination_pattern
         self.transcode_metadata()
@@ -93,24 +111,86 @@ class Transcoder:
         self.needle_x = 0
         self.needle_y = 0
         self.position = 0
-        self.color_index = -1
+        self.order_index = -1
+        self.change_sequence = {}
+
+        lookahead_index = 0
+        current_index = 0
+        self.change_sequence[0] = [None, None, None, None]
+
+        for self.position, self.stitch in enumerate(source):
+            command = self.stitch[2]
+            flags = command & COMMAND_MASK
+
+            if current_index == 0:
+                if flags == STITCH or flags == SEW_TO or flags == NEEDLE_AT or flags == SEQUIN_EJECT:
+                    current_index = 1
+
+            if flags != SET_CHANGE_SEQUENCE and flags != NEEDLE_SET \
+                    and flags != COLOR_CHANGE and flags != COLOR_BREAK:
+                continue
+
+            if flags == SET_CHANGE_SEQUENCE:
+                try:
+                    current = self.change_sequence[lookahead_index]
+                except KeyError:
+                    current = [None, None, None, None]
+                    self.change_sequence[lookahead_index] = current
+                lookahead_index += 1
+            else:
+                try:
+                    current = self.change_sequence[current_index]
+                except KeyError:
+                    current = [None, None, None, None]
+                    self.change_sequence[current_index] = current
+                current_index += 1
+                if current_index > lookahead_index:
+                    lookahead_index = current_index
+            decode_change = decode_thread_change(command)
+            thread = decode_change[1]
+            needle = decode_change[2]
+            if flags == COLOR_CHANGE:
+                current[0] = COLOR_CHANGE
+            elif flags == NEEDLE_SET:
+                current[0] = NEEDLE_SET
+            if thread != -1:
+                current[1] = thread
+                current[3] = self.source_pattern.get_thread_or_filler(thread)
+            if needle != -1:
+                current[2] = needle
+        # TODO: account for contingency where threadset has repeated
+        # threads and not explicit values set within the commands.
+
+        thread_index = 0
+        needle_index = 1
+        for order, s in self.change_sequence.items():
+            if s[0] is None:
+                s[0] = self.thread_change_command
+            if s[1] is None:
+                s[1] = thread_index
+                thread_index += 1
+            if s[2] is None:
+                s[2] = needle_index
+                # self.needle_count
+                needle_index += 1
+            if s[3] is None:
+                s[3] = self.source_pattern.get_thread_or_filler(s[1])
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
             p = point_in_matrix_space(self.matrix, self.stitch)
             x = p[0]
             y = p[1]
-            flags = self.stitch[2]
+            flags = self.stitch[2] & COMMAND_MASK
 
             if flags == NO_COMMAND:
                 continue
-
             elif flags == STITCH:
                 if self.state_trimmed:
+                    self.declare_not_trimmed()
                     self.jump_to_within_stitchrange(x, y)
                     self.stitch_at(x, y)
-                    if self.has_tie_on:
-                        self.tie_on()
+                    self.tie_on()
                 elif self.state_jumping:
                     self.needle_to(x, y)
                     self.state_jumping = False
@@ -118,10 +198,10 @@ class Transcoder:
                     self.stitch_with_contingency(x, y)
             elif flags == NEEDLE_AT:
                 if self.state_trimmed:
+                    self.declare_not_trimmed()
                     self.jump_to_within_stitchrange(x, y)
                     self.stitch_at(x, y)
-                    if self.has_tie_on:
-                        self.tie_on()
+                    self.tie_on()
                 elif self.state_jumping:
                     self.needle_to(x, y)
                     self.state_jumping = False
@@ -129,10 +209,10 @@ class Transcoder:
                     self.needle_to(x, y)
             elif flags == SEW_TO:
                 if self.state_trimmed:
+                    self.declare_not_trimmed()
                     self.jump_to_within_stitchrange(x, y)
                     self.stitch_at(x, y)
-                    if self.has_tie_on:
-                        self.tie_on()
+                    self.tie_on()
                 elif self.state_jumping:
                     self.needle_to(x, y)
                     self.state_jumping = False
@@ -165,17 +245,17 @@ class Transcoder:
                 self.toggle_sequins()
             elif flags == SEQUIN_EJECT:
                 if self.state_trimmed:
+                    self.declare_not_trimmed()
                     self.jump_to_within_stitchrange(x, y)
                     self.stitch_at(x, y)
-                    if self.has_tie_on:
-                        self.tie_on()
+                    self.tie_on()
                 if not self.state_sequin_mode:
                     self.toggle_sequins()
                 self.sequin_at(x, y)
             elif flags == COLOR_CHANGE:
                 self.tie_off_trim_color_change()
-                # If we are told to do something we do it.
-                # Even if it's the first command and makes no sense.
+            elif flags == NEEDLE_SET:
+                self.tie_off_trim_color_change()
             elif flags == STOP:
                 self.stop_here()
             elif flags == SLOW:
@@ -185,16 +265,15 @@ class Transcoder:
             elif flags == END:
                 self.end_here()
                 break
-
             # On-the-fly Settings Commands.
-            elif flags == OPTION_ENABLE_TIE_ON:
-                self.has_tie_on = True
-            elif flags == OPTION_ENABLE_TIE_OFF:
-                self.has_tie_off = True
-            elif flags == OPTION_DISABLE_TIE_ON:
-                self.has_tie_on = False
-            elif flags == OPTION_DISABLE_TIE_OFF:
-                self.has_tie_off = False
+            elif flags == CONTINGENCY_TIE_ON_THREE_SMALL:
+                self.tie_on_contingency = CONTINGENCY_TIE_ON_THREE_SMALL
+            elif flags == CONTINGENCY_TIE_OFF_THREE_SMALL:
+                self.tie_off_contingency = CONTINGENCY_TIE_OFF_THREE_SMALL
+            elif flags == CONTINGENCY_TIE_ON_NONE:
+                self.tie_on_contingency = CONTINGENCY_TIE_ON_NONE
+            elif flags == CONTINGENCY_TIE_OFF_NONE:
+                self.tie_off_contingency = CONTINGENCY_TIE_OFF_NONE
             elif flags == OPTION_MAX_JUMP_LENGTH:
                 x = self.stitch[0]
                 self.max_jump = x
@@ -205,12 +284,12 @@ class Transcoder:
                 self.explicit_trim = True
             elif flags == OPTION_IMPLICIT_TRIM:
                 self.explicit_trim = False
-            elif flags == CONTINGENCY_NONE:
-                self.long_stitch_contingency = CONTINGENCY_NONE
-            elif flags == CONTINGENCY_JUMP_NEEDLE:
-                self.long_stitch_contingency = CONTINGENCY_JUMP_NEEDLE
-            elif flags == CONTINGENCY_SEW_TO:
-                self.long_stitch_contingency = CONTINGENCY_SEW_TO
+            elif flags == CONTINGENCY_LONG_STITCH_NONE:
+                self.long_stitch_contingency = CONTINGENCY_LONG_STITCH_NONE
+            elif flags == CONTINGENCY_LONG_STITCH_JUMP_NEEDLE:
+                self.long_stitch_contingency = CONTINGENCY_LONG_STITCH_JUMP_NEEDLE
+            elif flags == CONTINGENCY_LONG_STITCH_SEW_TO:
+                self.long_stitch_contingency = CONTINGENCY_LONG_STITCH_SEW_TO
             elif flags == CONTINGENCY_SEQUIN_REMOVE:
                 if self.state_sequin_mode:  # if sequin_mode, turn it off.
                     self.toggle_sequins()
@@ -228,11 +307,25 @@ class Transcoder:
             elif flags == MATRIX_TRANSLATE:
                 m = get_translate(self.stitch[0], self.stitch[1])
                 self.matrix = matrix_multiply(self.matrix, m)
-            elif flags == MATRIX_SCALE:
+            elif flags == MATRIX_SCALE_ORIGIN:
                 m = get_scale(self.stitch[0], self.stitch[1])
                 self.matrix = matrix_multiply(self.matrix, m)
-            elif flags == MATRIX_ROTATE:
+            elif flags == MATRIX_ROTATE_ORIGIN:
                 m = get_rotate(self.stitch[0])
+                self.matrix = matrix_multiply(self.matrix, m)
+            elif flags == MATRIX_SCALE:
+                pos = point_in_matrix_space(self.matrix, (self.needle_x, self.needle_y))
+                m0 = get_translate(-pos[0], -pos[1])
+                m1 = get_scale(self.stitch[0], self.stitch[1])
+                m2 = get_translate(pos[0], pos[1])
+                m = post_matrix_cat((m0, m1, m2))
+                self.matrix = matrix_multiply(self.matrix, m)
+            elif flags == MATRIX_ROTATE:
+                pos = point_in_matrix_space(self.matrix, (self.needle_x, self.needle_y))
+                m0 = get_translate(-pos[0], -pos[1])
+                m1 = get_rotate(self.stitch[0])
+                m2 = get_translate(pos[0], pos[1])
+                m = post_matrix_cat((m0, m1, m2))
                 self.matrix = matrix_multiply(self.matrix, m)
             elif flags == MATRIX_RESET:
                 self.matrix = get_identity()
@@ -244,10 +337,12 @@ class Transcoder:
         self.needle_y = y
 
     def declare_not_trimmed(self):
-        if self.state_trimmed:
-            self.state_trimmed = False
-            if self.color_index == -1:
-                self.color_index = 0
+        self.state_trimmed = False
+        if self.order_index == -1:
+            self.next_change_sequence()
+
+    def add_thread_change(self, command, thread=None, needle=None, order=None):
+        self.add(encode_thread_change(command, thread, needle, order))
 
     def add(self, flags, x=None, y=None):
         if x is None:
@@ -279,27 +374,23 @@ class Transcoder:
 
     def color_break(self):
         """Implements color break. Should add color changes add needed only."""
-        if self.color_index < 0:
+        if self.order_index < 0:
             return  # We haven't stitched anything, colorbreak happens, before start. Ignore.
         if not self.state_trimmed:
-            if self.has_tie_off:
-                self.tie_off()
+            self.tie_off()
             if self.explicit_trim:
                 self.trim_here()
         if not self.lookahead_stitch():
             return  # No more stitching will happen, colorchange unneeded.
-        self.add(COLOR_CHANGE)
-        self.color_index += 1
+        self.next_change_sequence()
         self.state_trimmed = True
 
     def tie_off_trim_color_change(self):
         if not self.state_trimmed:
-            if self.has_tie_off:
-                self.tie_off()
+            self.tie_off()
             if self.explicit_trim:
                 self.trim_here()
-        self.add(COLOR_CHANGE)
-        self.color_index += 1
+        self.next_change_sequence()
         self.state_trimmed = True
 
     def tie_off_and_trim_if_needed(self):
@@ -307,37 +398,38 @@ class Transcoder:
             self.tie_off_and_trim()
 
     def tie_off_and_trim(self):
-        if self.has_tie_off:
-            self.tie_off()
+        self.tie_off()
         self.trim_here()
 
     def tie_off(self):
-        try:
-            b = point_in_matrix_space(
-                self.matrix,
-                self.source_pattern.stitches[self.position - 1],
-            )
-            flags = b[2]
-            if flags == STITCH or flags == NEEDLE_AT or \
-                    flags == SEW_TO or flags == SEQUIN_EJECT:
-                self.lock_stitch(self.needle_x, self.needle_y,
-                                 b[0], b[1], self.max_stitch)
-        except IndexError:
-            pass  # must be an island stitch. jump-stitch-jump
+        if self.tie_off_contingency == CONTINGENCY_TIE_OFF_THREE_SMALL:
+            try:
+                b = point_in_matrix_space(
+                    self.matrix,
+                    self.source_pattern.stitches[self.position - 1],
+                )
+                flags = b[2]
+                if flags == STITCH or flags == NEEDLE_AT or \
+                        flags == SEW_TO or flags == SEQUIN_EJECT:
+                    self.lock_stitch(self.needle_x, self.needle_y,
+                                     b[0], b[1], self.max_stitch)
+            except IndexError:
+                pass  # must be an island stitch. jump-stitch-jump
 
     def tie_on(self):
-        try:
-            b = point_in_matrix_space(
-                self.matrix,
-                self.source_pattern.stitches[self.position + 1]
-            )
-            flags = b[2]
-            if flags == STITCH or flags == NEEDLE_AT or \
-                    flags == SEW_TO or flags == SEQUIN_EJECT:
-                self.lock_stitch(self.needle_x, self.needle_y,
-                                 b[0], b[1], self.max_stitch)
-        except IndexError:
-            pass  # must be an island stitch. jump-stitch-jump
+        if self.tie_on_contingency == CONTINGENCY_TIE_ON_THREE_SMALL:
+            try:
+                b = point_in_matrix_space(
+                    self.matrix,
+                    self.source_pattern.stitches[self.position + 1]
+                )
+                flags = b[2]
+                if flags == STITCH or flags == NEEDLE_AT or \
+                        flags == SEW_TO or flags == SEQUIN_EJECT:
+                    self.lock_stitch(self.needle_x, self.needle_y,
+                                     b[0], b[1], self.max_stitch)
+            except IndexError:
+                pass  # must be an island stitch. jump-stitch-jump
 
     def trim_here(self):
         if self.state_sequin_mode:
@@ -383,9 +475,9 @@ class Transcoder:
         self.update_needle_position(new_x, new_y)
 
     def stitch_with_contingency(self, new_x, new_y):
-        if self.long_stitch_contingency == CONTINGENCY_SEW_TO:
+        if self.long_stitch_contingency == CONTINGENCY_LONG_STITCH_SEW_TO:
             self.sew_to(new_x, new_y)
-        elif self.long_stitch_contingency == CONTINGENCY_JUMP_NEEDLE:
+        elif self.long_stitch_contingency == CONTINGENCY_LONG_STITCH_JUMP_NEEDLE:
             self.needle_to(new_x, new_y)
         else:
             self.stitch_at(new_x, new_y)
@@ -421,7 +513,6 @@ class Transcoder:
         Should have already been checked for constraints."""
         self.add(STITCH, new_x, new_y)
         self.update_needle_position(new_x, new_y)
-        self.declare_not_trimmed()
 
     def sequin_at(self, new_x, new_y):
         """Sequin Ejects at position with the proper Sequin Contingency
@@ -444,7 +535,6 @@ class Transcoder:
         elif contingency == CONTINGENCY_SEQUIN_STITCH:
             self.add(STITCH, new_x, new_y)
         self.update_needle_position(new_x, new_y)
-        self.declare_not_trimmed()
 
     def slow_command_here(self):
         if not self.strip_speeds:
@@ -462,9 +552,14 @@ class Transcoder:
         self.add(END)
         self.state_trimmed = True
 
-    def color_change_here(self):
-        self.add(COLOR_CHANGE)
-        self.color_index += 1
+    def next_change_sequence(self):
+        self.order_index += 1
+        change = self.change_sequence[self.order_index]
+        if self.thread_change_command == COLOR_CHANGE:
+            if self.order_index != 0:
+                self.add_thread_change(COLOR_CHANGE, change[1], change[2])
+        elif self.thread_change_command == NEEDLE_SET:
+            self.add_thread_change(NEEDLE_SET, change[1], change[2])
         self.state_trimmed = True
 
     def position_will_exceed_constraint(self, length=None, new_x=None, new_y=None):
@@ -596,6 +691,13 @@ def get_rotate(theta):
         ct, st, 0, \
         -st, ct, 0, \
         0, 0, 1
+
+
+def post_matrix_cat(matrix_list):
+    m = get_identity()
+    for mx in matrix_list:
+        m = matrix_multiply(m, mx)
+    return m
 
 
 def matrix_multiply(a, b):
