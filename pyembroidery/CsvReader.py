@@ -11,7 +11,8 @@ def read(f, out, settings=None):
         if len(row) == 0:
             continue
         if "*" in row[0]:
-            command = command_dict[row[2]]
+            split = row[2].split(' ')
+            command = command_dict[split[0]]
             if len(row) == 3:
                 out.add_command(command)
             else:
