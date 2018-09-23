@@ -9,7 +9,7 @@ class TestEmbpattern(unittest.TestCase):
     def position_equals(self, stitches, j, k):
         self.assertEqual(stitches[j][:1], stitches[k][:1])
 
-    def test_write(self):
+    def test_write_dst(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -22,12 +22,24 @@ class TestEmbpattern(unittest.TestCase):
         self.position_equals(dst_pattern.stitches, 0, -1)
         print("dst: ", dst_pattern.stitches)
 
+    def test_write_exp(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+
         write_exp(pattern, "file.exp")
         exp_pattern = read_exp("file.exp")
         self.assertIsNotNone(exp_pattern)
         self.assertEqual(exp_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(exp_pattern.stitches, 0, -1)
         print("exp: ", exp_pattern.stitches)
+
+    def test_write_vp3(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
 
         write_vp3(pattern, "file.vp3")
         vp3_pattern = read_vp3("file.vp3")
@@ -36,6 +48,12 @@ class TestEmbpattern(unittest.TestCase):
         self.position_equals(vp3_pattern.stitches, 0, -1)
         print("vp3: ", vp3_pattern.stitches)
 
+    def test_write_jef(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+
         write_jef(pattern, "file.jef")
         jef_pattern = read_jef("file.jef")
         self.assertIsNotNone(jef_pattern)
@@ -43,19 +61,37 @@ class TestEmbpattern(unittest.TestCase):
         self.position_equals(jef_pattern.stitches, 0, -1)
         print("jef: ", jef_pattern.stitches)
 
+    def test_write_pec(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+
         write_pec(pattern, "file.pec")
         pec_pattern = read_pec("file.pec")
         self.assertIsNotNone(pec_pattern)
-        self.assertEqual(pec_pattern.count_stitch_commands(STITCH), 16)  # 5
+        self.assertEqual(pec_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(pec_pattern.stitches, 0, -1)
         print("pec: ", pec_pattern.stitches)
+
+    def test_write_pes(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
 
         write_pes(pattern, "file.pes")
         pes_pattern = read_pes("file.pes")
         self.assertIsNotNone(pes_pattern)
-        self.assertEqual(pes_pattern.count_stitch_commands(STITCH), 16)  # 5
+        self.assertEqual(pes_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(pes_pattern.stitches, 0, -1)
         print("pes: ", pes_pattern.stitches)
+
+    def test_write_u01(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
 
         write_u01(pattern, "file.u01")
         u01_pattern = read_u01("file.u01")
@@ -63,6 +99,12 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(u01_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(u01_pattern.stitches, 0, -1)
         print("u01: ", u01_pattern.stitches)
+
+    def test_write_csv(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
 
         write_csv(pattern, "file.csv")
         csv_pattern = read_csv("file.csv")
@@ -78,6 +120,8 @@ class TestEmbpattern(unittest.TestCase):
         self.assertAlmostEqual(p[0], 150)
         self.assertAlmostEqual(p[1], 50)
 
+    def test_matrix_2(self):
+        matrix = EmbMatrix()
         matrix.reset()
         matrix.post_scale(2, 2, 50, 50)
         p = matrix.point_in_matrix_space(50, 50)
@@ -92,6 +136,8 @@ class TestEmbpattern(unittest.TestCase):
         p = matrix.point_in_matrix_space(25, 25)
         self.assertAlmostEqual(p[0], 50)
 
+    def test_matrix_3(self):
+        matrix = EmbMatrix()
         matrix.reset()
         matrix.post_scale(0.5, 0.5)
         p = matrix.point_in_matrix_space(100, 100)
@@ -103,7 +149,7 @@ class TestEmbpattern(unittest.TestCase):
         self.assertAlmostEqual(p[0], 0)
         self.assertAlmostEqual(p[1], 0)
 
-    def test_matrix_commands(self):
+    def test_matrix_rotate(self):
         pattern = EmbPattern()
         pattern.add_block([(10, 10), (10, 110), (110, 110), (110, 10), (10, 10)], "red")
         pattern.add_command(MATRIX_ROTATE, 45)
@@ -118,9 +164,9 @@ class TestEmbpattern(unittest.TestCase):
         self.assertAlmostEqual(pattern.stitches[10][1], pattern.stitches[12][1])
         self.assertAlmostEqual(pattern.stitches[4][0], pattern.stitches[12][0])
         self.assertAlmostEqual(pattern.stitches[4][1], pattern.stitches[12][1])
-
         write_svg(pattern, "file.svg")
 
+    def test_matrix_translate(self):
         pattern = EmbPattern()
         pattern.add_block([(10, 10), (10, 110), (110, 110), (110, 10), (10, 10)], "red")
         pattern.add_command(MATRIX_TRANSLATE, 20, 40)
@@ -136,6 +182,7 @@ class TestEmbpattern(unittest.TestCase):
         self.assertAlmostEqual(pattern.stitches[4][1], pattern.stitches[12][1])
         write_svg(pattern, "file2.svg")
 
+    def test_matrix_translate_rotate(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_command(MATRIX_TRANSLATE, 20, 40)
@@ -147,10 +194,11 @@ class TestEmbpattern(unittest.TestCase):
         self.assertIsNotNone(pattern.stitches)
         self.assertEqual(pattern.count_stitch_commands(MATRIX_TRANSLATE), 0)
         self.assertEqual(pattern.count_stitch_commands(MATRIX_ROTATE), 0)
-        # self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
-        # self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
+        self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
+        self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
         write_svg(pattern, "file3.svg")
 
+    def test_matrix_translate_scale(self):
         pattern = EmbPattern()
         pattern.add_block([(10, 10), (10, 110), (110, 110), (110, 10), (10, 10)], "red")
         pattern.add_command(MATRIX_TRANSLATE, 20, 40)
@@ -162,6 +210,6 @@ class TestEmbpattern(unittest.TestCase):
         self.assertIsNotNone(pattern.stitches)
         self.assertEqual(pattern.count_stitch_commands(MATRIX_TRANSLATE), 0)
         self.assertEqual(pattern.count_stitch_commands(MATRIX_SCALE), 0)
-        # self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
-        # self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
+        self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
+        self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
         write_svg(pattern, "file4.svg")

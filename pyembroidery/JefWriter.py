@@ -30,7 +30,7 @@ def write(pattern, f, settings=None):
     write_int_32le(f, color_count)
     point_count = 1  # 1 command for END statement
     for stitch in pattern.stitches:
-        data = stitch[2]
+        data = stitch[2] & COMMAND_MASK
         if data == STITCH:
             point_count += 1
         elif data == JUMP:

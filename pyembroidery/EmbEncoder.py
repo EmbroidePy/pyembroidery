@@ -306,12 +306,15 @@ class Transcoder:
             elif flags == MATRIX_ROTATE_ORIGIN:
                 self.matrix.post_rotate(self.stitch[0])
             elif flags == MATRIX_SCALE:
-                p = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
-                self.matrix.post_scale(self.stitch[0], self.stitch[1], p[0], p[1])
+                self.matrix.inverse()
+                q = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
+                self.matrix.inverse()
+                self.matrix.post_scale(self.stitch[0], self.stitch[1], q[0], q[1])
             elif flags == MATRIX_ROTATE:
-                # p = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
-                # self.matrix.post_rotate(self.stitch[0], p[0], p[1])
-                self.matrix.post_rotate(self.stitch[0], self.needle_x, self.needle_y)
+                self.matrix.inverse()
+                q = self.matrix.point_in_matrix_space(self.needle_x, self.needle_y)
+                self.matrix.inverse()
+                self.matrix.post_rotate(self.stitch[0], q[0], q[1])
             elif flags == MATRIX_RESET:
                 self.matrix.reset()
         if flags != END:
@@ -322,9 +325,9 @@ class Transcoder:
         self.needle_y = y
 
     def declare_not_trimmed(self):
-        self.state_trimmed = False
         if self.order_index == -1:
             self.next_change_sequence()
+        self.state_trimmed = False
 
     def add_thread_change(self, command, thread=None, needle=None, order=None):
         self.add(encode_thread_change(command, thread, needle, order))
