@@ -137,7 +137,8 @@ def supported_formats():
         "reader": CsvReader,
         "writer": CsvWriter,
         "options": {
-            "deltas": (True, False)
+            "deltas": (True, False),
+            "displacement": (True, False)
         },
     })
     yield ({
@@ -379,12 +380,6 @@ def convert(filename_from, filename_to, settings=None):
     pattern = read(filename_from, settings)
     if pattern is None:
         return
-    if settings is not None:
-        stable = settings.get("stable", True)
-        if stable:
-            pattern = pattern.get_stable_pattern()
-    else:
-        pattern = pattern.get_stable_pattern()
     write(pattern, filename_to, settings)
 
 
