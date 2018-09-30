@@ -92,6 +92,11 @@ class EmbPattern:
         return self.extras.get(name, default)
 
     def extends(self):
+        return self.bounds()
+
+    def bounds(self):
+        """Returns the bounds of the stitch data:
+        min_x, min_y, max_x, max_y"""
         min_x = float('inf')
         min_y = float('inf')
         max_x = -float('inf')
@@ -202,7 +207,7 @@ class EmbPattern:
         return singleton
 
     def move_center_to_origin(self):
-        extends = self.extends()
+        extends = self.bounds()
         cx = round((extends[2] - extends[0]) / 2.0)
         cy = round((extends[3] - extends[1]) / 2.0)
         self.translate(-cx, -cy)
@@ -212,7 +217,7 @@ class EmbPattern:
             stitch[0] += dx
             stitch[1] += dy
 
-    def fix_color_count(self):  # TODO: FIX COLOR COUNT is basically part of the encoder now.
+    def fix_color_count(self):
         """Ensure the there are threads for all color blocks."""
         thread_index = 0
         init_color = True

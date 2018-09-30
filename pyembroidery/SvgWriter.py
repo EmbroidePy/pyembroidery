@@ -36,7 +36,7 @@ def write(pattern, f, settings=None):
     root.set(ATTR_XMLNS, VALUE_XMLNS)
     root.set(ATTR_XMLNS_LINK, VALUE_XLINK)
     root.set(ATTR_XMLNS_EV, VALUE_XMLNS_EV)
-    extends = pattern.extends()
+    extends = pattern.bounds()
     width = extends[2] - extends[0]
     height = extends[3] - extends[1]
     root.set(ATTR_WIDTH, str(width))
