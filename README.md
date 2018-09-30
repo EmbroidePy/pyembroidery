@@ -69,30 +69,41 @@ The encoder call can be made directly on the EmbPattern with .get_normalized_pat
 EmbPattern
 ---
 EmbPattern objects contain three primary elements:
-`stitches`: This is a `list` of lists of three elements [x, y, command]
-`threadlist`: This is a `list` of EmbThread class objects.
-`extras`: This is a `dict` of various types of things that were found or referenced within the reading or desired for the writing of the file such as metadata info about the label declared within a file or some internal 1 bit graphics found within the embroidery file.
+* `stitches`: This is a `list` of lists of three elements [x, y, command]
+* `threadlist`: This is a `list` of EmbThread class objects.
+* `extras`: This is a `dict` of various types of things that were found or referenced within the reading or desired for the writing of the file such as metadata info about the label declared within a file or some internal 1 bit graphics found within the embroidery file.
 
-EmbPattern stitches
+EmbPattern Stitches
 ---
-The stitches contain absolute locations x, y and command. Commands are found defined within the EmbConstant.py file and should be referenced by name rather than value. The commands are the lower 8 bits of the command value. The upper bits of the command values are reserved for additional information. And for best practices these should be masked off `stitch[stitch_index][2] & COMMAND_MASK` currently the commands with higher level bits sets are `COLOR_CHANGE` and `NEEDLE_SET` and these encode for the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbConstant.py` file contains helper functions for `encode_thread_change` and `decode_thread_change` to parse these commands for you. In all cases, `None` for a value is encoded as `0` and means that there is no information about this. So, for example, a DST loaded COLOR_CHANGE command may COLOR_CHANGE unknown thread, unknown needled 
+The stitches contain absolute locations x, y and command. Commands are found defined within the EmbConstant.py file and should be referenced by name rather than value. The commands are the lower 8 bits of the command value. The upper bits of the command values are reserved for additional information (See Thread Changes). For best practices these should be masked off `stitch[stitch_index][2] & COMMAND_MASK`. 
 
-EmbPattern threadlist
+EmbPattern Threadlist
 ---
-The threadlist is a reference table of threads and the information about those threads. This was prior to `pyembroidery` version 1.3 a general log of the thread switching that would occur at the COLOR_CHANGE commands. And in the most basic usage still is exactly that. However it should be viewed more as a library of the colors needed. And the COLOR_CHANGE commands can be instructed to utilize them in any order seen fit. The values there must simply be encoded into the higher level bits. 
+The threadlist is a reference table of threads and the information about those threads. By default, if not explitly specified, the threadlist are utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (with the exception of, if extended headers is on giving the dst file a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explitly possible. See Thread Changes for more details.
 
-
-Thread Change Command
+EmbPattern Extras
 ---
-Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `NEEDLE_SET` in order to change the thread. The difference here is notable. A color change goes to the next needle in a list usually set within the machine or within the file for the next color of thread. However, some machines like Barudan use what is most properly a needle change. They do not specify the color, but it does explicitly specify the needle to be used. This often includes beginning writing the file by explictly setting the current needle. Setting the same needle again will produce no effect. So often color changes occur between different thread usages, but needle sets occur at the start of each needle usage. 
+This can largely be ignored except in cases when the metadata within the file matters. If for example you wish to read files and find the label that exists inside many different embroidery file times, the resulting value will be put into extras. This is to store the metadata and sometimes transfer the metadata from one format type to another. So an internal label might be able to be transferred between a .dst file and .pes file without regard external file name. Or the 1-bit images within a PEC file could be viewed.
 
-When data is loaded from a source with needle set commands. These commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. The encoder will transcribe these in the way requested by the writer, using the thread change command indicated.
+Thread Changes
+---
+Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `NEEDLE_SET` in order to change the thread. The difference here is notable. A color change goes to the next needle in a list usually set within the machine or within the file for the next color of thread. However, some machines like Barudan use what is most properly a needle change. They do not specify the color, but explicitly specifies the needle to be used. This often includes beginning writing the file by explictly setting the current needle, if omitted most machines use the current needle. Setting the same needle again will produce no effect. So often color changes occur between different thread usages, but needle sets occur at the start of each needle usage. Calling for a color change, requires that something be changed, and the machine often stopped. Calling for a needle_set may set the value to the current needle.
 
-There are some cases where one software suite will encode U01 (Barudan formating with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (techincally in this case C00 or needle #0), while other software will cycle through a list of a few needles.
+When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using correct thread change command indicated.
 
-There is some ambiguity therefore as to whether the same needle will have the same thread. Whether needle_set=1, needle_set_2, needle_set=1... means use a new color each time, or whether the second needle_set=1 indicates that we are going back to the first thread. Pyembroidery therefore makes no affirmative stance as to the meaning indicated here.
+There are some cases where one software suite will encode U01 (Barudan formating with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (techincally in this case C00 or needle #0), while other software will cycle through a list of a few needles, indicating more explicitly these are changes.
 
-The commands NEEDLE_SET and COLOR_CHANGE should be masked with COMMAND_MASK to capture the lower 8 bits. This is the command part. Additional information may be encoded into the higher bits. Namely the thread within the threadset, the needle, and the (yet unused) order. These can be queued up without actually being used with `SET_CHANGE_SEQUENCE` commands filling in those higher level bits.
+There is some ambiguity as to whether the same needle will have the same thread. Whether needle_set=1, needle_set_2, needle_set=1... means use a new color each time, or whether the second "needle_set=1" indicates that we are going back to the first needle with the first thread, or the first needle with a different thread. Pyembroidery therefore makes no affirmative stance as to the meaning indicated here.
+
+In order to properly encode this information, commands with higher level bits sets are `COLOR_CHANGE`, `NEEDLE_SET`, `COLOR_BREAK`, `SET_CHANGE_SEQUENCE` and these encode the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbFunctions.py` file contains helper functions for `encode_thread_change` and `decode_thread_change` to parse these commands for you. In all cases, `None` for a value is encoded as `0` ("thread 0" is encoded as 1) and means that there is no information about this. So, for example, a `DST` loaded `COLOR_CHANGE` will equal `COLOR_CHANGE unknown thread, unknown needle`. This allows the command sequence to explicitly declare that the information is not known, or to give the value if the value is known.
+
+There is a middle level command, `SET_CHANGE_SEQUENCE` that can be used to preset the thread change sequence. 
+
+`encode_thread_change(SET_CHANGE_SEQUENCE,17)` would, for example, make the first color change switch to the Threadlist index 17. After this, the subsequent color changes would be to index 0, index 1, index 2, ... etc.
+
+There are some other use cases when writing this data out, you could, for example, make the threadlist equal to all the threads you have availiable and declare their usages simply reference the relevant thread index. To do this you would add all your threads, then at the start of the commands declare a group of SET_CHANGE_SEQUENCE commands to set the order you want. Or to use `COLOR_BREAK`s encoded with the order you desire.
+
+In most cases this information isn't going to matter, but it is provided because it is information sometimes contained within the embroidery file. For writing this information, there are quite often other ways to specify it, but `pyembroidery` tends to be overbuilt by design to capture all known and unknown usecases.
 
 Formats:
 ---
@@ -172,7 +183,7 @@ pattern = pyembroidery.read("myembroidery.exp")
 If only a file name is given, pyembroidery will use the extension to determine what reader it should use. 
 (In the case of .dat where there are two non-compatable embroidery files with the same extension, the difference is detected by the reader.)
 
-For the discrete readers, the file may be a FileObject or a the string of the path.
+For the discrete readers, the file may be a FileObject or the string of the path.
 
 ```python
 pattern = pyembroidery.read_dst(file)
@@ -217,10 +228,10 @@ pyembroidery.write_jef(pattern, file)
 pyembroidery.write_svg(pattern, file)
 ```
 
-In addition, you can add a dict object to the writer, reader, and converter with various settings.
+In addition, you can add a `dict` object to the writer, reader, and converter with various settings.
 
 ```python
-pyembroidery.write(pattern, file.dst, { "tie_on": True, "tie_off": True, "translate": (40, 50) }
+pyembroidery.write(pattern, file.dst, { "tie_on": CONTINGENCY_TIE_ON_THREE_SMALL, "tie_off": CONTINGENCY_TIE_OFF_THREE_SMALL, "translate": (40, 50) }
 ```
 
 The parameters currently have recognized values for:
@@ -241,13 +252,19 @@ The parameters currently have recognized values for:
 * `encode`
 * `stable`
 
-The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being writing to. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, they will override those values. If you override them in ways that cannot be accounted for by the reader, it may cause a crash. If you disable the encoder "encode" = False, it may raise an uncaught error. If you disable the stablizer for conversions "stable" = False, it will have less defined behavior. And may may have undefined behavior between specific different formats.
+The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being writing to. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, (eg:`{"max_stitch": 2000}`) they will override those values. If you override them in ways that cannot be accounted for by the reader/writer or if you disable the encoder (`{"encode": False}`), it may raise and uncaught issue. During conversions, if you disable the stablizer for conversions `{"stable": False}`, it may have less defined behavior. And may may have undefined behavior between specific different formats.
 
 `translate`, `scale` and `rotate` occur in that order. If you need finer grain control over these they can be modified on the fly with middle-level commands.
 
 `long_stitch_contingency` sets the contingency protocol for when a stitch is longer than the format can encode and how to deal with that event.
 
 `sequin_contingency` sets the contingency protocol for when sequins exist in a pattern. By default this tends to be `CONTINGENCY_SEQUIN_JUMP` converting whatever sequins are in the data into jumps (this can sometimes be restored on various embroidery machines). For .dst files it uses `CONTINGENCY_SEQUIN_UTILIZE` as the format is able to fully encode sequin data. You may also use `CONTINGENCY_SEQUIN_REMOVE` to simply remove the commands completely as if they never existed or `CONTINGENCY_SEQUIN_STITCH` which converts the sequin stitches to stitches. This will look better, but is more lossy.
+
+`tie_on` sets the contingency protocol for when a tie_on is needed. This can either be `CONTINGENCY_TIE_ON_THREE_SMALL` which uses three small stitches to tie on the thread or `CONTINGENCY_TIE_ON_NONE` which does not perform a tie_on.
+
+`tie_off` sets the contingency protocol for when a tie_off is needed. This can either be `CONTINGENCY_TIE_OFF_THREE_SMALL` which uses three small stitches to tie off the thread or `CONTINGENCY_TIE_OFF_NONE` which does not perform a tie_off.
+
+Explicitly calling TIE_ON or TIE_OFF within the command sequence performs the set contingency so if this is set to `NONE` these will perform no action.
 
 `explicit_trim` sets whether the encoder should overtly include a trim before color change event or not. Default is False. Setting this to True will include a trim if we are going to perform a thread-change action.
 
