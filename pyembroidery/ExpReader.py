@@ -30,7 +30,8 @@ def read_exp_stitches(f, out):
             continue
         elif control == 0x01:  # Colorchange
             out.color_change()
-            out.move(x, y)
+            if x != 0 or y != 0:
+                out.move(x, y)
             continue
         break  # Uncaught Control
     out.end()
