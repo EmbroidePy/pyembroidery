@@ -57,7 +57,9 @@ class TestMatrix(unittest.TestCase):
         self.assertAlmostEqual(pattern.stitches[10][1], pattern.stitches[12][1])
         self.assertAlmostEqual(pattern.stitches[4][0], pattern.stitches[12][0])
         self.assertAlmostEqual(pattern.stitches[4][1], pattern.stitches[12][1])
-        write_svg(pattern, "file.svg")
+        file1 = "file.svg"
+        write_svg(pattern, file1)
+        self.addCleanup(os.remove, file1)
 
     def test_matrix_translate(self):
         pattern = EmbPattern()
@@ -73,7 +75,9 @@ class TestMatrix(unittest.TestCase):
 
         self.assertAlmostEqual(pattern.stitches[4][0], pattern.stitches[12][0])
         self.assertAlmostEqual(pattern.stitches[4][1], pattern.stitches[12][1])
-        write_svg(pattern, "file2.svg")
+        file1 = "file2.svg"
+        write_svg(pattern, file1)
+        self.addCleanup(os.remove, file1)
 
     def test_matrix_translate_rotate(self):
         pattern = EmbPattern()
@@ -89,7 +93,9 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(pattern.count_stitch_commands(MATRIX_ROTATE), 0)
         self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
         self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
-        write_svg(pattern, "file3.svg")
+        file1 = "file3.svg"
+        write_svg(pattern, file1)
+        self.addCleanup(os.remove, file1)
 
     def test_matrix_translate_scale(self):
         pattern = EmbPattern()
@@ -105,4 +111,6 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(pattern.count_stitch_commands(MATRIX_SCALE), 0)
         self.assertAlmostEqual(pattern.stitches[12][0], pattern.stitches[6][0])
         self.assertAlmostEqual(pattern.stitches[12][1], pattern.stitches[6][1])
-        write_svg(pattern, "file4.svg")
+        file1 = "file4.svg"
+        write_svg(pattern, file1)
+        self.addCleanup(os.remove, file1)

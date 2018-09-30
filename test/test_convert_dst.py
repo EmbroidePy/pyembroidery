@@ -22,6 +22,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->u01: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_csv(self):
         file1 = "convert_csv.dst"
@@ -36,6 +38,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->csv: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_exp(self):
         file1 = "convert_exp.dst"
@@ -50,6 +54,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->exp: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_pes(self):
         file1 = "convert_pes.dst"
@@ -64,6 +70,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->pes: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_jef(self):
         file1 = "convert_jef.dst"
@@ -78,6 +86,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->jef: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_pec(self):
         file1 = "convert_pec.dst"
@@ -92,6 +102,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->pec: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_vp3(self):
         file1 = "convert_vp3.dst"
@@ -106,6 +118,8 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->vp3: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
 
     def test_convert_dst_to_dst(self):
         file1 = "convert_dst.dst"
@@ -120,3 +134,5 @@ class TestConverts(unittest.TestCase):
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("dst->dst: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
