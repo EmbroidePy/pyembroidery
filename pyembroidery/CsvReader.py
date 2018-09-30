@@ -1,4 +1,4 @@
-from pyembroidery.EmbConstant import *
+from .EmbFunctions import *
 
 READ_FILE_IN_TEXT_MODE = True
 

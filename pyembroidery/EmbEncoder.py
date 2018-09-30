@@ -1,6 +1,6 @@
 import math
 
-from .EmbConstant import *
+from .EmbFunctions import *
 from .EmbMatrix import EmbMatrix
 
 
@@ -11,7 +11,7 @@ class Transcoder:
         self.max_stitch = settings.get("max_stitch", float('inf'))
         self.max_jump = settings.get("max_jump", float('inf'))
         self.full_jump = settings.get("full_jump", False)
-        self.needle_count = settings.get("needle_count", 1)
+        self.needle_count = settings.get("needle_count", 5)
         self.thread_change_command = settings.get("thread_change_command", COLOR_CHANGE)
         strip_sequins = settings.get("strip_sequins", True)
         # deprecated, use sequin_contingency.
@@ -153,7 +153,7 @@ class Transcoder:
                 current[3] = self.source_pattern.get_thread_or_filler(thread)
             if needle != -1:
                 current[2] = needle
-        # TODO: account for contingency where threadset has repeated
+        # TODO: account for contingency where threadset repeats
         # threads and not explicit values set within the commands.
 
         thread_index = 0

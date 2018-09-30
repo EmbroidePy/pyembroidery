@@ -67,7 +67,7 @@ def dst_read_stitches(f, out):
         dx = decode_dx(byte[0], byte[1], byte[2])
         dy = decode_dy(byte[0], byte[1], byte[2])
         if byte[2] & 0b11110011 == 0b11110011:
-            out.stop(dx, dy)
+            out.end(dx, dy)
         elif byte[2] & 0b11000011 == 0b11000011:
             out.color_change(dx, dy)
         elif byte[2] & 0b01000011 == 0b01000011:

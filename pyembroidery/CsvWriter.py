@@ -1,4 +1,4 @@
-from .EmbConstant import *
+from .EmbFunctions import *
 from .WriteHelper import write_string_utf8
 from .PecGraphics import get_graphic_as_string
 import math

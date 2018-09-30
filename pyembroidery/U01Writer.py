@@ -1,4 +1,4 @@
-from .EmbConstant import *
+from .EmbFunctions import *
 from .WriteHelper import write_int_16le, write_int_32le
 
 THREAD_CHANGE_COMMAND = NEEDLE_SET
@@ -80,7 +80,8 @@ def write(pattern, f, settings=None):
         elif data == NEEDLE_SET:
             decoded = decode_thread_change(stitch[2])
             needle = decoded[2]
-            needle %= 15
+            if needle >= 15:
+                needle = (needle % 15) + 1
             cmd |= 0x08
             cmd += needle
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))

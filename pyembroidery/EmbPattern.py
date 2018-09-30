@@ -1,6 +1,6 @@
 from .EmbThread import EmbThread
 from .EmbEncoder import Transcoder as Normalizer
-from .EmbConstant import *
+from .EmbFunctions import *
 
 
 class EmbPattern:
