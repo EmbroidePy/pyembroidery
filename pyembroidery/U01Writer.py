@@ -16,7 +16,7 @@ def write(pattern, f, settings=None):
         f.write(b'0')
     if stitch_count == 0:
         return
-    extends = pattern.extends()
+    extends = pattern.bounds()
     write_int_16le(f, int(extends[0]))
     write_int_16le(f, -int(extends[3]))
     write_int_16le(f, int(extends[2]))

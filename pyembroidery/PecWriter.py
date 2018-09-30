@@ -23,7 +23,7 @@ def write(pattern, f, settings=None):
 
 
 def write_pec(pattern, f, threadlist=None):
-    extends = pattern.extends()
+    extends = pattern.bounds()
     if threadlist is None:
         pattern.fix_color_count()
         threadlist = pattern.threadlist

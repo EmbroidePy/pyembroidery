@@ -103,7 +103,7 @@ def write(pattern, f, settings=None):
     if settings is not None:
         extended_header = settings.get("extended header", extended_header)
 
-    extends = pattern.extends()
+    extends = pattern.bounds()
     width = extends[2] - extends[0]
     height = extends[3] - extends[1]
 

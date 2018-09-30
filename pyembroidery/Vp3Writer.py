@@ -77,7 +77,7 @@ def write_file(pattern, f):
 
     count_colorblocks_total = len(colorblocks)
 
-    extends = pattern.extends()
+    extends = pattern.bounds()
     write_int_32be(f, int(extends[2] * 100))  # right
     write_int_32be(f, int(extends[1] * -100))  # -top
     write_int_32be(f, int(extends[0] * 100))  # left

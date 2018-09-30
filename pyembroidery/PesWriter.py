@@ -66,7 +66,7 @@ def write_version_1(pattern, f):
     chart = get_thread_set()
     write_string_utf8(f, PES_VERSION_1_SIGNATURE)
 
-    extends = pattern.extends()
+    extends = pattern.bounds()
     cx = (extends[2] + extends[0]) / 2.0
     cy = (extends[3] + extends[1]) / 2.0
 
@@ -101,7 +101,7 @@ def write_version_6(pattern, f):
     chart = pattern.threadlist
     write_string_utf8(f, PES_VERSION_6_SIGNATURE)
 
-    extends = pattern.extends()
+    extends = pattern.bounds()
     cx = (extends[2] + extends[0]) / 2.0
     cy = (extends[3] + extends[1]) / 2.0
 

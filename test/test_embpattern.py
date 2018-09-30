@@ -9,7 +9,7 @@ class TestEmbpattern(unittest.TestCase):
     def position_equals(self, stitches, j, k):
         self.assertEqual(stitches[j][:1], stitches[k][:1])
 
-    def test_write_dst(self):
+    def test_write_dst_read_dst(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -17,12 +17,35 @@ class TestEmbpattern(unittest.TestCase):
 
         write_dst(pattern, "file.dst")
         dst_pattern = read_dst("file.dst")
+        self.assertEqual(dst_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(dst_pattern)
         self.assertEqual(dst_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(dst_pattern.stitches, 0, -1)
         print("dst: ", dst_pattern.stitches)
 
-    def test_write_exp(self):
+    def test_write_dst_read_dst_long_jump(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 200)], "red")
+
+        write_dst(pattern, "file3.dst")
+        dst_pattern = read_dst("file3.dst")
+        self.assertIsNotNone(dst_pattern)
+        self.assertEqual(dst_pattern.count_stitch_commands(STITCH), 2)
+        self.assertEqual(dst_pattern.stitches[1][1], 100)
+        print("dst: ", dst_pattern.stitches)
+
+    def test_write_dst_read_dst_divide(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 2)], "red")
+
+        write_dst(pattern, "file3.dst", {"scale": 100, "long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO})
+        dst_pattern = read_dst("file3.dst")
+        self.assertIsNotNone(dst_pattern)
+        self.assertEqual(dst_pattern.count_stitch_commands(STITCH), 3)
+        self.assertEqual(dst_pattern.stitches[1][1], 100)
+        print("dst: ", dst_pattern.stitches)
+
+    def test_write_exp_read_exp(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -30,12 +53,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_exp(pattern, "file.exp")
         exp_pattern = read_exp("file.exp")
+        self.assertEqual(exp_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(exp_pattern)
         self.assertEqual(exp_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(exp_pattern.stitches, 0, -1)
         print("exp: ", exp_pattern.stitches)
 
-    def test_write_vp3(self):
+    def test_write_vp3_read_vp3(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -43,12 +67,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_vp3(pattern, "file.vp3")
         vp3_pattern = read_vp3("file.vp3")
+        self.assertEqual(vp3_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(vp3_pattern)
         self.assertEqual(vp3_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(vp3_pattern.stitches, 0, -1)
         print("vp3: ", vp3_pattern.stitches)
 
-    def test_write_jef(self):
+    def test_write_jef_read_jef(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -56,12 +81,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_jef(pattern, "file.jef")
         jef_pattern = read_jef("file.jef")
+        self.assertEqual(jef_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(jef_pattern)
         self.assertEqual(jef_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(jef_pattern.stitches, 0, -1)
         print("jef: ", jef_pattern.stitches)
 
-    def test_write_pec(self):
+    def test_write_pec_read_pec(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -69,12 +95,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_pec(pattern, "file.pec")
         pec_pattern = read_pec("file.pec")
+        self.assertEqual(pec_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(pec_pattern)
         self.assertEqual(pec_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(pec_pattern.stitches, 0, -1)
         print("pec: ", pec_pattern.stitches)
 
-    def test_write_pes(self):
+    def test_write_pes_read_pes(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -82,12 +109,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_pes(pattern, "file.pes")
         pes_pattern = read_pes("file.pes")
+        self.assertEqual(pes_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertIsNotNone(pes_pattern)
         self.assertEqual(pes_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(pes_pattern.stitches, 0, -1)
         print("pes: ", pes_pattern.stitches)
 
-    def test_write_u01(self):
+    def test_write_u01_read_u01(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -95,12 +123,13 @@ class TestEmbpattern(unittest.TestCase):
 
         write_u01(pattern, "file.u01")
         u01_pattern = read_u01("file.u01")
+        self.assertEqual(u01_pattern.count_stitch_commands(NEEDLE_SET), 3)
         self.assertIsNotNone(u01_pattern)
         self.assertEqual(u01_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(u01_pattern.stitches, 0, -1)
         print("u01: ", u01_pattern.stitches)
 
-    def test_write_csv(self):
+    def test_write_csv_read_csv(self):
         pattern = EmbPattern()
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
         pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
@@ -109,6 +138,40 @@ class TestEmbpattern(unittest.TestCase):
         write_csv(pattern, "file.csv")
         csv_pattern = read_csv("file.csv")
         self.assertIsNotNone(csv_pattern)
+        self.assertEqual(csv_pattern.count_stitch_commands(COLOR_CHANGE), 2)
+        self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 15)
+        self.position_equals(csv_pattern.stitches, 0, -1)
+        print("csv: ", csv_pattern.stitches)
+
+    def test_write_csv_read_csv_raw(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+
+        write_csv(pattern, "file.csv", {"encode": False})
+        csv_pattern = read_csv("file.csv")
+        self.assertIsNotNone(csv_pattern)
+        self.assertEqual(csv_pattern.count_stitch_commands(COLOR_BREAK), 3)
+        self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 15)
+        self.position_equals(csv_pattern.stitches, 0, -1)
+        print("csv: ", csv_pattern.stitches)
+
+    def test_write_csv_read_csv_needle(self):
+        pattern = EmbPattern()
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
+        pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+
+        write_csv(pattern, "file2.csv", {"thread_change_command": NEEDLE_SET})
+        csv_pattern = read_csv("file2.csv")
+        self.assertIsNotNone(csv_pattern)
+        self.assertEqual(csv_pattern.count_stitch_commands(NEEDLE_SET), 3)
+        self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 15)
+
+        write_csv(pattern, "file3.csv", {"thread_change_command": COLOR_CHANGE})
+        csv_pattern = read_csv("file3.csv")
+        self.assertEqual(csv_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(csv_pattern.stitches, 0, -1)
         print("csv: ", csv_pattern.stitches)
