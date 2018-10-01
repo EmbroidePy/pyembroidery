@@ -78,7 +78,7 @@ def write(pattern, f, settings=None):
             cmd |= 0x07
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))
         elif data == NEEDLE_SET:
-            decoded = decode_thread_change(stitch[2])
+            decoded = decode_embroidery_command(stitch[2])
             needle = decoded[2]
             if needle >= 15:
                 needle = (needle % 15) + 1

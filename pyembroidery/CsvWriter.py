@@ -152,7 +152,7 @@ def write(pattern, f, settings=None):
         current_x = 0
         current_y = 0
         for i, stitch in enumerate(pattern.stitches):
-            command = decode_thread_change(stitch[2])
+            command = decode_embroidery_command(stitch[2])
             try:
                 name = names[command[0]]
                 if command[1] != -1:

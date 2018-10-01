@@ -96,7 +96,6 @@ class TestConverts(unittest.TestCase):
         file2 = "converted_exp.pec"
         write_exp(get_big_pattern(), file1)
         f_pattern = read_exp(file1)
-        f_pattern = f_pattern.get_stable_pattern()
         write_pec(f_pattern, file2)
         t_pattern = read_pec(file2)
 
