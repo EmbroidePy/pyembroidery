@@ -1,6 +1,6 @@
-from .EmbThread import EmbThread
 from .EmbEncoder import Transcoder as Normalizer
 from .EmbFunctions import *
+from .EmbThread import EmbThread
 
 
 class EmbPattern:
@@ -149,6 +149,12 @@ class EmbPattern:
     def get_thread(self, index):
         return self.threadlist[index]
 
+    def get_match_commands(self, command):
+        for stitch in self.stitches:
+            flags = stitch[2] & COMMAND_MASK
+            if flags == command:
+                yield stitch
+
     def get_as_stitchblock(self):
         stitchblock = []
         thread = self.get_thread_or_filler(0)
@@ -185,7 +191,7 @@ class EmbPattern:
         last_pos = 0
         for pos, stitch in enumerate(self.stitches):
             command = stitch[2] & COMMAND_MASK
-            if command != COLOR_CHANGE:
+            if command != COLOR_CHANGE and command != NEEDLE_SET:
                 continue
             thread = self.get_thread_or_filler(thread_index)
             thread_index += 1
@@ -193,6 +199,16 @@ class EmbPattern:
             last_pos = pos
         thread = self.get_thread_or_filler(thread_index)
         yield (self.stitches[last_pos:], thread)
+
+    def get_as_stitches(self):
+        """pos, x, y, command, v1, v2, v3"""
+        for pos, stitch in enumerate(self.stitches):
+            decode = decode_embroidery_command(stitch[2])
+            command = decode[0]
+            thread = decode[1]
+            needle = decode[2]
+            order = decode[3]
+            yield pos, stitch[0], stitch[1], command, thread, needle, order
 
     def get_unique_threadlist(self):
         return set(self.threadlist)
@@ -243,6 +259,10 @@ class EmbPattern:
         x = self._previousX + dx
         y = self._previousY + dy
         self.add_stitch_absolute(cmd, x, y)
+
+    def prepend_command(self, cmd, x=0, y=0):
+        """Prepend a command, without treating parameters as locations"""
+        self.stitches.insert(0, [x, y, cmd])
 
     def add_command(self, cmd, x=0, y=0):
         """Add a command, without treating parameters as locations

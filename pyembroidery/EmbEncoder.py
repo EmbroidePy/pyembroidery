@@ -13,6 +13,8 @@ class Transcoder:
         self.full_jump = settings.get("full_jump", False)
         self.needle_count = settings.get("needle_count", 5)
         self.thread_change_command = settings.get("thread_change_command", COLOR_CHANGE)
+        if self.needle_count <= 1 and self.thread_change_command == NEEDLE_SET:
+            self.thread_change_command = STOP
         strip_sequins = settings.get("strip_sequins", True)
         # deprecated, use sequin_contingency.
         if strip_sequins:
@@ -97,6 +99,89 @@ class Transcoder:
         dest = self.destination_pattern.threadlist
         dest.extend(source)
 
+    def sequence_change_events(self):
+        """Generates the sequence change events with their relevant indexes.
+        If there is a sewing event prior to the thread sequence event, the first event
+        is indexed as 1. If the first event is a discrete event, occurring before
+        the sewing starts it's indexed as zero."""
+        source = self.source_pattern.stitches
+        current_index = 0
+        for stitch in source:
+            change = decode_embroidery_command(stitch[2])
+            command = change[0]
+            flags = command & COMMAND_MASK
+            if current_index == 0:
+                if flags == STITCH or flags == SEW_TO or flags == NEEDLE_AT or flags == SEQUIN_EJECT:
+                    current_index = 1
+            if flags == SET_CHANGE_SEQUENCE:
+                thread = change[1]
+                needle = change[2]
+                order = change[3]
+                yield flags, thread, needle, order, None
+            elif flags == NEEDLE_SET or flags == COLOR_CHANGE or flags == COLOR_BREAK:
+                change = decode_embroidery_command(command)
+                thread = change[1]
+                needle = change[2]
+                order = change[3]
+                yield flags, thread, needle, order, current_index
+                current_index += 1
+
+    def build_change_sequence(self):
+        """Builds a change sequence to plan out all the color changes for the file."""
+        thread_sequence = {}
+        lookahead_index = 0
+        thread_sequence[0] = [None, None, None, None]
+        for flags, thread, needle, order, current_index in self.sequence_change_events():
+            if flags == SET_CHANGE_SEQUENCE:
+                if order == 0:
+                    try:
+                        current = thread_sequence[lookahead_index]
+                    except KeyError:
+                        current = [None, None, None, None]
+                        thread_sequence[lookahead_index] = current
+                    lookahead_index += 1
+                else:
+                    try:
+                        current = thread_sequence[order-1]
+                    except KeyError:
+                        current = [None, None, None, None]
+                        thread_sequence[order-1] = current
+            else:
+                try:
+                    current = thread_sequence[current_index]
+                except KeyError:
+                    current = [None, None, None, None]
+                    thread_sequence[current_index] = current
+                if current_index >= lookahead_index:
+                    lookahead_index = current_index + 1
+            if flags == COLOR_CHANGE or flags == NEEDLE_SET:
+                current[0] = flags
+            if thread != 0:
+                current[1] = thread
+                current[3] = self.source_pattern.get_thread_or_filler(thread)
+            if needle != 0:
+                current[2] = needle
+        # TODO: account for contingency where threadset repeats threads without explicit values set within the commands.
+
+        needle_limit = self.needle_count
+        thread_index = 0
+        needle_index = 1
+        for order, s in thread_sequence.items():
+            if s[0] is None:
+                s[0] = self.thread_change_command
+            if s[1] is None:
+                s[1] = thread_index
+                thread_index += 1
+            if s[2] is None:
+                s[2] = needle_index
+                if s[2] > needle_limit:
+                    s[2] = (s[2] - 1) % needle_limit
+                    s[2] += 1
+                needle_index += 1
+            if s[3] is None:
+                s[3] = self.source_pattern.get_thread_or_filler(s[1])
+        return thread_sequence
+
     def transcode_stitches(self):
         """Transcodes stitches.
         Converts middle-level commands and potentially incompatible
@@ -107,69 +192,7 @@ class Transcoder:
         self.needle_y = 0
         self.position = 0
         self.order_index = -1
-        self.change_sequence = {}
-
-        lookahead_index = 0
-        current_index = 0
-        self.change_sequence[0] = [None, None, None, None]
-
-        for self.position, self.stitch in enumerate(source):
-            command = self.stitch[2]
-            flags = command & COMMAND_MASK
-
-            if current_index == 0:
-                if flags == STITCH or flags == SEW_TO or flags == NEEDLE_AT or flags == SEQUIN_EJECT:
-                    current_index = 1
-
-            if flags != SET_CHANGE_SEQUENCE and flags != NEEDLE_SET \
-                    and flags != COLOR_CHANGE and flags != COLOR_BREAK:
-                continue
-
-            if flags == SET_CHANGE_SEQUENCE:
-                try:
-                    current = self.change_sequence[lookahead_index]
-                except KeyError:
-                    current = [None, None, None, None]
-                    self.change_sequence[lookahead_index] = current
-                lookahead_index += 1
-            else:
-                try:
-                    current = self.change_sequence[current_index]
-                except KeyError:
-                    current = [None, None, None, None]
-                    self.change_sequence[current_index] = current
-                current_index += 1
-                if current_index > lookahead_index:
-                    lookahead_index = current_index
-            decode_change = decode_thread_change(command)
-            thread = decode_change[1]
-            needle = decode_change[2]
-            if flags == COLOR_CHANGE:
-                current[0] = COLOR_CHANGE
-            elif flags == NEEDLE_SET:
-                current[0] = NEEDLE_SET
-            if thread != -1:
-                current[1] = thread
-                current[3] = self.source_pattern.get_thread_or_filler(thread)
-            if needle != -1:
-                current[2] = needle
-        # TODO: account for contingency where threadset repeats
-        # threads and not explicit values set within the commands.
-
-        thread_index = 0
-        needle_index = 1
-        for order, s in self.change_sequence.items():
-            if s[0] is None:
-                s[0] = self.thread_change_command
-            if s[1] is None:
-                s[1] = thread_index
-                thread_index += 1
-            if s[2] is None:
-                s[2] = needle_index
-                # self.needle_count
-                needle_index += 1
-            if s[3] is None:
-                s[3] = self.source_pattern.get_thread_or_filler(s[1])
+        self.change_sequence = self.build_change_sequence()
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
@@ -546,6 +569,8 @@ class Transcoder:
                 self.add_thread_change(COLOR_CHANGE, change[1], change[2])
         elif self.thread_change_command == NEEDLE_SET:
             self.add_thread_change(NEEDLE_SET, change[1], change[2])
+        elif self.thread_change_command == STOP:
+            self.add_thread_change(STOP, change[1], change[2])
         self.state_trimmed = True
 
     def position_will_exceed_constraint(self, length=None, new_x=None, new_y=None):
@@ -641,77 +666,3 @@ def oriented(x0, y0, x1, y1, r):
     """from x0,y0 in the direction of x1,y1 in the distance of r"""
     radians = angle_radians(x0, y0, x1, y1)
     return x0 + (r * math.cos(radians)), y0 + (r * math.sin(radians))
-
-
-def get_identity():
-    return \
-        1, 0, 0, \
-        0, 1, 0, \
-        0, 0, 1  # identity
-
-
-def get_scale(sx, sy=None):
-    if sy is None:
-        sy = sx
-    return \
-        sx, 0, 0, \
-        0, sy, 0, \
-        0, 0, 1
-
-
-def get_translate(tx, ty):
-    return \
-        1, 0, 0, \
-        0, 1, 0, \
-        tx, ty, 1
-
-
-def get_rotate(theta):
-    tau = math.pi * 2
-    theta *= tau / 360
-    ct = math.cos(theta)
-    st = math.sin(theta)
-    return \
-        ct, st, 0, \
-        -st, ct, 0, \
-        0, 0, 1
-
-
-def post_matrix_cat(matrix_list):
-    m = matrix_list[0]
-    for mx in matrix_list[1:]:
-        m = matrix_multiply(m, mx)
-    return m
-
-
-def matrix_multiply(m0, m1):
-    return [
-        m1[0] * m0[0] + m1[1] * m0[3] + m1[2] * m0[6],
-        m1[0] * m0[1] + m1[1] * m0[4] + m1[2] * m0[7],
-        m1[0] * m0[2] + m1[1] * m0[5] + m1[2] * m0[8],
-        m1[3] * m0[0] + m1[4] * m0[3] + m1[5] * m0[6],
-        m1[3] * m0[1] + m1[4] * m0[4] + m1[5] * m0[7],
-        m1[3] * m0[2] + m1[4] * m0[5] + m1[5] * m0[8],
-        m1[6] * m0[0] + m1[7] * m0[3] + m1[8] * m0[6],
-        m1[6] * m0[1] + m1[7] * m0[4] + m1[8] * m0[7],
-        m1[6] * m0[2] + m1[7] * m0[5] + m1[8] * m0[8]]
-
-
-def point_in_matrix_space(matrix, v0, v1=None):
-    if v1 is None:
-        try:
-            return [
-                v0[0] * matrix[0] + v0[1] * matrix[3] + 1 * matrix[6],
-                v0[0] * matrix[1] + v0[1] * matrix[4] + 1 * matrix[7],
-                v0[2]
-            ]
-        except IndexError:
-            return [
-                v0[0] * matrix[0] + v0[1] * matrix[3] + 1 * matrix[6],
-                v0[0] * matrix[1] + v0[1] * matrix[4] + 1 * matrix[7]
-                # Must not have had a 3rd element.
-            ]
-    return [
-        v0 * matrix[0] + v1 * matrix[3] + 1 * matrix[6],
-        v0 * matrix[1] + v1 * matrix[4] + 1 * matrix[7]
-    ]

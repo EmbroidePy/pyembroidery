@@ -5,33 +5,27 @@ def encode_thread_change(command, thread=None, needle=None, order=None):
     if thread is None:
         thread = 0
     else:
-        thread += 1
         thread &= 0xFF
     if needle is None:
         needle = 0
     else:
-        needle += 1
         needle &= 0xFF
     if order is None:
         order = 0
     else:
-        order += 1
         order &= 0xFF
     command &= COMMAND_MASK
     return command | (order << 24) | (needle << 16) | (thread << 8)
 
 
-def decode_thread_change(command):
+def decode_embroidery_command(command):
     flag = command & COMMAND_MASK
     thread = command & THREAD_MASK
     thread >>= 8
-    thread -= 1
     needle = command & NEEDLE_MASK
     needle >>= 16
-    needle -= 1
     order = command & ORDER_MASK
     order >>= 24
-    order -= 1
     return flag, thread, needle, order
 
 
