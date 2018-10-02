@@ -10,7 +10,7 @@ pip install pyembroidery
 
 Any suggestions or comments please raise an issue on the github.
 
-pyembroidery was originally intended for in inkscape/inkstitch. However, it was entirely coded from the ground up with all projects in mind. It includes a lot of higher level and middle level pattern composition abilities, and accounts for any knowable error. It should be highly robust with a simple api in order to be entirely reasonable for *any* python embroidery project.
+pyembroidery was coded from the ground up with all projects in mind. It includes a lot of higher level and middle level pattern composition abilities, and should accounts for any knowable error. It should be highly robust with a simple api so as to be reasonable for *any* python embroidery project.
 
 It should be complex enough to go very easily from points to stitches, fine grained enough to let you control everything, and good enough that you shouldn't want to.
 
@@ -20,7 +20,7 @@ Mandate
 pyembroidery must to be small enough to be finished in short order and big enough to pack a punch.
 
 * pyembroidery must read and write: PES, DST, EXP, JEF, VP3.
-* pyembroidery must fully support commands: STITCH, JUMP, TRIM, STOP, END, COLOR_CHANGE, SEQUIN_MODE and SEQUIN_EJECT.
+* pyembroidery must fully support commands: STITCH, JUMP, TRIM, STOP, END, COLOR_CHANGE, NEEDLE_SET, SEQUIN_MODE and SEQUIN_EJECT.
 * pyembroidery must support and function in Python 2.7
 
 Pyembroidery fully meets and exceeds all of these requirements.
@@ -32,7 +32,7 @@ Pyembroidery fully meets and exceeds all of these requirements.
 
 Philosophy
 ---
-Pyembroidery will always attempt to minimize information loss. Embroidery reading and writing, the exporting and importing of these files, is always lossy. If there is information in a file, it is within the purview of the project (but not the mandate) to read that information and provide it to the user. If information can be written to a file, it is within the purview of the project to write that information to the file or provide means by which that can be done.
+Pyembroidery will always attempt to minimize information loss. Embroidery reading and writing, the exporting and importing of embroidery files, is always lossy. If there is information in a file, it is within the purview of the project (but not the mandate) to read that information and provide it to the user. If information can be written to a file, it is within the purview of the project to write that information to the file or provide means by which that can be done.
 
 * Low level commands: Those commands actually found in binary encoded embroidery files.
     * Low level commands will be transcribed and preserved in their exact order, unless doing so will cause an error.
@@ -40,7 +40,7 @@ Pyembroidery will always attempt to minimize information loss. Embroidery readin
     * Middle level commands will be helpful and converted to low-level commands during writing events.
     * These will often be context sensitive converting to slightly different low level commands depending on intended writer, or encoder settings.
 * High level commands: Conversion of shapes and fills into useful structures, patterning within stitches, modifiers of structures.
-    * High level commands will not exist.
+    * High level commands will not exist within this project.
 
 Other reasonable elements:
 * Higher level objects like .PES or .THR containing shapes are currently ignored in favor of reading raw stitches. However, loading such things would be less lossy and thus within the scope of the project.
@@ -53,18 +53,18 @@ Readers are sent a fileobject and an EmbPattern and parses the file, filling in 
 
 EmbPattern objects contain all the relevant data. You can iterate stitch blocks .get_as_stitchblocks() or access the raw-stitches, threads, or metadata.
 
-Writers are called to save a pattern to disk. They save raw-stitch data to disk. This data may, however, not be formatted in a way the writer can utilize effectively. For this reason, writers will utilize the encoder to ensure whatever the input is, that is presented to the writer accurately.
+Writers are called to save a pattern to disk. They save raw-stitch data to disk. This data may, however, not be formatted in a way the writer can utilize effectively. For this reason, writers (except csv) utilize the encoder to ensure whatever the input is will be presented to the writer in a manner coherent to the writer.
 
-The encoder encode a low level version of the commands in the pattern, not just from low level but also middle-level commands implemented with the encoder. The writer contain format specific information with which to call to the encoder with some format specific values. Each export will reencode the data for the format, without modifying or altering the original data. As doing so would be lossy.
+The encoder encode a low level version of the commands in the pattern, not just from low level but also middle-level commands implemented with the encoder. The writer contain format specific information with which to call to the encoder with some format specific values. Each export will reencode the data for the format, without modifying or altering the original data, as doing so would be lossy.
 
-The encoder call can be made directly on the EmbPattern with .get_normalized_pattern() on the pattern, this returns a new pattern. Neither, encoding nor saving will modify a pattern. Most operations performed on the data will have some degree of loss. So there is a level of isolation between lossy operation converting the pattern.
+The encoder call can be made directly on the EmbPattern with .get_normalized_pattern() on the pattern, this returns a new pattern. Neither, encoding nor saving will modify a pattern, rather they either return a new pattern or utilize one. Most operations performed on the data will have some degree of loss. So there is a level of isolation between lossy operation converting the pattern.
 
 * Read
   * File -> Reader -> Pattern
 * Write
   * Pattern -> Encoder -> Pattern -> Writer -> File
 * Convert
-  * File -> Reader -> Pattern -> Stablizer -> Pattern -> Encoder -> Pattern -> Writer -> File
+  * File -> Reader -> Pattern -> Encoder -> Pattern -> Writer -> File
 
 EmbPattern
 ---
@@ -79,23 +79,23 @@ The stitches contain absolute locations x, y and command. Commands are found def
 
 EmbPattern Threadlist
 ---
-The threadlist is a reference table of threads and the information about those threads. By default, if not explitly specified, the threadlist are utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (with the exception of, if extended headers is on giving the dst file a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explitly possible. See Thread Changes for more details.
+The threadlist is a reference table of threads and the information about those threads. By default, if not explitly specified, the threadlist is utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one, one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (except if extended headers are requested as those give a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explitly possible. See Thread Changes for more details.
 
 EmbPattern Extras
 ---
-This can largely be ignored except in cases when the metadata within the file matters. If for example you wish to read files and find the label that exists inside many different embroidery file times, the resulting value will be put into extras. This is to store the metadata and sometimes transfer the metadata from one format type to another. So an internal label might be able to be transferred between a .dst file and .pes file without regard external file name. Or the 1-bit images within a PEC file could be viewed.
+This can largely be ignored except in cases when the metadata within the file matters. If for example you wish to read files and find the label that exists inside many different embroidery file times, the resulting value will be put into extras. This is to store the metadata and sometimes transfer the metadata from one format type to another. So an internal label might be able to be transferred between a .dst file and .pes file without regard to the external file name. Or the 1-bit images within a PEC file could be viewed.
 
 Thread Changes
 ---
 Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `NEEDLE_SET` in order to change the thread. The difference here is notable. A color change goes to the next needle in a list usually set within the machine or within the file for the next color of thread. However, some machines like Barudan use what is most properly a needle change. They do not specify the color, but explicitly specifies the needle to be used. This often includes beginning writing the file by explictly setting the current needle, if omitted most machines use the current needle. Setting the same needle again will produce no effect. So often color changes occur between different thread usages, but needle sets occur at the start of each needle usage. Calling for a color change, requires that something be changed, and the machine often stopped. Calling for a needle_set may set the value to the current needle.
 
-When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using correct thread change command indicated.
+When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using correct thread change command indicated and accounting for the implicit differences.
 
 There are some cases where one software suite will encode U01 (Barudan formating with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (techincally in this case C00 or needle #0), while other software will cycle through a list of a few needles, indicating more explicitly these are changes.
 
 There is some ambiguity as to whether the same needle will have the same thread. Whether needle_set=1, needle_set_2, needle_set=1... means use a new color each time, or whether the second "needle_set=1" indicates that we are going back to the first needle with the first thread, or the first needle with a different thread. Pyembroidery therefore makes no affirmative stance as to the meaning indicated here.
 
-In order to properly encode this information, commands with higher level bits sets are `COLOR_CHANGE`, `NEEDLE_SET`, `COLOR_BREAK`, `SET_CHANGE_SEQUENCE` and these encode the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbFunctions.py` file contains helper functions for `encode_thread_change` and `decode_thread_change` to parse these commands for you. In all cases, `None` for a value is encoded as `0` ("thread 0" is encoded as 1) and means that there is no information about this. So, for example, a `DST` loaded `COLOR_CHANGE` will equal `COLOR_CHANGE unknown thread, unknown needle`. This allows the command sequence to explicitly declare that the information is not known, or to give the value if the value is known.
+In order to properly encode this information, commands with higher level bits sets are `COLOR_CHANGE`, `NEEDLE_SET`, `COLOR_BREAK`, `SET_CHANGE_SEQUENCE` and these encode the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbFunctions.py` file contains helper functions for `encode_thread_change` and `decode_embroidery_command` to parse these commands for you. In all cases, `None` for a value is encoded as `0` ("thread 0" is encoded as 1) and means that there is no information about this. So, for example, a `DST` loaded `COLOR_CHANGE` will equal `COLOR_CHANGE unknown thread, unknown needle`. This allows the command sequence to explicitly declare that the information is not known, or to give the value if the value is known.
 
 There is a middle level command, `SET_CHANGE_SEQUENCE` that can be used to preset the thread change sequence. 
 
