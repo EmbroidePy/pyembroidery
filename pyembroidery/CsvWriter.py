@@ -155,11 +155,11 @@ def write(pattern, f, settings=None):
             command = decode_embroidery_command(stitch[2])
             try:
                 name = names[command[0]]
-                if command[1] != -1:
+                if command[1] is not None:
                     name = name + " t" + str(command[1])
-                if command[2] != -1:
+                if command[2] is not None:
                     name = name + " n" + str(command[2])
-                if command[3] != -1:
+                if command[3] is not None:
                     name = name + " o" + str(command[3])
             except (IndexError, KeyError):
                 name = "UNKNOWN " + str(stitch[2])

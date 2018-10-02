@@ -142,10 +142,10 @@ class Transcoder:
                     lookahead_index += 1
                 else:
                     try:
-                        current = thread_sequence[order-1]
+                        current = thread_sequence[order - 1]
                     except KeyError:
                         current = [None, None, None, None]
-                        thread_sequence[order-1] = current
+                        thread_sequence[order - 1] = current
             else:
                 try:
                     current = thread_sequence[current_index]
@@ -156,10 +156,10 @@ class Transcoder:
                     lookahead_index = current_index + 1
             if flags == COLOR_CHANGE or flags == NEEDLE_SET:
                 current[0] = flags
-            if thread != 0:
+            if thread is not None:
                 current[1] = thread
-                current[3] = self.source_pattern.get_thread_or_filler(thread)
-            if needle != 0:
+                current[3] = self.source_pattern.get_thread_or_filler(thread - 1)
+            if needle is not None:
                 current[2] = needle
         # TODO: account for contingency where threadset repeats threads without explicit values set within the commands.
 
