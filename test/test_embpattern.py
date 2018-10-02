@@ -128,6 +128,30 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(needle_pattern.count_needle_sets(), 16)
         self.addCleanup(os.remove, needle_file)
 
+    def test_u01_tie_on(self):
+        needle_file = "tie_on.u01"
+        write_u01(get_shift_pattern(), needle_file, {"needle_count": 10, "tie_on": CONTINGENCY_TIE_ON_THREE_SMALL})
+        needle_pattern = read_u01(needle_file)
+        for stitch in needle_pattern.get_match_commands(NEEDLE_SET):
+            cmd = decode_embroidery_command(stitch[2])
+            self.assertLessEqual(cmd[2], 10)
+        self.assertEqual(needle_pattern.count_needle_sets(), 16)
+        self.assertEqual(needle_pattern.count_stitch_commands(STITCH), 16 * (5 + 4))
+        # 5 for the actual stitch pattern. 3 small, and 1 extra tieon, start.
+        self.addCleanup(os.remove, needle_file)
+
+    def test_u01_tie_off(self):
+        needle_file = "tie_on.u01"
+        write_u01(get_shift_pattern(), needle_file, {"needle_count": 10, "tie_off": CONTINGENCY_TIE_OFF_THREE_SMALL})
+        needle_pattern = read_u01(needle_file)
+        for stitch in needle_pattern.get_match_commands(NEEDLE_SET):
+            cmd = decode_embroidery_command(stitch[2])
+            self.assertLessEqual(cmd[2], 10)
+        self.assertEqual(needle_pattern.count_needle_sets(), 16)
+        self.assertEqual(needle_pattern.count_stitch_commands(STITCH), 16 * (5 + 4))
+        # 5 for the actual stitch pattern. 3 small, and 1 extra tieoff, end.
+        self.addCleanup(os.remove, needle_file)
+
     def test_write_dst_read_dst_long_jump(self):
         file1 = "file3.dst"
         pattern = EmbPattern()
@@ -156,7 +180,7 @@ class TestEmbpattern(unittest.TestCase):
 
     def test_write_csv_read_csv_raw(self):
         file1 = "file.csv"
-        write_csv(get_simple_pattern(), file1, {"encode": False})
+        write_csv(get_simple_pattern(), file1)
         csv_pattern = read_csv(file1)
         self.assertIsNotNone(csv_pattern)
         self.assertEqual(csv_pattern.count_stitch_commands(COLOR_BREAK), 3)
@@ -167,7 +191,7 @@ class TestEmbpattern(unittest.TestCase):
 
     def test_write_csv_read_csv_needle(self):
         file1 = "file2.csv"
-        write_csv(get_simple_pattern(), "file2.csv", {"thread_change_command": NEEDLE_SET})
+        write_csv(get_simple_pattern(), "file2.csv", {"thread_change_command": NEEDLE_SET, "encode": True})
         csv_pattern = read_csv(file1)
         self.assertIsNotNone(csv_pattern)
         self.assertEqual(csv_pattern.count_stitch_commands(NEEDLE_SET), 3)
@@ -177,10 +201,29 @@ class TestEmbpattern(unittest.TestCase):
 
     def test_write_csv_read_csv_color(self):
         file1 = "file3.csv"
-        write_csv(get_simple_pattern(), "file3.csv", {"thread_change_command": COLOR_CHANGE})
+        write_csv(get_simple_pattern(), "file3.csv", {"thread_change_command": COLOR_CHANGE, "encode": True})
         csv_pattern = read_csv(file1)
         self.assertEqual(csv_pattern.count_stitch_commands(COLOR_CHANGE), 2)
         self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 15)
         self.position_equals(csv_pattern.stitches, 0, -1)
         print("csv: ", csv_pattern.stitches)
         self.addCleanup(os.remove, file1)
+
+    def test_write_csv_read_csv_encoded_command(self):
+        file1 = "file-encoded.csv"
+        pattern = EmbPattern()
+        encoded_command = encode_thread_change(SET_CHANGE_SEQUENCE, 3, 4, 1)
+        pattern.add_command(encoded_command)
+        write_csv(pattern, file1)
+        csv_pattern = read_csv(file1)
+        self.assertIsNotNone(csv_pattern)
+        print("csv-encoded: ", csv_pattern.stitches)
+        self.assertEqual(encoded_command, csv_pattern.stitches[-1][2])
+        self.addCleanup(os.remove, file1)
+
+    def test_transcode_to_self(self):
+        pattern = get_shift_pattern()
+        from pyembroidery.EmbEncoder import Transcoder
+        encoder = Transcoder()
+        encoder.transcode(pattern, pattern)
+        self.assertNotEquals(len(pattern.stitches), 0)

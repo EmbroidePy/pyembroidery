@@ -13,6 +13,16 @@ def read(f, out, settings=None):
         if "*" in row[0]:
             split = row[2].split(' ')
             command = command_dict[split[0]]
+            for sp in split[1:]:
+                if sp[0] == "n":
+                    needle = int(sp[1:])
+                    command |= needle << 16
+                if sp[0] == "o":
+                    order = int(sp[1:])
+                    command |= order << 24
+                if sp[0] == "t":
+                    thread = int(sp[1:])
+                    command |= thread << 8
             if len(row) == 3:
                 out.add_command(command)
             else:

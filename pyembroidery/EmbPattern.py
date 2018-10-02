@@ -272,7 +272,6 @@ class EmbPattern:
     def add_block(self, block, thread=None):
         if thread is not None:
             self.add_thread(thread)
-            self.add_command(COLOR_BREAK)
         if block is None:
             return
 
@@ -300,6 +299,7 @@ class EmbPattern:
                 while i < ie:
                     self.add_stitch_absolute(STITCH, block[i], block[i + 1])
                     i += 2
+        self.add_command(COLOR_BREAK)
 
     def add_stitchblock(self, stitchblock):
         threadlist = self.threadlist

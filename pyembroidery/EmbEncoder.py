@@ -23,7 +23,7 @@ class Transcoder:
             self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
         self.sequin_contingency = settings.get("sequin_contingency", self.sequin_contingency)
 
-        self.strip_speeds = settings.get("strip_speeds", True)
+        self.writes_speeds = settings.get("writes_speeds", True)
         self.explicit_trim = settings.get("explicit_trim", False)
 
         self.tie_on_contingency = settings.get("tie_on", CONTINGENCY_TIE_ON_NONE)
@@ -546,11 +546,11 @@ class Transcoder:
         self.update_needle_position(new_x, new_y)
 
     def slow_command_here(self):
-        if not self.strip_speeds:
+        if self.writes_speeds:
             self.add(SLOW)
 
     def fast_command_here(self):
-        if not self.strip_speeds:
+        if self.writes_speeds:
             self.add(FAST)
 
     def stop_here(self):
