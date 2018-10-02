@@ -95,15 +95,15 @@ There are some cases where one software suite will encode U01 (Barudan formating
 
 There is some ambiguity as to whether the same needle will have the same thread. Whether needle_set=1, needle_set_2, needle_set=1... means use a new color each time, or whether the second "needle_set=1" indicates that we are going back to the first needle with the first thread, or the first needle with a different thread. Pyembroidery therefore makes no affirmative stance as to the meaning indicated here.
 
-In order to properly encode this information, commands with higher level bits sets are `COLOR_CHANGE`, `NEEDLE_SET`, `COLOR_BREAK`, `SET_CHANGE_SEQUENCE` and these encode the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbFunctions.py` file contains helper functions for `encode_thread_change` and `decode_embroidery_command` to parse these commands for you. In all cases, `None` for a value is encoded as `0` ("thread 0" is encoded as 1) and means that there is no information about this. So, for example, a `DST` loaded `COLOR_CHANGE` will equal `COLOR_CHANGE unknown thread, unknown needle`. This allows the command sequence to explicitly declare that the information is not known, or to give the value if the value is known.
+In order to properly encode this information, commands with higher level bits sets are `COLOR_CHANGE`, `NEEDLE_SET`, `COLOR_BREAK`, `SET_CHANGE_SEQUENCE` and these encode the color being changed to or the needle being changed to. `0bnnnnnnnnttttttttcccccccc` where `n` is a bit encoding needle and `t` is a bit encoding thread and `c` is a bit encoding command. The `EmbFunctions.py` file contains helper functions for `encode_thread_change` and `decode_embroidery_command` to parse these commands for you. In all cases, `None` for a value means that there is no information about this. So, for example, a `DST` loaded `COLOR_CHANGE` will equal `COLOR_CHANGE unknown thread, unknown needle`. This allows the command sequence to explicitly declare that the information is not known, or to give the value if the value is known.
 
-There is a middle level command, `SET_CHANGE_SEQUENCE` that can be used to preset the thread change sequence. 
+There is a middle level command, `SET_CHANGE_SEQUENCE` that can be used to preset (or with an order value, postset) the thread change sequence.
 
 `encode_thread_change(SET_CHANGE_SEQUENCE,17)` would, for example, make the first color change switch to the Threadlist index 17. After this, the subsequent color changes would be to index 0, index 1, index 2, ... etc.
 
 There are some other use cases when writing this data out, you could, for example, make the threadlist equal to all the threads you have availiable and declare their usages simply reference the relevant thread index. To do this you would add all your threads, then at the start of the commands declare a group of SET_CHANGE_SEQUENCE commands to set the order you want. Or to use `COLOR_BREAK`s encoded with the order you desire.
 
-In most cases this information isn't going to matter, but it is provided because it is information sometimes contained within the embroidery file. For writing this information, there are quite often other ways to specify it, but `pyembroidery` tends to be overbuilt by design to capture all known and unknown usecases.
+In most cases this information isn't going to matter, but it is provided because it is information sometimes contained within the embroidery file. For writing this information, there are quite often other ways to specify it, but `pyembroidery` tends to be overbuilt by design to capture most known and unknown usecases.
 
 Formats:
 ---
@@ -162,10 +162,9 @@ Writing to SVG:
 While not a binary writing format, the testing/debugging utility of SVG is unmatched. There is some notable irony in writing an SVG file in a library, whose main genesis is to help another program that *already* writes them.
 
 Writing to CSV:
-Prints out a workable CSV file with the given data. It will be encoded like a .DST file by default. To simply save the raw data here one may add in encoder settings to turn off the encoding.
+Prints out a workable CSV file with the given data. Starting in 1.3 the csv patterns are written without being encoded. The CSV format is, in this form, lossless. If you wish to encode before you write the file you can set the encoder to True and override the default.
 
-`write_csv(pattern, "file.csv", {"encode": False})`
-
+`write_csv(pattern, "file.csv", {"encode": True})`
 
 Reading:
 ---
@@ -225,7 +224,9 @@ pyembroidery.write_pes(pattern, file)
 pyembroidery.write_exp(pattern, file)
 pyembroidery.write_vp3(pattern, file)
 pyembroidery.write_jef(pattern, file)
+pyembroidery.write_u01(pattern, file)
 pyembroidery.write_svg(pattern, file)
+pyembroidery.write_csv(pattern, file)
 ```
 
 In addition, you can add a `dict` object to the writer, reader, and converter with various settings.
@@ -245,16 +246,15 @@ The parameters currently have recognized values for:
 * `tie_on`
 * `tie_off`
 * `explicit_trim`
-* `strip_speeds`
+* `writes_speeds`
 * `translate`
 * `scale`
 * `rotate`
 * `encode`
-* `stable`
 
-The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being writing to. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, (eg:`{"max_stitch": 2000}`) they will override those values. If you override them in ways that cannot be accounted for by the reader/writer or if you disable the encoder (`{"encode": False}`), it may raise and uncaught issue. During conversions, if you disable the stablizer for conversions `{"stable": False}`, it may have less defined behavior. And may may have undefined behavior between specific different formats.
+The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being written. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, (eg:`{"max_stitch": 2000}`) they will override format values. If overridden or if you disable the encoder (`{"encode": False}`) and the pattern contains values that cannot be accounted for by the reader/writer, it may raise and uncaught issue.
 
-`translate`, `scale` and `rotate` occur in that order. If you need finer grain control over these they can be modified on the fly with middle-level commands.
+`translate`, `scale` and `rotate` occur in that order. If you need finer grain control over these they can be modified on the fly with middle-level commands. `pattern.add_command(MATRIX_TRANSLATE, 40, 40)`
 
 `long_stitch_contingency` sets the contingency protocol for when a stitch is longer than the format can encode and how to deal with that event.
 
@@ -264,7 +264,7 @@ The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and se
 
 `tie_off` sets the contingency protocol for when a tie_off is needed. This can either be `CONTINGENCY_TIE_OFF_THREE_SMALL` which uses three small stitches to tie off the thread or `CONTINGENCY_TIE_OFF_NONE` which does not perform a tie_off.
 
-Explicitly calling TIE_ON or TIE_OFF within the command sequence performs the set contingency so if this is set to `NONE` these will perform no action.
+Explicitly calling TIE_ON or TIE_OFF within the command sequence performs the set contingency so if this is set to `CONTINGENCY_TIE_OFF_NONE` these will perform no action. These could be modified on the fly by adding a command for `CONTINGENCY_TIE_OFF_THREE_SMALL` to toggle the value on the fly.
 
 `explicit_trim` sets whether the encoder should overtly include a trim before color change event or not. Default is False. Setting this to True will include a trim if we are going to perform a thread-change action.
 
@@ -279,77 +279,66 @@ pyembroidery.convert("embroidery.jef", "converted.dst")
 
 This will read the embroidery.jef file in JEF format and will export it as converted.dst in DST format.
 
-Internally this stablizes the format:
-* Reader -> Pattern -> Pattern.get_stablized_pattern() -> Encoder -> Writer
+* Reader -> Pattern -> Encoder -> Writer
 
-The stablized pattern clips out the order of the particlar trims, jumps, colorchanges, stops, and turns it into middle-level commands of STITCH, COLOR_BREAK, SEQUENCE_BREAK.
-
-The stablizer can be disabled by setting "stable" to False.
-
-You can perform some finer grain controls like get_pattern_interpolate_trim(), or process the data yourself if you need this information. If there's a completely reasonable way to post-process loaded data that isn't accounted for, raise an issue. This is still an open question.
-
-```python
-pyembroidery.convert("embroidery.jef", "converted.dst", {"stable": False})
-```
-
-Depending on the formats and files in question this does not have a guarenteed result. It will still use the encoder and should be effective.
-
-You can disable both the stablizer and the encoder:
-
-```python
-pyembroidery.convert("embroidery.jef", "converted.dst", {"stable": False, "encode": False})
-```
-
+You can load the file and call some of the helper functions to process the data like, get_pattern_interpolate_trim(), or get_stablized_pattern(). If there's a completely reasonable way to post-process loaded data that isn't accounted for raise an issue. This is still an open question. Since 1.3 the improved conversion testing means most conversions should overtly work.
 
 Composing a pattern:
 ---
 
 * Use core commands to compose a pattern
 * Use shorthand commands to compose a pattern
-  * `pyembroidery.STITCH`
-  * `pyembroidery.SEQUENCE_BREAK`
-  * `pyembroidery.COLOR_BREAK`
-  * `pyembroidery.FRAME_EJECT`
+  * `STITCH`
+  * `SEQUENCE_BREAK`
+  * `COLOR_BREAK`
+  * `FRAME_EJECT`
 * Use bulk dump stitchblock
 * Mix these different command levels.
-
 
 The constants for the stitch types are located in the EmbConstants.py
 
 To compose a pattern you will typically use:
 
 ```python
-import pyembroidery
-pattern = pyembroidery.EmbPattern()
-pattern.add_stitch_relative(COMMAND, dx, dy)
-pattern.add_stitch_absolute(COMMAND, x, y)
-pattern.add_command(command)
-pattern.add_stitchblock(stitchblock)
+from pyembroidery import *
+pattern = EmbPattern()
+pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+write_dst(pattern, "file.dst")
 ```
+
+You can also add relative and command values to the list.
+```python
+pattern.add_stitch_relative(STITCH, dx, dy)
+pattern.add_stitch_absolute(JUMP, x, y)
+pattern.add_command(command)
+```
+
 The relative and absolute markers determine whether the numbers given are relative to the last position or an absolute location. Calling add_command does not update the internal record of position. These are taken as positionless and the x and y are taken as parameters. Adding a command that is explicitly positioned with add_command will have undefined behavior.
 
-NOTE: the order here is `command, x, y`, not `x,y command`. Python is good with letting you omit values at the end. And the command is *always* needed but the dx,dy can be dropped quite reasonably.
+NOTE: the order here is `command, x, y`, not `x, y command`. Python is good with letting you omit values at the end. And the command is *always* needed but the dx, dy can be dropped quite reasonably. While internally these are stored as [x, y, command] mostly to facilitate using them directly as positions.
 
 For `COMMAND`, you can:
 * Use overt low-level commands:
-  * `pyembroidery.STITCH`
+  * `STITCH`
     * move to position and drop needle once to make a stitch
-  * `pyembroidery.JUMP`
+  * `JUMP`
     * move to position without dropping needle
-  * `pyembroidery.TRIM`
+  * `TRIM`
     * trim the thread (for supported machines and file formats)
-  * `pyembroidery.COLOR_CHANGE`
-  * `pyembroidery.STOP`
+  * `COLOR_CHANGE`
+  * `STOP`
     * pause the machine (for applique, thread-change, etc)
-  * `pyembroidery.END`
+  * `NEEDLE_SET`
+    * changes the needle being used on the machine, if set to current needle it will ignore.
+  * `END`
     * end the pattern
-  * `pyembroidery.SEQUIN_EJECT`
+  * `SEQUIN_EJECT`
     * ejects a sequin. These are overtly saved in .dst format. But, can be made to pattern JUMPs in other formats that may be used with various sequin attachments.
-  * `pyembroidery.SEQUIN_MODE`
+  * `SEQUIN_MODE`
     * turns on sequin mode. this is done automatically for you if you eject a sequin.
-  * `pyembroidery.SLOW`
+  * `SLOW`
     * .u01 only. Runs the machine in slow mode.
-  * `pyembroidery.FAST`
+  * `FAST`
     * .u01 only. Runs the machine in fast mode.
 
 Shorthand function calls for the above are also available.  These all equate to `pattern.add_stitch_relative` calls using the above constants.  You can omit the `dx` and `dy` parameters if the position should not change (especially useful for trim and color change).
@@ -364,11 +353,41 @@ StitchBlocks:
 ---
 Conceptually a lot of embroidery can be thought of as unbroken blocks of stitches. Given the ubiquity of this, pyembroidery allows several methods for manipulating stitchblocks for reading and writing.
 
-A stitch block currently has two parts a block and thread.
+The stitches within pyembroidery are a list of lists, with each 3 values. x, y, command. The stitchblocks given by commands like .get_as_stitchblock() are subsections of this. For adding stitches like with .add_stitchblock(), iterable set of objects with stitch.command, stitch.x, stitch.y will also works for adding a stitch block to a pattern. 
 
-The block is a list of lists, with each 3 values. x, y, command. iterable set of objects with stitch.command, stitch.x, stitch.y will also works for adding a stitch block to a pattern. 
+.add_block():
+---
+.add_block() takes a lot of other types:
 
-If your internal schema is different than this, raise an issue to have it accounted for within pyembroidery.
+The first parameter is the block with the following formats allowed:
+* a list of lists, either 2 or 3 long.
+* a list of tuple
+* a tuple of tuples
+* a list of complex
+* a tuple of complex
+* a list of integers `[x0,y0,x1,y1,x2,y2,x3,y3,...]`
+* a list of floats `[x0,y0,x1,y1,x2,y2,x3,y3,...]`
+
+The second parameter is the thread. The threads are equally agnostic as to what they take.
+* EmbThread object
+* int (color in 0xRRBBGG)
+* `dict` with values for:
+   * "name"
+   * "description"
+   * "desc"
+   * "brand"
+   * "manufacturer"
+   * "color", can be int, hex_string ("#ff00ff","#f0f"), tuple (255,0,255), explicit color name ("red")
+   * "hex", overt hex color, may omit the '#'
+   * "id", catalog number
+   * "catalog", same
+* `str` string value of the color, either hex color or explicit color name. 
+
+(Note: explicit color names are those found in the X11/CSS/SVG named colors)
+
+`pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")`
+`pattern.add_block([0, 0, 0, 100, 100, 100, 100, 0, 0, 0], "#f00")`
+
 
 When a call is made to add_stitchblock(), the thread object is required to whether the current thread is different than the previous one. If a different thread is detected pyembroidery will append a COLOR_BREAK rather than SEQUENCE_BREAK after it adds the stitches into the pattern. Depending on your use case, you could implement this yourself using singular calls to add_stitch_relative() or add_stitch_absolute() and then determine the type of break with COLOR_BREAK or SEQUENCE_BREAK afterwards. No break command will cause it to merge these stitches (likely invoking whatever long_stitch_contingency is needed).
 
