@@ -13,8 +13,9 @@ class TestEmbpattern(unittest.TestCase):
     def test_needle_count_limited_set(self):
         needle_file = "needle-ls.u01"
         shift = get_shift_pattern()
-        shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, None, 3, 1))
+        shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, None, 6, 1))
         shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, 4, 6, 7))
+        shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, None, 3, 1))
         write_u01(shift, needle_file, {"needle_count": 7})
         needle_pattern = read_u01(needle_file)
         self.assertEqual(needle_pattern.count_stitch_commands(NEEDLE_SET), 16)

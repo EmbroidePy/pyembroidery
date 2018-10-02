@@ -16,13 +16,13 @@ def read(f, out, settings=None):
             for sp in split[1:]:
                 if sp[0] == "n":
                     needle = int(sp[1:])
-                    command |= needle << 16
+                    command |= (needle + 1) << 16
                 if sp[0] == "o":
                     order = int(sp[1:])
-                    command |= order << 24
+                    command |= (order + 1) << 24
                 if sp[0] == "t":
                     thread = int(sp[1:])
-                    command |= thread << 8
+                    command |= (thread + 1) << 8
             if len(row) == 3:
                 out.add_command(command)
             else:
