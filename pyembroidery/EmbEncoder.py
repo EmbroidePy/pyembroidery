@@ -83,8 +83,7 @@ class Transcoder:
         self.source_pattern = source_pattern
         self.destination_pattern = destination_pattern
         self.transcode_metadata()
-        self.transcode_threads()
-        self.transcode_stitches()
+        self.transcode_main()
         return destination_pattern
 
     def transcode_metadata(self):
@@ -93,13 +92,7 @@ class Transcoder:
         dest = self.destination_pattern.extras
         dest.update(source)
 
-    def transcode_threads(self):
-        """Transcodes threads, (just moves)"""
-        source = self.source_pattern.threadlist
-        dest = self.destination_pattern.threadlist
-        dest.extend(source)
-
-    def sequence_change_events(self):
+    def get_as_thread_change_sequence_events(self):
         """Generates the sequence change events with their relevant indexes.
         If there is a sewing event prior to the thread sequence event, the first event
         is indexed as 1. If the first event is a discrete event, occurring before
@@ -126,14 +119,14 @@ class Transcoder:
                 yield flags, thread, needle, order, current_index
                 current_index += 1
 
-    def build_change_sequence(self):
+    def build_thread_change_sequence(self):
         """Builds a change sequence to plan out all the color changes for the file."""
         thread_sequence = {}
         lookahead_index = 0
         thread_sequence[0] = [None, None, None, None]
-        for flags, thread, needle, order, current_index in self.sequence_change_events():
+        for flags, thread, needle, order, current_index in self.get_as_thread_change_sequence_events():
             if flags == SET_CHANGE_SEQUENCE:
-                if order == 0:
+                if order is None:
                     try:
                         current = thread_sequence[lookahead_index]
                     except KeyError:
@@ -142,10 +135,10 @@ class Transcoder:
                     lookahead_index += 1
                 else:
                     try:
-                        current = thread_sequence[order - 1]
+                        current = thread_sequence[order]
                     except KeyError:
                         current = [None, None, None, None]
-                        thread_sequence[order - 1] = current
+                        thread_sequence[order] = current
             else:
                 try:
                     current = thread_sequence[current_index]
@@ -158,7 +151,7 @@ class Transcoder:
                 current[0] = flags
             if thread is not None:
                 current[1] = thread
-                current[3] = self.source_pattern.get_thread_or_filler(thread - 1)
+                current[3] = self.source_pattern.get_thread_or_filler(thread)
             if needle is not None:
                 current[2] = needle
         # TODO: account for contingency where threadset repeats threads without explicit values set within the commands.
@@ -182,17 +175,21 @@ class Transcoder:
                 s[3] = self.source_pattern.get_thread_or_filler(s[1])
         return thread_sequence
 
-    def transcode_stitches(self):
+    def transcode_main(self):
         """Transcodes stitches.
         Converts middle-level commands and potentially incompatible
         commands into a format friendly low level commands."""
+
         source = self.source_pattern.stitches
         self.state_trimmed = True
         self.needle_x = 0
         self.needle_y = 0
         self.position = 0
         self.order_index = -1
-        self.change_sequence = self.build_change_sequence()
+        self.change_sequence = self.build_thread_change_sequence()
+        threadlist = self.destination_pattern.threadlist
+        for idx, seq in self.change_sequence.items():
+            threadlist.append(seq[3])
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
