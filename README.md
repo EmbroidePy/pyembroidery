@@ -396,27 +396,30 @@ Middle-Level Commands:
 ----
 
 The middle-level commands, as they currently stand:
+* SET_CHANGE_SEQUENCE - Sets the thread change sequence according to the encoded values. Setting the needle, thread-color, and order of where this occurs. See Thread Changes for more info.
 * SEQUENCE_BREAK - Break between stitches. Inserts a trim and jumps to the next stitch in the sequence.
 * COLOR_BREAK - Breaks between stitches. Changes to the next color (unless called before anything was stitched)
 * FRAME_EJECT(x,y) - Breaks the stitches, jumps to the given location, performs a stop, then goes to next stitch accordingly.
 * STITCH_BREAK - Next location is jumped to. Existing jumps are reallocated.
 * MATRIX_TRANSLATE(tx,ty) - Applies an inline translation shift for the encoder. It will treat all future stitches translated from here.
-* MATRIX_SCALE(sx,sy) - Applies an inline scale shift. It will scale by that factor for future stitches.
+* MATRIX_SCALE_ORIGIN(sx,sy) - Applies an inline scale shift. It will scale by that factor for future stitches. Against the origin (0,0)
+* MATRIX_ROTATE_ORIGIN(r) - Applies an inline rotateion shift. It will rotate by that factor for future stitches (in degrees). Against the origin (0,0)
+* MATRIX_SCALE(sx,sy) - Applies an inline scale shift. It will scale by that factor for future stitches. Scaling based on current point.
 * MATRIX_ROTATE(r) - Applies an inline rotateion shift. It will rotate by that factor for future stitches (in degrees).
 * MATRIX_RESET - Resets the affine transformation matrix.
-* OPTION_ENABLE_TIE_ON - Enables Tie_on on the fly.
-* OPTION_ENABLE_TIE_OFF - Enables Tie_off on the fly.
-* OPTION_DISABLE_TIE_ON - Disables Tie_on on the fly.
-* OPTION_DISABLE_TIE_OFF - Disables Tie_off on the fly.
 * OPTION_MAX_STITCH_LENGTH(x) - Sets the max stitch length on the fly.
 * OPTION_MAX_JUMP_LENGTH(x) - Sets the max jump length on the fly.
 * OPTION_EXPLICIT_TRIM - (Default) includes trim command before color-change command explicitly. 
 * OPTION_IMPLICIT_TRIM - Sets trim to be implied by the color-change event.
+* CONTINGENCY_TIE_ON_THREE_SMALL - Enables Tie_on on the fly.
+* CONTINGENCY_TIE_ON_NONE - Enables Tie_off on the fly.
+* CONTINGENCY_TIE_OFF_THREE_SMALL - Disables Tie_on on the fly.
+* CONTINGENCY_TIE_OFF_NONE - Disables Tie_off on the fly.
 * SEW_TO - STITCH but with forced CONTINGENCY_SEW_TO
 * NEEDLE_AT - STITCH but with forced CONTINGENCY_JUMP_NEEDLE
-* CONTINGENCY_NONE - Disables long stitch contingency encoding.
-* CONTINGENCY_JUMP_NEEDLE - Sets, long stitch contingency to jump the needle to the new position.
-* CONTINGENCY_SEW_TO - Sets, long stitch contingency to sew to the new position with interpolated stitches.
+* CONTINGENCY_LONG_STITCH_NONE - Disables long stitch contingency encoding.
+* CONTINGENCY_LONG_STITCH_JUMP_NEEDLE - Sets, long stitch contingency to jump the needle to the new position.
+* CONTINGENCY_LONG_STITCH_SEW_TO - Sets, long stitch contingency to sew to the new position with interpolated stitches.
 * CONTINGENCY_SEQUIN_UTILIZE - sets the equin contingency to use the sequin information.
 * CONTINGENCY_SEQUIN_JUMP - Sets the sequin contingency to call the sequins jumps.
 * CONTINGENCY_SEQUIN_STITCH - Sets the sequin contingency to call the sequins stitches.
@@ -467,6 +470,10 @@ The enconder needs to decide what to do when there are sequins in a pattern. The
 * CONTINGENCY_SEQUIN_REMOVE - Sets the sequin contingency to remove the commands completely.
 
 Sequins being written into files that do not support sequins can go several ways, the two typical methods are JUMP and STITCH, this means to replace the SEQUIN_EJECTs with JUMP. This will allow some machines to manually enable sequins for a particular section and interpret the JUMPs as stitches. It is known that some Barudan machines have this ability. The other typical mode is STITCH which will preserve viewable structure of the underlying pattern while destroying the information of where the JUMPs were. With the JUMPs some data will appear to be corrupted, with STITCHes the data will look correct except without the sequins but the information is lost and not recoverable. REMOVE is given for completeness, but it calls all SEQUIN_EJECT commands NO OPERATIONS as if they don't appear in the pattern at all.
+
+Tie On / Tie Off Contingency
+---
+While there's only NONE, and THREE_SMALL for contingencies here, both the tie-on and tie-off contingencies are setup to be forward compatabile with various other potential tie-on and tie-off methods.
 
 Units
 ---
