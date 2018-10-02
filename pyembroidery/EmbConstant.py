@@ -16,35 +16,35 @@ COLOR_CHANGE = 5
 NEEDLE_SET = 9
 SEQUIN_MODE = 6
 SEQUIN_EJECT = 7
-SLOW = 0xB
-FAST = 0xC
+SLOW = 0xB  # 11
+FAST = 0xC  # 12
 
 # Assigns the change sequences, allowing the color change commands to trigger any event.
 # For these can be processed in some needle, thread, order values to preset or postset the
 # Underlying change sequence.
-SET_CHANGE_SEQUENCE = 0x10
+SET_CHANGE_SEQUENCE = 0x10  # 16
 
 # Stitch with implied contingency.
-SEW_TO = 0xB0
-NEEDLE_AT = 0xB1
+SEW_TO = 0xB0  # 176
+NEEDLE_AT = 0xB1  # 177
 
-STITCH_BREAK = 0xE0
+STITCH_BREAK = 0xE0  # 224
 
-SEQUENCE_BREAK = 0xE1
-COLOR_BREAK = 0xE2
+SEQUENCE_BREAK = 0xE1  # 225
+COLOR_BREAK = 0xE2  # 226
 
 # Middle Level commands.
-TIE_ON = 0xE4
-TIE_OFF = 0xE5
-FRAME_EJECT = 0xE9
+TIE_ON = 0xE4  # 228
+TIE_OFF = 0xE5  # 229
+FRAME_EJECT = 0xE9  # 233
 
 # Matrix Commands.
-MATRIX_TRANSLATE = 0xC0
-MATRIX_SCALE_ORIGIN = 0xC1
-MATRIX_ROTATE_ORIGIN = 0xC2
-MATRIX_SCALE = 0xC4
-MATRIX_ROTATE = 0xC5
-MATRIX_RESET = 0xC3
+MATRIX_TRANSLATE = 0xC0  # 192
+MATRIX_SCALE_ORIGIN = 0xC1  # 193
+MATRIX_ROTATE_ORIGIN = 0xC2  # 194
+MATRIX_SCALE = 0xC4  # 196
+MATRIX_ROTATE = 0xC5  # 197
+MATRIX_RESET = 0xC3  # 195
 
 OPTION_MAX_STITCH_LENGTH = 0xD5
 OPTION_MAX_JUMP_LENGTH = 0xD6

@@ -34,7 +34,7 @@ class TestConverts(unittest.TestCase):
         t_pattern = read_csv(file2)
 
         self.assertIsNotNone(t_pattern)
-        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 16)
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("u01->csv: ", t_pattern.stitches)
@@ -56,7 +56,6 @@ class TestConverts(unittest.TestCase):
         print("u01->exp: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
-
 
     def test_convert_u01_to_pes(self):
         file1 = "convert_pes.u01"

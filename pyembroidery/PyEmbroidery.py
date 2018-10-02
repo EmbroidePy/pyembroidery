@@ -474,7 +474,13 @@ def write_embroidery(writer, pattern, stream, settings=None):
         settings = {}
     else:
         settings = settings.copy()
-    if settings.get("encode", True):
+
+    try:
+        encode = writer.ENCODE
+    except AttributeError:
+        encode = True
+
+    if settings.get("encode", encode):
         if not ("max_jump" in settings):
             try:
                 settings["max_jump"] = writer.MAX_JUMP_DISTANCE
@@ -490,9 +496,9 @@ def write_embroidery(writer, pattern, stream, settings=None):
                 settings["full_jump"] = writer.FULL_JUMP
             except AttributeError:
                 pass
-        if not ("strip_speeds" in settings):
+        if not ("writes_speeds" in settings):
             try:
-                settings["strip_speeds"] = writer.STRIP_SPEEDS
+                settings["writes_speeds"] = writer.WRITES_SPEEDS
             except AttributeError:
                 pass
         if not ("sequin_contingency" in settings):

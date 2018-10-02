@@ -90,7 +90,7 @@ class TestWrites(unittest.TestCase):
 
     def test_write_csv_read_csv(self):
         file1 = "file.csv"
-        write_csv(get_big_pattern(), file1)
+        write_csv(get_big_pattern(), file1, {"encode": True})
         csv_pattern = read_csv(file1)
         self.assertIsNotNone(csv_pattern)
         self.assertEqual(csv_pattern.count_stitch_commands(COLOR_CHANGE), 15)

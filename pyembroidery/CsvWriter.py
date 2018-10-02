@@ -1,12 +1,12 @@
-from .EmbFunctions import *
-from .WriteHelper import write_string_utf8
-from .PecGraphics import get_graphic_as_string
 import math
 
-STRIP_SPEEDS = False
+from .EmbFunctions import *
+from .PecGraphics import get_graphic_as_string
+from .WriteHelper import write_string_utf8
+
+ENCODE = False
+WRITES_SPEEDS = True
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_UTILIZE
-MAX_JUMP_DISTANCE = 121
-MAX_STITCH_DISTANCE = 121
 
 
 def csv(f, values):

@@ -3,7 +3,7 @@ from .WriteHelper import write_int_16le, write_int_32le
 
 THREAD_CHANGE_COMMAND = NEEDLE_SET
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
-STRIP_SPEEDS = False
+WRITES_SPEEDS = True
 FULL_JUMP = False
 MAX_JUMP_DISTANCE = 127
 MAX_STITCH_DISTANCE = 127
@@ -23,7 +23,7 @@ def write(pattern, f, settings=None):
     write_int_16le(f, -int(extends[1]))
     write_int_32le(f, 0)  # Dunno.
 
-    write_int_32le(f, stitch_count + 1)  # force write first needle position
+    write_int_32le(f, stitch_count + 1)
     last_stitch = stitches[stitch_count - 1]
     write_int_16le(f, int(last_stitch[0]))
     write_int_16le(f, -int(last_stitch[1]))

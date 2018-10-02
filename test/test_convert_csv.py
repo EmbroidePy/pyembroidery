@@ -29,7 +29,7 @@ class TestConverts(unittest.TestCase):
     def test_convert_csv_to_csv(self):
         file1 = "convert_csv.csv"
         file2 = "converted_csv.csv"
-        write_csv(get_big_pattern(), file1)
+        write_csv(get_big_pattern(), file1, {"encode": True})
         f_pattern = read_csv(file1)
         write_csv(f_pattern, file2)
         t_pattern = read_csv(file2)
