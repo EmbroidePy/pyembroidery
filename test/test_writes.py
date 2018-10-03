@@ -2,14 +2,19 @@ from __future__ import print_function
 
 import unittest
 
-from pyembroidery import *
 from pattern_for_tests import *
+from pyembroidery import *
 
 
 class TestWrites(unittest.TestCase):
 
     def position_equals(self, stitches, j, k):
         self.assertEqual(stitches[j][:1], stitches[k][:1])
+
+    def test_write_png(self):
+        file1 = "file.png"
+        write_png(get_shift_pattern(), file1)
+        self.addCleanup(os.remove, file1)
 
     def test_write_dst_read_dst(self):
         file1 = "file.dst"
