@@ -28,9 +28,7 @@ ATTR_STROKE_WIDTH = "stroke-width"
 VALUE_NONE = "none"
 
 
-def write(pattern, f, settings=None):
-    """Writes an svg file of the stitchblocks."""
-
+def create_svg_dom(pattern):
     root = Element(NAME_SVG)
     root.set(ATTR_VERSION, VALUE_SVG_VERSION)
     root.set(ATTR_XMLNS, VALUE_XMLNS)
@@ -42,9 +40,9 @@ def write(pattern, f, settings=None):
     root.set(ATTR_WIDTH, str(width))
     root.set(ATTR_HEIGHT, str(height))
     viewbox = \
-        str(extends[0]) + " " +\
-        str(extends[1]) + " " +\
-        str(width) + " " +\
+        str(extends[0]) + " " + \
+        str(extends[1]) + " " + \
+        str(width) + " " + \
         str(height)
     root.set(ATTR_VIEWBOX, viewbox)
 
@@ -61,5 +59,10 @@ def write(pattern, f, settings=None):
         path.set(ATTR_FILL, VALUE_NONE)
         path.set(ATTR_STROKE, thread.hex_color())
         path.set(ATTR_STROKE_WIDTH, "3")
-    tree = ElementTree(root)
+    return ElementTree(root)
+
+
+def write(pattern, f, settings=None):
+    """Writes an svg file of the stitchblocks."""
+    tree = create_svg_dom(pattern)
     tree.write(f)

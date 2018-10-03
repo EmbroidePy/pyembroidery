@@ -52,6 +52,7 @@ import pyembroidery.ZxyReader as ZxyReader
 import pyembroidery.PmvReader as PmvReader
 import pyembroidery.PmvWriter as PmvWriter
 import pyembroidery.CsvReader as CsvReader
+import pyembroidery.PngWriter as PngWriter
 
 
 def supported_formats():
@@ -374,6 +375,13 @@ def supported_formats():
         "reader": PmvReader,
         "writer": PmvWriter
     })
+    yield ({
+        "description": "PNG image file",
+        "extension": "png",
+        "mimetype": "image/png",
+        "category": "image",
+        "writer": PngWriter
+    })
 
 
 def convert(filename_from, filename_to, settings=None):
@@ -563,6 +571,11 @@ def write_csv(pattern, stream, settings=None):
 def write_svg(pattern, stream, settings=None):
     """Writes fileobject as DST file"""
     write_embroidery(SvgWriter, pattern, stream, settings)
+
+
+def write_png(pattern, stream, settings=None):
+    """Writes fileobject as PNG file"""
+    write_embroidery(PngWriter, pattern, stream, settings)
 
 
 def write(pattern, filename, settings=None):
