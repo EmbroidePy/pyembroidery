@@ -13,7 +13,7 @@ class TestWrites(unittest.TestCase):
 
     def test_write_png(self):
         file1 = "file.png"
-        write_png(get_shift_pattern(), file1)
+        write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5})
         self.addCleanup(os.remove, file1)
 
     def test_write_dst_read_dst(self):

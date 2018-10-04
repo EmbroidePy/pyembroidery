@@ -376,11 +376,15 @@ def supported_formats():
         "writer": PmvWriter
     })
     yield ({
-        "description": "PNG image file",
+        "description": "PNG Format, Portable Network Graphics",
         "extension": "png",
         "mimetype": "image/png",
         "category": "image",
-        "writer": PngWriter
+        "writer": PngWriter,
+        "options": {
+            "background": (0x000000, 0xFFFFFF),
+            "linewidth": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        },
     })
 
 

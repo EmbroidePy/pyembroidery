@@ -2,6 +2,7 @@ import struct
 import zlib
 
 from .EmbConstant import *
+from .EmbThread import EmbThread
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_STITCH
 FULL_JUMP = True
@@ -32,6 +33,14 @@ class PngBuffer:
         self.green = 0
         self.blue = 0
         self.alpha = 0
+        self.line_width = 3
+
+    def background(self, red, green, blue, alpha):
+        for i in range(0, len(self.buf), 4):
+            self.buf[i] = red
+            self.buf[i + 1] = green
+            self.buf[i + 2] = blue
+            self.buf[i + 3] = alpha
 
     def plot(self, x, y):
         try:
@@ -86,14 +95,14 @@ class PngBuffer:
                 self.line_for_point(x0, y0, True)
 
     def line_for_point(self, x, y, dy):
-        w = 3
+        w = self.line_width
         left = w >> 1
         right = w - left
         if dy:
-            for pos in range(left, right):
+            for pos in range(-left, right):
                 self.plot(x + pos, y)
         else:
-            for pos in range(left, right):
+            for pos in range(-left, right):
                 self.plot(x, y + pos)
 
 
@@ -103,6 +112,15 @@ def write(pattern, f, settings=None):
     width = int(extends[2] - extends[0])
     height = int(extends[3] - extends[1])
     draw_buff = PngBuffer(width, height)
+    if settings is not None:
+        background = settings.get("background", None)
+        linewidth = settings.get("linewidth", None)
+        if background is not None:
+            b = EmbThread()
+            b.set(background)
+            draw_buff.background(b.get_red(), b.get_green(), b.get_blue(), 0xFF)
+        if linewidth is not None and isinstance(linewidth, int):
+            draw_buff.line_width = linewidth
 
     for stitchblock in pattern.get_as_stitchblock():
         block = stitchblock[0]
