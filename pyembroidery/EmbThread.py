@@ -37,7 +37,7 @@ def color_hex(hex_string):
     if size == 6 or size == 8:
         return int(h[:6], 16)
     elif size == 4 or size == 3:
-        return int(h[2] + h[2] + h[1] + h[1] + h[0] + h[0], 16)
+        return int(h[0] + h[0] + h[1] + h[1] + h[2] + h[2], 16)
 
 
 def color_distance_red_mean(
