@@ -33,6 +33,10 @@ class EmbMatrix:
     def post_scale(self, sx=1, sy=None, x=0, y=0):
         if sy is None:
             sy = sx
+        if x is None:
+            x = 0
+        if y is None:
+            y = 0
         if x == 0 and y == 0:
             self.m = self.matrix_multiply(self.m, self.get_scale(sx, sy))
         else:
@@ -44,6 +48,10 @@ class EmbMatrix:
         self.m = self.matrix_multiply(self.m, self.get_translate(tx, ty))
 
     def post_rotate(self, theta, x=0, y=0):
+        if x is None:
+            x = 0
+        if y is None:
+            y = 0
         if x == 0 and y == 0:
             self.m = self.matrix_multiply(self.m, self.get_rotate(theta))
         else:
@@ -89,6 +97,13 @@ class EmbMatrix:
             v0 * m[0] + v1 * m[3] + 1 * m[6],
             v0 * m[1] + v1 * m[4] + 1 * m[7]
         ]
+
+    def apply(self, v):
+        m = self.m
+        nx = v[0] * m[0] + v[1] * m[3] + 1 * m[6]
+        ny = v[0] * m[1] + v[1] * m[4] + 1 * m[7]
+        v[0] = nx
+        v[1] = ny
 
     @staticmethod
     def get_identity():

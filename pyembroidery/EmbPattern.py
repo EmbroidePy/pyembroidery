@@ -233,6 +233,10 @@ class EmbPattern:
             stitch[0] += dx
             stitch[1] += dy
 
+    def transform(self, matrix):
+        for stitch in self.stitches:
+            matrix.apply(stitch)
+
     def fix_color_count(self):
         """Ensure the there are threads for all color blocks."""
         thread_index = 0

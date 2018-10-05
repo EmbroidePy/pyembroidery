@@ -1,5 +1,5 @@
-from .PecReader import read_pec
 from .EmbThread import EmbThread
+from .PecReader import read_pec
 from .ReadHelper import read_string_8, read_int_8, read_int_32le, read_int_24be, read_int_16le
 
 
@@ -18,19 +18,37 @@ def read(f, out, settings=None):
     # Metadata started appearing in V4
     # Threads appeared in V5.
     # We quickly abort if there's any complex items in the header.
-    # "#PES0100", "#PES0090" "#PES0080" "#PES0070", "#PES0040",
-    # "#PES0030", "#PES0022", "#PES0020"
-    if pes_string == "#PES0060":
+    if pes_string == "PES0100":
+        out.metadata("version", 10)
+    elif pes_string == "#PES0090":
+        out.metadata("version", 9)
+    elif pes_string == "#PES0080":
+        out.metadata("version", 8)
+    elif pes_string == "#PES0070":
+        out.metadata("version", 7)
+    elif pes_string == "#PES0060":
+        out.metadata("version", 6)
         read_pes_header_version_6(f, out, loaded_thread_values)
     elif pes_string == "#PES0050":
+        out.metadata("version", 5)
         read_pes_header_version_5(f, out, loaded_thread_values)
     elif pes_string == "#PES0055":
+        out.metadata("version", 5.5)
         read_pes_header_version_5(f, out, loaded_thread_values)
     elif pes_string == "#PES0056":
+        out.metadata("version", 5.6)
         read_pes_header_version_5(f, out, loaded_thread_values)
     elif pes_string == "#PES0040":
+        out.metadata("version", 4)
         read_pes_header_version_4(f, out)
+    elif pes_string == "#PES0030":
+        out.metadata("version", 3)
+    elif pes_string == "#PES0022":
+        out.metadata("version", 2.2)
+    elif pes_string == "#PES0020":
+        out.metadata("version", 2)
     elif pes_string == "#PES0001":
+        out.metadata("version", 1)
         read_pes_header_version_1(f, out)
     else:
         pass  # Header is unrecognised.
