@@ -396,12 +396,14 @@ def convert(filename_from, filename_to, settings=None):
 
 
 def get_extension_by_filename(filename):
-    """extracts he extension from a filename"""
+    """extracts the extension from a filename"""
     return os.path.splitext(filename)[1][1:]
 
 
 def read_embroidery(reader, f, settings=None, pattern=None):
     """Reads fileobject or filename with reader."""
+    if reader is None:
+        return None
     if pattern is None:
         pattern = EmbPattern()
     if isinstance(f, str):
@@ -482,6 +484,8 @@ def read(filename, settings=None, pattern=None):
 
 
 def write_embroidery(writer, pattern, stream, settings=None):
+    if pattern is None:
+        return
     if settings is None:
         settings = {}
     else:
