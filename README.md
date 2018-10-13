@@ -118,6 +118,8 @@ Pyembroidery will write:
 * .pec
 * .csv
 * .svg
+* .png
+* .txt
 
 Pyembroidery will read:
 * .pes (mandated)
@@ -165,6 +167,12 @@ Writing to CSV:
 Prints out a workable CSV file with the given data. Starting in 1.3 the csv patterns are written without being encoded. The CSV format is, in this form, lossless. If you wish to encode before you write the file you can set the encoder to True and override the default.
 
 `write_csv(pattern, "file.csv", {"encode": True})`
+
+Writing to PNG:
+Writes to a image/png file.
+
+Writing to TXT:
+Writes to a text file. Generally lossy, it does not write threads or metadata, but certainly more easily parsed for a number of homebrew applications. The "mimic" option should mimic the embroidermodder functionality for exporting to txt files. By default it exports a bit less lossy giving the proper command indexes and their explicit names.
 
 Reading:
 ---
@@ -227,6 +235,8 @@ pyembroidery.write_jef(pattern, file)
 pyembroidery.write_u01(pattern, file)
 pyembroidery.write_svg(pattern, file)
 pyembroidery.write_csv(pattern, file)
+pyembroidery.write_png(pattern, file)
+pyembroidery.write_txt(pattern, file)
 ```
 
 In addition, you can add a `dict` object to the writer, reader, and converter with various settings.
