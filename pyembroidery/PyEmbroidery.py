@@ -53,6 +53,7 @@ import pyembroidery.PmvReader as PmvReader
 import pyembroidery.PmvWriter as PmvWriter
 import pyembroidery.CsvReader as CsvReader
 import pyembroidery.PngWriter as PngWriter
+import pyembroidery.TxtWriter as TxtWriter
 
 
 def supported_formats():
@@ -386,6 +387,16 @@ def supported_formats():
             "linewidth": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         },
     })
+    yield ({
+        "description": "txt Format, Text File",
+        "extension": "txt",
+        "mimetype": "text/plain",
+        "category": "debug",
+        "writer": TxtWriter,
+        "options": {
+            "mimic": (True, False),
+        },
+    })
 
 
 def convert(filename_from, filename_to, settings=None):
@@ -574,6 +585,11 @@ def write_u01(pattern, stream, settings=None):
 def write_csv(pattern, stream, settings=None):
     """Writes fileobject as CSV file"""
     write_embroidery(CsvWriter, pattern, stream, settings)
+
+
+def write_txt(pattern, stream, settings=None):
+    """Writes fileobject as CSV file"""
+    write_embroidery(TxtWriter, pattern, stream, settings)
 
 
 def write_svg(pattern, stream, settings=None):

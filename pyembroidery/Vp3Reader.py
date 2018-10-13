@@ -57,7 +57,7 @@ def read(f, out, settings=None):
         vp3_read_colorblock(f, out, center_x, center_y)
 
 
-def vp3_read_colorblock(f, read_object, center_x, center_y):
+def vp3_read_colorblock(f, out, center_x, center_y):
     bytescheck = f.read(3)  # \x00\x05\x00
     distance_to_next_block_050 = read_int_32be(f)
     block_end_position = distance_to_next_block_050 + f.tell()
@@ -67,9 +67,9 @@ def vp3_read_colorblock(f, read_object, center_x, center_y):
     abs_x = start_position_x + center_x
     abs_y = start_position_y + center_y
     if abs_x != 0 and abs_y != 0:
-        read_object.move_abs(abs_x, abs_y)
+        out.move_abs(abs_x, abs_y)
     thread = vp3_read_thread(f)
-    read_object.add_thread(thread)
+    out.add_thread(thread)
     f.seek(15, 1)
     bytescheck = f.read(3)  # \x0A\xF6\x00
     stitch_byte_length = block_end_position - f.tell()
@@ -80,26 +80,26 @@ def vp3_read_colorblock(f, read_object, center_x, center_y):
         x = stitch_bytes[i]
         y = stitch_bytes[i + 1]
         i += 2
-        if (x & 0xFF) == 0x80:
-            if y == 0x01:
-                x = signed16(stitch_bytes[i], stitch_bytes[i + 1])
-                i += 2
-                y = signed16(stitch_bytes[i], stitch_bytes[i + 1])
-                i += 2
-                if abs(x) > 255 or abs(y) > 255:
-                    read_object.trim()
-                    read_object.move(x, y)
-                else:
-                    read_object.stitch(x, y)
-            elif y == 0x02:
-                pass  # ends long stitch mode.
-            elif y == 0x03:
-                read_object.end(0, 0)
-                return
-        else:
-            read_object.stitch(x, y)
-    read_object.trim()
-    read_object.color_change()
+        if (x & 0xFF) != 0x80:
+            out.stitch(x, y)
+            continue
+        if y == 0x01:
+            x = signed16(stitch_bytes[i], stitch_bytes[i + 1])
+            i += 2
+            y = signed16(stitch_bytes[i], stitch_bytes[i + 1])
+            i += 2
+            if abs(x) > 255 or abs(y) > 255:
+                out.trim()
+                out.move(x, y)
+            else:
+                out.stitch(x, y)
+        elif y == 0x02:
+            pass  # ends long stitch mode.
+        elif y == 0x03:
+            out.end(0, 0)
+            return
+    out.trim()
+    out.color_change()
 
 
 def vp3_read_thread(f):
