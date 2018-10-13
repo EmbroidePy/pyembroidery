@@ -129,7 +129,6 @@ def flag_trim(long_form):
 
 
 def pec_encode(pattern, f):
-    color_change_jump = False
     color_two = True
     jumping = False
     stitches = pattern.stitches
@@ -144,7 +143,7 @@ def pec_encode(pattern, f):
         xx += dx
         yy += dy
         if data is STITCH:
-            if jumping and dx is not 0 and dy is not 0:
+            if jumping and dx != 0 and dy != 0:
                 f.write(b'\x00\x00')
                 jumping = False
             if -64 < dx < 63 and -64 < dy < 63:
@@ -161,22 +160,15 @@ def pec_encode(pattern, f):
         elif data == JUMP:
             jumping = True
             dx = encode_long_form(dx)
-            if color_change_jump:
-                dx = flag_jump(dx)
-            else:
-                dx = flag_trim(dx)
+            dx = flag_trim(dx)
             dy = encode_long_form(dy)
-            if color_change_jump:
-                dy = flag_jump(dy)
-            else:
-                dy = flag_trim(dy)
+            dy = flag_trim(dy)
             f.write(bytes(bytearray([
                 (dx >> 8) & 0xFF,
                 dx & 0xFF,
                 (dy >> 8) & 0xFF,
                 dy & 0xFF
             ])))
-            color_change_jump = False
         elif data == COLOR_CHANGE:
             if jumping:
                 f.write(b'\x00\x00')

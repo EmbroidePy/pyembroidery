@@ -16,11 +16,11 @@ def read(f, out, settings=None):
 
     skip = math.ceil(design_height / 2.0) * design_width
     f.seek(4 + int(skip), 1)
-    colors = read_int_8(f)
+    color_count = read_int_8(f)
     f.seek(18, 1)
     threads = get_thread_set()
     stitch_per_color = {}
-    for i in range(colors):
+    for i in range(color_count):
         stitch_count = read_int_32be(f)
         color_code = read_int_8(f)
         thread = threads[color_code % len(threads)]

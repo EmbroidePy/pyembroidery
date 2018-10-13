@@ -316,7 +316,7 @@ class Transcoder:
             elif flags == CONTINGENCY_SEQUIN_JUMP:
                 if self.state_sequin_mode:  # if sequin_mode, turn it off.
                     self.toggle_sequins()
-                self.sequin_contingency = CONTINGENCY_SEQUIN_REMOVE
+                self.sequin_contingency = CONTINGENCY_SEQUIN_JUMP
             elif flags == CONTINGENCY_SEQUIN_UTILIZE:
                 self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
             elif flags == MATRIX_TRANSLATE:

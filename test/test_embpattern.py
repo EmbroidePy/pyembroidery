@@ -23,7 +23,7 @@ class TestEmbpattern(unittest.TestCase):
             print(0xFFFFFF & thread.color)
         self.assertEqual((0xFFFFFF & read_pattern.threadlist[0].color), 0x0000FF)
         self.assertEqual((0xFFFFFF & read_pattern.threadlist[1].color), 0xFF0000)
-        # self.addCleanup(os.remove, test_file)
+        self.addCleanup(os.remove, test_file)
 
     def test_needle_count_limited_set(self):
         needle_file = "needle-ls.u01"

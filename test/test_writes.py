@@ -103,3 +103,9 @@ class TestWrites(unittest.TestCase):
         self.position_equals(csv_pattern.stitches, 0, -1)
         print("csv: ", csv_pattern.stitches)
         self.addCleanup(os.remove, file1)
+
+    def test_write_txt(self):
+        file1 = "file.txt"
+        write_txt(get_big_pattern(), file1)
+        write_txt(get_big_pattern(), file1, {"mimic": True})
+        self.addCleanup(os.remove, file1)
