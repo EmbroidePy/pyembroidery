@@ -34,7 +34,7 @@ def parse(f):
                 or byte == b'+' \
                 or byte == b'-' \
                 or byte == b'.':
-            value += str(byte)
+            value += byte.decode('utf8')
             continue
 
         if ord_A <= b <= ord_Z:
