@@ -211,11 +211,7 @@ def vp3_write_thread(f, thread):
 
 
 def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
-    # Embroidermodder code has
-    # vp3_write_string(f, "\x00");
     # The 0, x, 0 bytes come before placeholders
-    # Given this consistency, it's doubtful this is a string.
-    # Those aren't
     f.write(b'\x00\x01\x00')
     placeholder_distance_to_end_of_stitches_block_010 = f.tell()
     write_int_32be(f, 0)  # placeholder

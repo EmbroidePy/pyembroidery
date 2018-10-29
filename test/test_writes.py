@@ -104,6 +104,17 @@ class TestWrites(unittest.TestCase):
         print("csv: ", csv_pattern.stitches)
         self.addCleanup(os.remove, file1)
 
+    def test_write_gcode_read_gcode(self):
+        file1 = "file.gcode"
+        write_gcode(get_big_pattern(), file1)
+        gcode_pattern = read_gcode(file1)
+        self.assertIsNotNone(gcode_pattern)
+        self.assertEqual(gcode_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(gcode_pattern.count_stitch_commands(STITCH), 5 * 16)
+        self.position_equals(gcode_pattern.stitches, 0, -1)
+        write_txt(get_big_pattern(), file1, {"mimic": True})
+        self.addCleanup(os.remove, file1)
+
     def test_write_txt(self):
         file1 = "file.txt"
         write_txt(get_big_pattern(), file1)

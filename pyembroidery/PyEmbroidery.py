@@ -54,6 +54,8 @@ import pyembroidery.PmvWriter as PmvWriter
 import pyembroidery.CsvReader as CsvReader
 import pyembroidery.PngWriter as PngWriter
 import pyembroidery.TxtWriter as TxtWriter
+import pyembroidery.GcodeWriter as GcodeWriter
+import pyembroidery.GcodeReader as GcodeReader
 
 
 def supported_formats():
@@ -397,6 +399,17 @@ def supported_formats():
             "mimic": (True, False),
         },
     })
+    yield ({
+        "description": "txt Format, Text File",
+        "extension": "gcode",
+        "mimetype": "text/plain",
+        "category": "embroidery",
+        "reader": GcodeReader,
+        "writer": GcodeWriter,
+        "options": {
+            "stitch_z_travel": (5.0, 10.0),
+        },
+    })
 
 
 def convert(filename_from, filename_to, settings=None):
@@ -482,6 +495,11 @@ def read_csv(f, settings=None, pattern=None):
     return read_embroidery(CsvReader, f, settings, pattern)
 
 
+def read_gcode(f, settings=None, pattern=None):
+    """Reads fileobject as GCode file"""
+    return read_embroidery(GcodeReader, f, settings, pattern)
+
+
 def read(filename, settings=None, pattern=None):
     """Reads file, assuming type by extension"""
     extension = get_extension_by_filename(filename)
@@ -501,7 +519,6 @@ def write_embroidery(writer, pattern, stream, settings=None):
         settings = {}
     else:
         settings = settings.copy()
-
     try:
         encode = writer.ENCODE
     except AttributeError:
@@ -536,6 +553,21 @@ def write_embroidery(writer, pattern, stream, settings=None):
         if not ("thread_change_command" in settings):
             try:
                 settings["thread_change_command"] = writer.THREAD_CHANGE_COMMAND
+            except AttributeError:
+                pass
+        if not ("translate" in settings):
+            try:
+                settings["translate"] = writer.TRANSLATE
+            except AttributeError:
+                pass
+        if not ("scale" in settings):
+            try:
+                settings["scale"] = writer.SCALE
+            except AttributeError:
+                pass
+        if not ("rotate" in settings):
+            try:
+                settings["rotate"] = writer.ROTATE
             except AttributeError:
                 pass
         pattern = pattern.get_normalized_pattern(settings)
@@ -590,6 +622,12 @@ def write_csv(pattern, stream, settings=None):
 def write_txt(pattern, stream, settings=None):
     """Writes fileobject as CSV file"""
     write_embroidery(TxtWriter, pattern, stream, settings)
+
+
+def write_gcode(pattern, stream, settings=None):
+    """Writes fileobject as Gcode file"""
+    write_embroidery(GcodeWriter, pattern, stream, settings)
+
 
 
 def write_svg(pattern, stream, settings=None):

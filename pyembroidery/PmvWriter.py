@@ -29,7 +29,7 @@ def write(pattern, f, settings=None):
             break
     center_y = (min_y + max_y) / 2.0
     normal_max_y = max_y - center_y
-    if normal_max_y > 35.0:  # 14 * 2.5 = 350
+    if normal_max_y > 35.0:  # 14 * 2.5 = 35.0
         scale_y = 14.0 / normal_max_y  # 1 / (normal_max_y / 14.0)
     else:
         scale_y = 1.0 / 2.5  # pure unit conversion.

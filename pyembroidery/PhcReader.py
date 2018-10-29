@@ -1,5 +1,5 @@
-from .PecReader import read_pec_stitches, read_pec_graphics
 from .EmbThreadPec import get_thread_set
+from .PecReader import read_pec_stitches, read_pec_graphics
 from .ReadHelper import read_int_8, read_int_32le, read_int_16le
 
 
@@ -24,14 +24,14 @@ def read(f, out, settings=None):
                       out.threadlist
                       )
     f.seek(0x2B, 0)
-    pec_add = read_int_8(f)
-    f.seek(4, 1)
+    pec_add = read_int_8(f)  # Size of pre-graphics, post copyright header.
+    f.seek(4, 1)  # 0x30, graphics end size.
     pec_offset = read_int_16le(f)
     f.seek(pec_offset + pec_add, 0)
-    bytes_in_section = read_int_16le(f)
+    bytes_in_section = read_int_16le(f)  # Primary bounds.
     f.seek(bytes_in_section, 1)
-    bytes_in_section2 = read_int_32le(f)
+    bytes_in_section2 = read_int_32le(f)  # Sectional bounds.
     f.seek(bytes_in_section2 + 10, 1)
     color_count2 = read_int_8(f)
-    f.seek(color_count2 + 0x1D, 1)
+    f.seek(color_count2 + 0x1D, 1) #1D toto back
     read_pec_stitches(f, out)
