@@ -32,12 +32,8 @@ def angle(dx, dy):
     return angle
 
 
-def write(pattern, f, settings=None):
+def write_data(pattern, f):
     names = get_common_name_dictionary()
-
-    deltas = settings is not None and "deltas" in settings
-    displacement = settings is not None and "displacement" in settings
-
     extends = pattern.bounds()
     width = extends[2] - extends[0]
     height = extends[3] - extends[1]
@@ -79,6 +75,8 @@ def write(pattern, f, settings=None):
 
     write_string_utf8(f, "\n")
 
+
+def write_metadata(pattern, f):
     if len(pattern.extras) > 0:
         csv(f, (
             '#',
@@ -95,6 +93,8 @@ def write(pattern, f, settings=None):
             ))
         write_string_utf8(f, "\n")
 
+
+def write_threads(pattern, f):
     if len(pattern.threadlist) > 0:
         csv(f, (
             '#',
@@ -119,83 +119,118 @@ def write(pattern, f, settings=None):
             ))
         write_string_utf8(f, "\n")
 
+
+def decoded_name(names, data):
+    command = decode_embroidery_command(data)
+    try:
+        name = names[command[0]]
+        if command[1] is not None:
+            name = name + " t" + str(command[1])
+        if command[2] is not None:
+            name = name + " n" + str(command[2])
+        if command[3] is not None:
+            name = name + " o" + str(command[3])
+    except (IndexError, KeyError):
+        name = "UNKNOWN " + str(data)
+    return name
+
+
+def write_stitches_displacement(pattern, f):
+    names = get_common_name_dictionary()
+    csv(f, (
+        '#',
+        '[STITCH_INDEX]',
+        '[STITCH_TYPE]',
+        '[X]',
+        '[Y]',
+        '[DX]',
+        '[DY]',
+        '[R]',
+        '[ANGLE]'
+    ))
+
+    current_x = 0
+    current_y = 0
+    for i, stitch in enumerate(pattern.stitches):
+        name = decoded_name(names, stitch[2])
+        dx = stitch[0] - current_x
+        dy = stitch[1] - current_y
+        csv(f, (
+            '*',
+            str(i),
+            name,
+            str(stitch[0]),
+            str(stitch[1]),
+            str(dx),
+            str(dy),
+            str(distance(dx, dy)),
+            str(angle(dx, dy))
+        ))
+        current_x = stitch[0]
+        current_y = stitch[1]
+
+
+def write_stitches_deltas(pattern, f):
+    names = get_common_name_dictionary()
+    csv(f, (
+        '#',
+        '[STITCH_INDEX]',
+        '[STITCH_TYPE]',
+        '[X]',
+        '[Y]',
+        '[DX]',
+        '[DY]'
+    ))
+    current_x = 0
+    current_y = 0
+    for i, stitch in enumerate(pattern.stitches):
+        name = decoded_name(names, stitch[2])
+        dx = stitch[0] - current_x
+        dy = stitch[1] - current_y
+        csv(f, (
+            '*',
+            str(i),
+            name,
+            str(stitch[0]),
+            str(stitch[1]),
+            str(dx),
+            str(dy)
+        ))
+        current_x = stitch[0]
+        current_y = stitch[1]
+
+
+def write_stitches(pattern, f):
+    names = get_common_name_dictionary()
+    csv(f, (
+        '#',
+        '[STITCH_INDEX]',
+        '[STITCH_TYPE]',
+        '[X]',
+        '[Y]'
+    ))
+    for i, stitch in enumerate(pattern.stitches):
+        name = decoded_name(names, stitch[2])
+        csv(f, (
+            '*',
+            str(i),
+            name,
+            str(stitch[0]),
+            str(stitch[1]),
+        ))
+
+
+def write(pattern, f, settings=None):
+    deltas = settings is not None and "deltas" in settings
+    displacement = settings is not None and "displacement" in settings
+    write_data(pattern, f)
+    write_metadata(pattern, f)
+    write_threads(pattern, f)
+
     if len(pattern.stitches) > 0:
         if displacement:
-            csv(f, (
-                '#',
-                '[STITCH_INDEX]',
-                '[STITCH_TYPE]',
-                '[X]',
-                '[Y]',
-                '[DX]',
-                '[R]',
-                '[ANGLE]'
-            ))
+            write_stitches_displacement(pattern, f)
         elif deltas:
-            csv(f, (
-                '#',
-                '[STITCH_INDEX]',
-                '[STITCH_TYPE]',
-                '[X]',
-                '[Y]',
-                '[DX]',
-                '[DY]'
-            ))
+            write_stitches_deltas(pattern, f)
         else:
-            csv(f, (
-                '#',
-                '[STITCH_INDEX]',
-                '[STITCH_TYPE]',
-                '[X]',
-                '[Y]'
-            ))
-        current_x = 0
-        current_y = 0
-        for i, stitch in enumerate(pattern.stitches):
-            command = decode_embroidery_command(stitch[2])
-            try:
-                name = names[command[0]]
-                if command[1] is not None:
-                    name = name + " t" + str(command[1])
-                if command[2] is not None:
-                    name = name + " n" + str(command[2])
-                if command[3] is not None:
-                    name = name + " o" + str(command[3])
-            except (IndexError, KeyError):
-                name = "UNKNOWN " + str(stitch[2])
-            if displacement:
-                dx = stitch[0] - current_x
-                dy = stitch[1] - current_y
-                csv(f, (
-                    '*',
-                    str(i),
-                    name,
-                    str(stitch[0]),
-                    str(stitch[1]),
-                    str(dx),
-                    str(dy),
-                    str(distance(dx, dy)),
-                    str(angle(dx, dy))
-                ))
-            elif deltas:
-                dx = stitch[0] - current_x
-                dy = stitch[1] - current_y
-                csv(f, (
-                    '*',
-                    str(i),
-                    name,
-                    str(stitch[0]),
-                    str(stitch[1]),
-                    str(dx),
-                    str(dy)
-                ))
-            else:
-                csv(f, (
-                    '*',
-                    str(i),
-                    name,
-                    str(stitch[0]),
-                    str(stitch[1]),
-                ))
-            current_x = stitch[0]
-            current_y = stitch[1]
+            write_stitches(pattern, f)
