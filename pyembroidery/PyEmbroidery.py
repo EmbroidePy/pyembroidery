@@ -10,6 +10,7 @@ import pyembroidery.JefWriter as JefWriter
 import pyembroidery.SvgWriter as SvgWriter
 import pyembroidery.CsvWriter as CsvWriter
 import pyembroidery.U01Writer as U01Writer
+import pyembroidery.XxxWriter as XxxWriter
 
 import pyembroidery.DstReader as DstReader
 import pyembroidery.PecReader as PecReader
@@ -150,7 +151,8 @@ def supported_formats():
         "extension": "xxx",
         "mimetype": "application/x-xxx",
         "category": "embroidery",
-        "reader": XxxReader
+        "reader": XxxReader,
+        "writer": XxxWriter
     })
     yield ({
         "description": "Janome Embroidery Format",
