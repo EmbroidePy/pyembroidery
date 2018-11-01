@@ -400,7 +400,7 @@ def supported_formats():
         },
     })
     yield ({
-        "description": "txt Format, Text File",
+        "description": "gcode Format, Text File",
         "extension": "gcode",
         "mimetype": "text/plain",
         "category": "embroidery",
@@ -627,7 +627,6 @@ def write_txt(pattern, stream, settings=None):
 def write_gcode(pattern, stream, settings=None):
     """Writes fileobject as Gcode file"""
     write_embroidery(GcodeWriter, pattern, stream, settings)
-
 
 
 def write_svg(pattern, stream, settings=None):
