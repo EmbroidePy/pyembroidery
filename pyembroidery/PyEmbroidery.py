@@ -1,62 +1,62 @@
 import os.path
 
-from .EmbPattern import EmbPattern
-import pyembroidery.DstWriter as DstWriter
-import pyembroidery.PecWriter as PecWriter
-import pyembroidery.PesWriter as PesWriter
-import pyembroidery.ExpWriter as ExpWriter
-import pyembroidery.Vp3Writer as Vp3Writer
-import pyembroidery.JefWriter as JefWriter
-import pyembroidery.SvgWriter as SvgWriter
-import pyembroidery.CsvWriter as CsvWriter
-import pyembroidery.U01Writer as U01Writer
-import pyembroidery.XxxWriter as XxxWriter
-
-import pyembroidery.DstReader as DstReader
-import pyembroidery.PecReader as PecReader
-import pyembroidery.PesReader as PesReader
-import pyembroidery.ExpReader as ExpReader
-import pyembroidery.Vp3Reader as Vp3Reader
-import pyembroidery.JefReader as JefReader
-import pyembroidery.XxxReader as XxxReader
-import pyembroidery.SewReader as SewReader
-import pyembroidery.U01Reader as U01Reader
-import pyembroidery.ShvReader as ShvReader
-import pyembroidery.A10oReader as A10oReader
 import pyembroidery.A100Reader as A100Reader
+import pyembroidery.A10oReader as A10oReader
 import pyembroidery.BroReader as BroReader
+import pyembroidery.CsvReader as CsvReader
+import pyembroidery.CsvWriter as CsvWriter
+import pyembroidery.DatReader as DatReader
 import pyembroidery.DsbReader as DsbReader
+import pyembroidery.DstReader as DstReader
+import pyembroidery.DstWriter as DstWriter
 import pyembroidery.DszReader as DszReader
 import pyembroidery.EmdReader as EmdReader
+import pyembroidery.ExpReader as ExpReader
+import pyembroidery.ExpWriter as ExpWriter
+import pyembroidery.ExyReader as ExyReader
+import pyembroidery.FxyReader as FxyReader
+import pyembroidery.GcodeReader as GcodeReader
+import pyembroidery.GcodeWriter as GcodeWriter
+import pyembroidery.GtReader as GtReader
 import pyembroidery.InbReader as InbReader
-import pyembroidery.TbfReader as TbfReader
+import pyembroidery.JefReader as JefReader
+import pyembroidery.JefWriter as JefWriter
+import pyembroidery.JpxReader as JpxReader
 import pyembroidery.KsmReader as KsmReader
-import pyembroidery.TapReader as TapReader
-import pyembroidery.StxReader as StxReader
-import pyembroidery.PhbReader as PhbReader
+import pyembroidery.MaxReader as MaxReader
+import pyembroidery.MitReader as MitReader
+import pyembroidery.NewReader as NewReader
 import pyembroidery.PcdReader as PcdReader
 import pyembroidery.PcmReader as PcmReader
 import pyembroidery.PcqReader as PcqReader
 import pyembroidery.PcsReader as PcsReader
-import pyembroidery.MitReader as MitReader
-import pyembroidery.NewReader as NewReader
-import pyembroidery.ExyReader as ExyReader
-import pyembroidery.FxyReader as FxyReader
-import pyembroidery.GtReader as GtReader
-import pyembroidery.DatReader as DatReader
+import pyembroidery.PecReader as PecReader
+import pyembroidery.PecWriter as PecWriter
+import pyembroidery.PesReader as PesReader
+import pyembroidery.PesWriter as PesWriter
+import pyembroidery.PhbReader as PhbReader
 import pyembroidery.PhcReader as PhcReader
-import pyembroidery.MaxReader as MaxReader
-import pyembroidery.JpxReader as JpxReader
-import pyembroidery.StcReader as StcReader
-# import pyembroidery.ZhsReader as ZhsReader
-import pyembroidery.ZxyReader as ZxyReader
 import pyembroidery.PmvReader as PmvReader
 import pyembroidery.PmvWriter as PmvWriter
-import pyembroidery.CsvReader as CsvReader
 import pyembroidery.PngWriter as PngWriter
+import pyembroidery.SewReader as SewReader
+import pyembroidery.ShvReader as ShvReader
+import pyembroidery.StcReader as StcReader
+import pyembroidery.StxReader as StxReader
+import pyembroidery.SvgWriter as SvgWriter
+import pyembroidery.TapReader as TapReader
+import pyembroidery.TbfReader as TbfReader
 import pyembroidery.TxtWriter as TxtWriter
-import pyembroidery.GcodeWriter as GcodeWriter
-import pyembroidery.GcodeReader as GcodeReader
+import pyembroidery.U01Reader as U01Reader
+import pyembroidery.U01Writer as U01Writer
+import pyembroidery.Vp3Reader as Vp3Reader
+import pyembroidery.Vp3Writer as Vp3Writer
+import pyembroidery.XxxReader as XxxReader
+import pyembroidery.XxxWriter as XxxWriter
+# import pyembroidery.ZhsReader as ZhsReader
+import pyembroidery.ZxyReader as ZxyReader
+
+from .EmbPattern import EmbPattern
 
 
 def supported_formats():
@@ -502,6 +502,11 @@ def read_gcode(f, settings=None, pattern=None):
     return read_embroidery(GcodeReader, f, settings, pattern)
 
 
+def read_xxx(f, settings=None, pattern=None):
+    """Reads fileobject as XXX file"""
+    return read_embroidery(XxxReader, f, settings, pattern)
+
+
 def read(filename, settings=None, pattern=None):
     """Reads file, assuming type by extension"""
     extension = get_extension_by_filename(filename)
@@ -629,6 +634,11 @@ def write_txt(pattern, stream, settings=None):
 def write_gcode(pattern, stream, settings=None):
     """Writes fileobject as Gcode file"""
     write_embroidery(GcodeWriter, pattern, stream, settings)
+
+
+def write_xxx(pattern, stream, settings=None):
+    """Writes fileobject as XXX file"""
+    write_embroidery(XxxWriter, pattern, stream, settings)
 
 
 def write_svg(pattern, stream, settings=None):
