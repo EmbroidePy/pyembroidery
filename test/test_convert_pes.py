@@ -136,3 +136,35 @@ class TestConverts(unittest.TestCase):
         print("pes->dst: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_convert_pes_to_gcode(self):
+        file1 = "convert_gcode.pes"
+        file2 = "converted_pes.gcode"
+        write_pes(get_big_pattern(), file1)
+        f_pattern = read_pes(file1)
+        write_gcode(f_pattern, file2)
+        t_pattern = read_gcode(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("pes->gcode: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+        
+    def test_convert_pes_to_xxx(self):
+        file1 = "convert_xxx.pes"
+        file2 = "converted_pes.xxx"
+        write_pes(get_big_pattern(), file1)
+        f_pattern = read_pes(file1)
+        write_xxx(f_pattern, file2)
+        t_pattern = read_xxx(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("pes->xxx: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
