@@ -137,3 +137,35 @@ class TestConverts(unittest.TestCase):
         print("vp3->dst: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_convert_vp3_to_gcode(self):
+        file1 = "convert_gcode.vp3"
+        file2 = "converted_vp3.gcode"
+        write_vp3(get_big_pattern(), file1)
+        f_pattern = read_vp3(file1)
+        write_gcode(f_pattern, file2)
+        t_pattern = read_gcode(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("vp3->gcode: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+        
+    def test_convert_vp3_to_xxx(self):
+        file1 = "convert_xxx.vp3"
+        file2 = "converted_vp3.xxx"
+        write_vp3(get_big_pattern(), file1)
+        f_pattern = read_vp3(file1)
+        write_xxx(f_pattern, file2)
+        t_pattern = read_xxx(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("vp3->xxx: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)

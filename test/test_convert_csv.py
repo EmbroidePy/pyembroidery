@@ -137,3 +137,35 @@ class TestConverts(unittest.TestCase):
         print("csv->dst: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_convert_csv_to_gcode(self):
+        file1 = "convert_gcode.csv"
+        file2 = "converted_csv.gcode"
+        write_csv(get_big_pattern(), file1)
+        f_pattern = read_csv(file1)
+        write_gcode(f_pattern, file2)
+        t_pattern = read_gcode(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("csv->gcode: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+
+    def test_convert_csv_to_xxx(self):
+        file1 = "convert_xxx.csv"
+        file2 = "converted_csv.xxx"
+        write_csv(get_big_pattern(), file1)
+        f_pattern = read_csv(file1)
+        write_xxx(f_pattern, file2)
+        t_pattern = read_xxx(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("csv->xxx: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
