@@ -612,7 +612,7 @@ class Transcoder:
                 # we need the gap stitches only, not start or end stitch.
                 qx += step_size_x
                 qy += step_size_y
-                stitch = [round(qx), round(qy), data]
+                stitch = [qx, qy, data]
                 transcode.append(stitch)
                 self.update_needle_position(stitch[0], stitch[1])
 
