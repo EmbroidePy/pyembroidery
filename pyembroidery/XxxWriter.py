@@ -2,6 +2,7 @@ from .EmbConstant import *
 from .WriteHelper import write_int_8, write_int_16le, write_int_32le
 
 FULL_JUMP = False
+ROUND = True
 MAX_JUMP_DISTANCE = 0x7E7F  # 0xFCFF/2 16 bit signed, FD,FE,FF reserved.
 MAX_STITCH_DISTANCE = 124
 

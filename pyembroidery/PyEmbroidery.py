@@ -547,6 +547,11 @@ def write_embroidery(writer, pattern, stream, settings=None):
                 settings["full_jump"] = writer.FULL_JUMP
             except AttributeError:
                 pass
+        if not ("round" in settings):
+            try:
+                settings["round"] = writer.ROUND
+            except AttributeError:
+                pass
         if not ("writes_speeds" in settings):
             try:
                 settings["writes_speeds"] = writer.WRITES_SPEEDS

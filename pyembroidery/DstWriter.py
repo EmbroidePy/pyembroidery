@@ -3,6 +3,7 @@ from .WriteHelper import write_string_utf8
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_UTILIZE
 FULL_JUMP = False
+ROUND = True
 MAX_JUMP_DISTANCE = 121
 MAX_STITCH_DISTANCE = 121
 
@@ -150,6 +151,7 @@ def write(pattern, f, settings=None):
         data = stitch[2] & COMMAND_MASK
         dx = int(round(x - xx))
         dy = int(round(y - yy))
+
         xx += dx
         yy += dy
         if data == TRIM:
