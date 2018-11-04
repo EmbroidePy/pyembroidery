@@ -79,3 +79,39 @@ def get_simple_pattern():
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "blue")
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
     return pattern
+
+
+def get_random_pattern_large():
+    pattern = EmbPattern()
+    import random
+
+    for i in range(0, 1000):
+        pattern.add_block(
+            [(random.uniform(-500, 500), random.uniform(-500, 500)),
+             (random.uniform(-500, 500), random.uniform(-500, 500)),
+             (random.uniform(-500, 500), random.uniform(-500, 500))],
+            random.randint(0x000000, 0xFFFFFF))
+    return pattern
+
+
+def get_random_pattern_small():
+    pattern = EmbPattern()
+    import random
+
+    pattern.add_block(
+        [(random.uniform(-500, 500), random.uniform(-500, 500)),
+         (random.uniform(-500, 500), random.uniform(-500, 500)),
+         (random.uniform(-500, 500), random.uniform(-500, 500))],
+        random.randint(0x000000, 0xFFFFFF))
+    return pattern
+
+
+def get_random_pattern_small_halfs():
+    pattern = EmbPattern()
+    import random
+    pattern.add_block(
+        [(random.randint(-500, 500) / 2.0, random.randint(-500, 500) / 2.0),
+         (random.randint(-500, 500) / 2.0, random.randint(-500, 500) / 2.0),
+         (random.randint(-500, 500) / 2.0, random.randint(-500, 500) / 2.0)],
+        random.randint(0x000000, 0xFFFFFF))
+    return pattern

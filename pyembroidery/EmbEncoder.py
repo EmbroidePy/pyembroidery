@@ -11,6 +11,7 @@ class Transcoder:
         self.max_stitch = settings.get("max_stitch", float('inf'))
         self.max_jump = settings.get("max_jump", float('inf'))
         self.full_jump = settings.get("full_jump", False)
+        self.round = settings.get("round", False)
         self.needle_count = settings.get("needle_count", 5)
         self.thread_change_command = settings.get("thread_change_command", COLOR_CHANGE)
         if self.needle_count <= 1 and self.thread_change_command == NEEDLE_SET:
@@ -196,6 +197,9 @@ class Transcoder:
             p = self.matrix.point_in_matrix_space(self.stitch)
             x = p[0]
             y = p[1]
+            if self.round:
+                x = round(x)
+                y = round(y)
             flags = self.stitch[2] & COMMAND_MASK
 
             if flags == NO_COMMAND:

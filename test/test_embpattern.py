@@ -181,6 +181,25 @@ class TestEmbpattern(unittest.TestCase):
         print("dst: ", dst_pattern.stitches)
         self.addCleanup(os.remove, file1)
 
+    def test_write_dst_read_dst_long_jump_random_small(self):
+        file1 = "file3small.dst"
+
+        for i in range(0, 1000):
+            write_dst(get_random_pattern_small_halfs(), file1,
+                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO, "snap": False})
+            dst_pattern = read_dst(file1)
+            self.assertIsNotNone(dst_pattern)
+        self.addCleanup(os.remove, file1)
+
+    def test_write_dst_read_dst_long_jump_random_large(self):
+        file1 = "file3large.dst"
+        for i in range(0, 10):
+            write_dst(get_random_pattern_large(), file1,
+                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO, "snap": True})
+            dst_pattern = read_dst(file1)
+            self.assertIsNotNone(dst_pattern)
+        self.addCleanup(os.remove, file1)
+
     def test_write_dst_read_dst_divide(self):
         file1 = "file3.dst"
         pattern = EmbPattern()
