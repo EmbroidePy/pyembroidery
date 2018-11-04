@@ -24,8 +24,8 @@ pyembroidery must to be small enough to be finished in short order and big enoug
 * pyembroidery must support and function in Python 2.7
 
 Pyembroidery fully meets and exceeds all of these requirements.
-* It writes 9 formats, including the mandated ones.
-* It reads 38 formats, including the mandated ones.
+* It writes 13 formats, including the mandated ones.
+* It reads 40 formats, including the mandated ones.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
   * It is currently fully compatable with Python 2.7 and Python 3.6
@@ -116,10 +116,12 @@ Pyembroidery will write:
 * .vp3 (mandated)
 * .u01
 * .pec
+* .xxx (experimental)
 * .csv
 * .svg
 * .png
 * .txt
+* .gcode
 
 Pyembroidery will read:
 * .pes (mandated)
@@ -159,9 +161,8 @@ Pyembroidery will read:
 * .u01
 * .xxx
 * .zxy
-
-Writing to SVG:
-While not a binary writing format, the testing/debugging utility of SVG is unmatched. There is some notable irony in writing an SVG file in a library, whose main genesis is to help another program that *already* writes them.
+* .csv
+* .gcode
 
 Writing to CSV:
 Prints out a workable CSV file with the given data. Starting in 1.3 the csv patterns are written without being encoded. The CSV format is, in this form, lossless. If you wish to encode before you write the file you can set the encoder to True and override the default.
@@ -173,6 +174,9 @@ Writes to a image/png file.
 
 Writing to TXT:
 Writes to a text file. Generally lossy, it does not write threads or metadata, but certainly more easily parsed for a number of homebrew applications. The "mimic" option should mimic the embroidermodder functionality for exporting to txt files. By default it exports a bit less lossy giving the proper command indexes and their explicit names.
+
+Writing to Gcode:
+The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue.
 
 Reading:
 ---
@@ -199,6 +203,9 @@ pattern = pyembroidery.read_pes(file)
 pattern = pyembroidery.read_exp(file)
 pattern = pyembroidery.read_vp3(file)
 pattern = pyembroidery.read_jef(file)
+pattern = pyembroidery.read_xxx(file)
+pattern = pyembroidery.read_csv(file)
+pattern = pyembroidery.read_gcode(file)
 ```
 
 You can optionally add settings and pattern to these readers, it will use that pattern and append the new stitches to the end.
@@ -235,8 +242,10 @@ pyembroidery.write_jef(pattern, file)
 pyembroidery.write_u01(pattern, file)
 pyembroidery.write_svg(pattern, file)
 pyembroidery.write_csv(pattern, file)
+pyembroidery.write_xxx(pattern, file)
 pyembroidery.write_png(pattern, file)
 pyembroidery.write_txt(pattern, file)
+pyemboridery.write_gcode(pattern,file)
 ```
 
 In addition, you can add a `dict` object to the writer, reader, and converter with various settings.
@@ -249,6 +258,7 @@ The parameters currently have recognized values for:
 * `max_stitch`
 * `max_jump`
 * `full_jump`
+* `round`
 * `needle_count`
 * `thread_change_command`
 * `long_stitch_contingency`
@@ -262,7 +272,7 @@ The parameters currently have recognized values for:
 * `rotate`
 * `encode`
 
-The max_stitch, max_jump, full_jump, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being written. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, (eg:`{"max_stitch": 2000}`) they will override format values. If overridden or if you disable the encoder (`{"encode": False}`) and the pattern contains values that cannot be accounted for by the reader/writer, it may raise and uncaught issue.
+The max_stitch, max_jump, full_jump, round, needle_count, thread_change_command, and sequin_contingency properties are appended by default depending on the format being written. For example, DST files support a maximum stitch length of 12.1mm, and this is set automatically. If you set these explicitly, (eg:`{"max_stitch": 2000}`) they will override format values. If overridden or if you disable the encoder (`{"encode": False}`) and the pattern contains values that cannot be accounted for by the reader/writer, it may raise and uncaught issue.
 
 `translate`, `scale` and `rotate` occur in that order. If you need finer grain control over these they can be modified on the fly with middle-level commands. `pattern.add_command(MATRIX_TRANSLATE, 40, 40)`
 
@@ -504,7 +514,7 @@ Coordinate System
 ---
 Fundamentally pyembroidery stores the positions such that the +y direction is down and -y is up (when viewed horizontally) with +x right and -x left. This is consistent with most modern graphics coordinate systems, but this is different from how these values are stored within embroidery formats. pyembroidery reads by flipping the y-axis, and writes by flipping the y-axis (except for SVG which uses the same coordinate system). This allows for seemless reading, writing, and interfacing. The flips occur at the level of the format readers and writers and is not subject to encoding. However encoding with scale of (1, -1) would invert this during the encoding. All patterns are stored such that `top` is in the -y direction and `bottom` is in the +y direction.
 
-All patterns start at the origin point (0,0).
+All patterns start at the origin point (0,0). In keeping with the philosophy the absolute positioning of the data is maintained sometimes this means it an offcenter pattern will move from the origin to an absolute position some distance from the origin. While this preserves information, it might also not be entirely expected at times. This `pattern.move_center_to_origin()` will lose that information and center the pattern at the origin.
 
 ---
 
