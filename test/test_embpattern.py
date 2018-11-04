@@ -181,12 +181,35 @@ class TestEmbpattern(unittest.TestCase):
         print("dst: ", dst_pattern.stitches)
         self.addCleanup(os.remove, file1)
 
+    def test_write_dst_read_dst_random_stitch(self):
+        file1 = "fsmall.dst"
+        for i in range(0, 12):
+            max = (i * 10) + 1
+            write_dst(get_random_pattern_small_halfs(), file1,
+                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO, "max_stitch": max})
+            dst_pattern = read_dst(file1)
+            xx = 0
+            yy = 0
+            command = NO_COMMAND
+            for stitch in dst_pattern.stitches:
+                dx = stitch[0] - xx
+                dy = stitch[1] - yy
+                xx += dx
+                yy += dy
+                last_command = command
+                command = stitch[2] & COMMAND_MASK
+                if command == STITCH and last_command == STITCH:
+                    self.assertLessEqual(dx, max)
+                    self.assertLessEqual(dy, max)
+            self.assertIsNotNone(dst_pattern)
+        self.addCleanup(os.remove, file1)
+
     def test_write_dst_read_dst_long_jump_random_small(self):
         file1 = "file3small.dst"
 
-        for i in range(0, 1000):
+        for i in range(0, 10):
             write_dst(get_random_pattern_small_halfs(), file1,
-                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO, "snap": False})
+                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO})
             dst_pattern = read_dst(file1)
             self.assertIsNotNone(dst_pattern)
         self.addCleanup(os.remove, file1)
@@ -195,7 +218,7 @@ class TestEmbpattern(unittest.TestCase):
         file1 = "file3large.dst"
         for i in range(0, 10):
             write_dst(get_random_pattern_large(), file1,
-                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO, "snap": True})
+                      {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO})
             dst_pattern = read_dst(file1)
             self.assertIsNotNone(dst_pattern)
         self.addCleanup(os.remove, file1)
