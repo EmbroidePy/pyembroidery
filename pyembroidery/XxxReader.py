@@ -26,6 +26,13 @@ def read(f, out, settings=None):
         if b2 == 0x01:
             out.move(signed8(b3), -signed8(b4))
             continue
+        elif b2 == 0x03:
+            out.trim()
+            x = signed8(b3)
+            y = -signed8(b4)
+            if x != 0 or y != 0:
+                out.move(x, y)
+            continue
         elif b2 == 0x08:
             out.color_change()
             continue
