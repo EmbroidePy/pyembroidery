@@ -86,5 +86,5 @@ def write(pattern, f, settings=None):
             cmd += needle
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))
         elif data == END:
-            f.write(b'\xF8\x00\x00')
             break
+    f.write(b'\xF8\x00\x00')
