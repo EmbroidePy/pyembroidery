@@ -41,7 +41,7 @@ def read(f, out, settings=None):
             break
     out.end()
     f.seek(2, 1)
-    for i in range(0, num_of_colors + 1):
+    for i in range(0, num_of_colors):
         thread = EmbThread()
         thread.color = read_int_32be(f)
         if thread.color is None:
