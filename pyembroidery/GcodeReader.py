@@ -18,7 +18,10 @@ def parse(f):
                 command_map['comment'] = comment
                 comment = None
             else:
-                comment += str(byte)
+                try:
+                    comment += byte.decode('utf8')
+                except UnicodeDecodeError:
+                    pass  # skip utf8 fail
             continue
         if byte == b'(':
             comment = ""
@@ -43,9 +46,9 @@ def parse(f):
         is_letter = ord_a <= b <= ord_z
         is_end = byte == b'\n' or byte == b'\r'
         if (is_letter or is_end) and len(code) != 0:
-                command_map[code] = float(value)
-                code = ""
-                value = ""
+            command_map[code] = float(value)
+            code = ""
+            value = ""
         if is_letter:
             code += str(byte)
             continue

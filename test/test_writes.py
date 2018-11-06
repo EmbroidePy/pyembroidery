@@ -44,7 +44,7 @@ class TestWrites(unittest.TestCase):
         file1 = "file.vp3"
         write_vp3(get_big_pattern(), file1)
         vp3_pattern = read_vp3(file1)
-        self.assertEqual(len(vp3_pattern.threadlist), vp3_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        self.assertEqual(len(vp3_pattern.threadlist), vp3_pattern.count_stitch_commands(COLOR_CHANGE) + 1)
         self.assertEqual(vp3_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertIsNotNone(vp3_pattern)
         self.assertEqual(vp3_pattern.count_stitch_commands(STITCH), 5 * 16)
@@ -56,7 +56,7 @@ class TestWrites(unittest.TestCase):
         file1 = "file.jef"
         write_jef(get_big_pattern(), file1)
         jef_pattern = read_jef(file1)
-        self.assertEqual(len(jef_pattern.threadlist), jef_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        self.assertEqual(len(jef_pattern.threadlist), jef_pattern.count_stitch_commands(COLOR_CHANGE) + 1)
         self.assertEqual(jef_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertIsNotNone(jef_pattern)
         self.assertEqual(jef_pattern.count_stitch_commands(STITCH), 5 * 16)
@@ -68,7 +68,7 @@ class TestWrites(unittest.TestCase):
         file1 = "file.pec"
         write_pec(get_big_pattern(), file1)
         pec_pattern = read_pec(file1)
-        self.assertEqual(len(pec_pattern.threadlist), pec_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        self.assertEqual(len(pec_pattern.threadlist), pec_pattern.count_stitch_commands(COLOR_CHANGE) + 1)
         self.assertEqual(pec_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertIsNotNone(pec_pattern)
         self.assertEqual(pec_pattern.count_stitch_commands(STITCH), 5 * 16)
@@ -80,7 +80,7 @@ class TestWrites(unittest.TestCase):
         file1 = "file.pes"
         write_pes(get_big_pattern(), file1)
         pes_pattern = read_pes(file1)
-        self.assertEqual(len(pes_pattern.threadlist), pes_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        self.assertEqual(len(pes_pattern.threadlist), pes_pattern.count_stitch_commands(COLOR_CHANGE) + 1)
         self.assertEqual(pes_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertIsNotNone(pes_pattern)
         self.assertEqual(pes_pattern.count_stitch_commands(STITCH), 5 * 16)
@@ -105,7 +105,7 @@ class TestWrites(unittest.TestCase):
         write_csv(get_big_pattern(), file1, {"encode": True})
         csv_pattern = read_csv(file1)
         self.assertIsNotNone(csv_pattern)
-        self.assertEqual(len(csv_pattern.threadlist), csv_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        self.assertEqual(len(csv_pattern.threadlist), csv_pattern.count_stitch_commands(COLOR_CHANGE) + 1)
         self.assertEqual(csv_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertEqual(csv_pattern.count_stitch_commands(STITCH), 5 * 16)
         self.position_equals(csv_pattern.stitches, 0, -1)
@@ -117,11 +117,15 @@ class TestWrites(unittest.TestCase):
         write_gcode(get_big_pattern(), file1)
         gcode_pattern = read_gcode(file1)
         self.assertIsNotNone(gcode_pattern)
-        self.assertEqual(len(gcode_pattern.threadlist), gcode_pattern.count_stitch_commands(COLOR_CHANGE)+1)
+        thread_count = len(gcode_pattern.threadlist)
+        change_count = gcode_pattern.count_stitch_commands(COLOR_CHANGE) + 1
+        print(thread_count)
+        print(change_count)
+
+        self.assertEqual(thread_count, change_count)
         self.assertEqual(gcode_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertEqual(gcode_pattern.count_stitch_commands(STITCH), 5 * 16)
         self.position_equals(gcode_pattern.stitches, 0, -1)
-        write_txt(get_big_pattern(), file1, {"mimic": True})
         self.addCleanup(os.remove, file1)
 
     def test_write_txt(self):
