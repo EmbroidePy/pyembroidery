@@ -158,6 +158,7 @@ def pec_encode(pattern, f):
                     (dy >> 8) & 0xFF,
                     dy & 0xFF]
                 f.write(bytes(bytearray(data)))
+            continue
         elif data == JUMP:
             jumping = True
             dx = encode_long_form(dx)
@@ -170,6 +171,7 @@ def pec_encode(pattern, f):
                 (dy >> 8) & 0xFF,
                 dy & 0xFF
             ])))
+            continue
         elif data == COLOR_CHANGE:
             if jumping:
                 f.write(b'\x00\x00')
@@ -180,10 +182,11 @@ def pec_encode(pattern, f):
             else:
                 f.write(b'\x01')
             color_two = not color_two
+            continue
         elif data == STOP:
-            pass
+            continue
+        elif data == TRIM:
+            continue
         elif data == END:
-            if jumping:
-                f.write(b'\x00\x00')
-                jumping = False
             f.write(b'\xff')
+            break

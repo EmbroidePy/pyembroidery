@@ -122,30 +122,30 @@ class Transcoder:
 
     def build_thread_change_sequence(self):
         """Builds a change sequence to plan out all the color changes for the file."""
-        thread_sequence = {}
+        change_sequence = {}
         lookahead_index = 0
-        thread_sequence[0] = [None, None, None, None]
+        change_sequence[0] = [None, None, None, None]
         for flags, thread, needle, order, current_index in self.get_as_thread_change_sequence_events():
             if flags == SET_CHANGE_SEQUENCE:
                 if order is None:
                     try:
-                        current = thread_sequence[lookahead_index]
+                        current = change_sequence[lookahead_index]
                     except KeyError:
                         current = [None, None, None, None]
-                        thread_sequence[lookahead_index] = current
+                        change_sequence[lookahead_index] = current
                     lookahead_index += 1
                 else:
                     try:
-                        current = thread_sequence[order]
+                        current = change_sequence[order]
                     except KeyError:
                         current = [None, None, None, None]
-                        thread_sequence[order] = current
+                        change_sequence[order] = current
             else:
                 try:
-                    current = thread_sequence[current_index]
+                    current = change_sequence[current_index]
                 except KeyError:
                     current = [None, None, None, None]
-                    thread_sequence[current_index] = current
+                    change_sequence[current_index] = current
                 if current_index >= lookahead_index:
                     lookahead_index = current_index + 1
             if flags == COLOR_CHANGE or flags == NEEDLE_SET:
@@ -160,7 +160,7 @@ class Transcoder:
         needle_limit = self.needle_count
         thread_index = 0
         needle_index = 1
-        for order, s in thread_sequence.items():
+        for order, s in change_sequence.items():
             if s[0] is None:
                 s[0] = self.thread_change_command
             if s[1] is None:
@@ -174,7 +174,7 @@ class Transcoder:
                 needle_index += 1
             if s[3] is None:
                 s[3] = self.source_pattern.get_thread_or_filler(s[1])
-        return thread_sequence
+        return change_sequence
 
     def transcode_main(self):
         """Transcodes stitches.
@@ -188,9 +188,6 @@ class Transcoder:
         self.position = 0
         self.order_index = -1
         self.change_sequence = self.build_thread_change_sequence()
-        threadlist = self.destination_pattern.threadlist
-        for idx, seq in self.change_sequence.items():
-            threadlist.append(seq[3])
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
@@ -565,6 +562,8 @@ class Transcoder:
     def next_change_sequence(self):
         self.order_index += 1
         change = self.change_sequence[self.order_index]
+        threadlist = self.destination_pattern.threadlist
+        threadlist.append(change[3])
         if self.thread_change_command == COLOR_CHANGE:
             if self.order_index != 0:
                 self.add_thread_change(COLOR_CHANGE, change[1], change[2])
