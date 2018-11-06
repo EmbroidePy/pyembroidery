@@ -207,7 +207,7 @@ class TestEmbpattern(unittest.TestCase):
     def test_write_dst_read_dst_long_jump_random_small(self):
         file1 = "file3small.dst"
 
-        for i in range(0, 10):
+        for i in range(0, 1000):
             write_dst(get_random_pattern_small_halfs(), file1,
                       {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO})
             dst_pattern = read_dst(file1)
@@ -216,7 +216,7 @@ class TestEmbpattern(unittest.TestCase):
 
     def test_write_dst_read_dst_long_jump_random_large(self):
         file1 = "file3large.dst"
-        for i in range(0, 10):
+        for i in range(0, 5):
             write_dst(get_random_pattern_large(), file1,
                       {"long_stitch_contingency": CONTINGENCY_LONG_STITCH_SEW_TO})
             dst_pattern = read_dst(file1)
@@ -278,10 +278,3 @@ class TestEmbpattern(unittest.TestCase):
         print("csv-encoded: ", csv_pattern.stitches)
         self.assertEqual(encoded_command, csv_pattern.stitches[-1][2])
         self.addCleanup(os.remove, file1)
-
-    def test_transcode_to_self(self):
-        pattern = get_shift_pattern()
-        from pyembroidery.EmbEncoder import Transcoder
-        encoder = Transcoder()
-        encoder.transcode(pattern, pattern)
-        self.assertNotEquals(len(pattern.stitches), 0)

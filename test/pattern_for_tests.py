@@ -18,7 +18,7 @@ def get_big_pattern():
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "violet")
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "white")
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "salmon")
-    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "lime")
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "lime")  # 16 blocks.
     return pattern
 
 
