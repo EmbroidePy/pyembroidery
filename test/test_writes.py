@@ -88,6 +88,18 @@ class TestWrites(unittest.TestCase):
         print("pes: ", pes_pattern.stitches)
         self.addCleanup(os.remove, file1)
 
+    def test_write_xxx_read_xxx(self):
+        file1 = "file.xxx"
+        write_xxx(get_big_pattern(), file1)
+        pattern = read_xxx(file1)
+        self.assertEqual(len(pattern.threadlist), pattern.count_stitch_commands(COLOR_CHANGE) + 1)
+        self.assertEqual(pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertIsNotNone(pattern)
+        self.assertEqual(pattern.count_stitch_commands(STITCH), 5 * 16)
+        self.position_equals(pattern.stitches, 0, -1)
+        print("xxx: ", pattern.stitches)
+        self.addCleanup(os.remove, file1)
+
     def test_write_u01_read_u01(self):
         file1 = "file.u01"
         write_u01(get_big_pattern(), file1)
