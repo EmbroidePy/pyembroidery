@@ -105,23 +105,32 @@ def write(pattern, f, settings=None):
     if settings is not None:
         extended_header = settings.get("extended header", extended_header)
 
-    extends = pattern.bounds()
-    width = extends[2] - extends[0]
-    height = extends[3] - extends[1]
+    bounds = pattern.bounds()
 
     name = pattern.get_metadata("name", "Untitled")
 
     write_string_utf8(f, "LA:%-16s\r" % name)
     write_string_utf8(f, "ST:%7d\r" % pattern.count_stitches())
     write_string_utf8(f, "CO:%3d\r" % pattern.count_color_changes())
-    x_extend = int(round(PPMM * width / 2))
-    y_extend = int(round(PPMM * height / 2))
-    write_string_utf8(f, "+X:%5d\r" % x_extend)
-    write_string_utf8(f, "-X:%5d\r" % x_extend)
-    write_string_utf8(f, "+Y:%5d\r" % y_extend)
-    write_string_utf8(f, "-Y:%5d\r" % y_extend)
-    write_string_utf8(f, "AX:+%5d\r" % 0)
-    write_string_utf8(f, "AY:+%5d\r" % 0)
+
+    write_string_utf8(f, "+X:%5d\r" % abs(bounds[2]))
+    write_string_utf8(f, "-X:%5d\r" % abs(bounds[0]))
+    write_string_utf8(f, "+Y:%5d\r" % abs(bounds[3]))
+    write_string_utf8(f, "-Y:%5d\r" % abs(bounds[1]))
+    ax = 0
+    ay = 0
+    if len(pattern.stitches) > 0:
+        last = len(pattern.stitches) - 1
+        ax = int(pattern.stitches[last][0])
+        ay = -int(pattern.stitches[last][1])
+    if ax >= 0:
+        write_string_utf8(f, "AX:+%5d\r" % ax)
+    else:
+        write_string_utf8(f, "AX:-%5d\r" % abs(ax))
+    if ay >= 0:
+        write_string_utf8(f, "AY:+%5d\r" % ay)
+    else:
+        write_string_utf8(f, "AY:-%5d\r" % abs(ay))
     write_string_utf8(f, "MX:+%5d\r" % 0)
     write_string_utf8(f, "AY:+%5d\r" % 0)
     write_string_utf8(f, "PD:%6s\r" % "******")
