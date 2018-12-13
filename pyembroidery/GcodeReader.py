@@ -13,17 +13,23 @@ def parse(f):
             break
         if len(byte) == 0:
             break
+        is_end = byte == b'\n' or byte == b'\r'
         if comment is not None:
-            if byte == b')':
+            if byte == b')' or is_end:
                 command_map['comment'] = comment
                 comment = None
+                if not is_end:
+                    continue
             else:
                 try:
                     comment += byte.decode('utf8')
                 except UnicodeDecodeError:
                     pass  # skip utf8 fail
-            continue
+                continue
         if byte == b'(':
+            comment = ""
+            continue
+        elif byte == b';':
             comment = ""
             continue
         elif byte == b'\t':
@@ -44,7 +50,6 @@ def parse(f):
             b = b - ord_A + ord_a
             byte = chr(b)
         is_letter = ord_a <= b <= ord_z
-        is_end = byte == b'\n' or byte == b'\r'
         if (is_letter or is_end) and len(code) != 0:
             command_map[code] = float(value)
             code = ""
@@ -63,7 +68,10 @@ def parse(f):
 
 
 def read(f, out, settings=None):
-    scale = -10.0
+    absolute_mode = True
+    flip_x = 1  # Assumes the GCode is flip_x, -1 is flip, 1 is normal
+    flip_y = 1  # Assumes the Gcode is flip_y,  -1 is flip, 1 is normal
+    scale = 10.0  # Initially assume mm mode G20.
     for gc in parse(f):
         if 'comment' in gc:
             comment = gc['comment']
@@ -71,9 +79,21 @@ def read(f, out, settings=None):
                 split = comment.split(" ")
                 out.add_thread(split[1])
 
-        if 'g' in gc and 'x' in gc and 'y' in gc:
-            if gc['g'] == 0.0 or gc['g'] == 1.0:
-                out.stitch_abs(gc['x'] * scale, gc['y'] * scale)
+        if 'g' in gc:
+            if 'x' in gc and 'y' in gc and gc['g'] == 0.0 or gc['g'] == 1.0:
+                if absolute_mode:
+                    out.stitch_abs(gc['x'] * scale * flip_x, gc['y'] * scale * flip_y)
+                else:
+                    out.stitch(gc['x'] * scale * flip_x, gc['y'] * scale * flip_y)
+                continue
+            if gc['g'] == 21.0 or gc['g'] == 71.0:
+                scale = 10.0  # g20 is mm mode. 10 1/10th mm in a mm.
+            elif gc['g'] == 20.0 or gc['g'] == 70.0:
+                scale = 254  # g20 is inch mode. 254 1/10th mm in an inch.
+            elif gc['g'] == 90.0:
+                absolute_mode = True
+            elif gc['g'] == 91.0:
+                absolute_mode = False
         if 'm' in gc:
             v = gc['m']
             if v == 30 or v == 2:
