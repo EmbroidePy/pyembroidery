@@ -1,7 +1,8 @@
+import datetime
+
 from .EmbConstant import *
 from .EmbThreadJef import get_thread_set
 from .WriteHelper import write_string_utf8, write_int_32le, write_int_8
-import datetime
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = True
@@ -18,13 +19,16 @@ HOOP_200X200 = 4
 
 
 def write(pattern, f, settings=None):
+    trims = True
+    date_string = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
+    if settings is not None:
+        trims = settings.get("trims", trims)
+        date_string = settings.get("date", date_string)
     pattern.fix_color_count()
     color_count = pattern.count_threads()
     offsets = 0x74 + (color_count * 8)
     write_int_32le(f, offsets)
     write_int_32le(f, 0x14)
-    date_string = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
-    # write_string_utf8(f, "20122017218088")
     write_string_utf8(f, date_string)
     write_int_8(f, 0)
     write_int_8(f, 0)
@@ -36,6 +40,9 @@ def write(pattern, f, settings=None):
             point_count += 1
         elif data == JUMP:
             point_count += 2
+        elif data == TRIM:
+            if trims:
+                point_count += 2
         elif data == COLOR_CHANGE:
             point_count += 2
         elif data == END:
@@ -99,6 +106,10 @@ def write(pattern, f, settings=None):
             f.write(b'\x80\x01')
             write_int_8(f, dx)
             write_int_8(f, -dy)
+            continue
+        elif data == TRIM:
+            if trims:
+                f.write(b'\x80\x02\x00\x00')
             continue
         elif data == JUMP:
             f.write(b'\x80\x02')
