@@ -584,7 +584,11 @@ def write_embroidery(writer, pattern, stream, settings=None):
                 pass
         pattern = pattern.get_normalized_pattern(settings)
 
-    if isinstance(stream, str):
+    try:
+        basestring
+    except NameError:
+        basestring = str
+    if isinstance(stream, basestring):
         with open(stream, "wb") as stream:
             writer.write(pattern, stream, settings)
     else:
