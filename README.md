@@ -405,11 +405,12 @@ The second parameter is the thread. The threads are equally agnostic as to what 
 
 (Note: explicit color names are those found in the X11/CSS/SVG named colors)
 
-`pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")`
-`pattern.add_block([0, 0, 0, 100, 100, 100, 100, 0, 0, 0], "#f00")`
+```python
+pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+pattern.add_block([0, 0, 0, 100, 100, 100, 100, 0, 0, 0], "#f00")
+```
 
-
-When a call is made to add_stitchblock(), the thread object is required to whether the current thread is different than the previous one. If a different thread is detected pyembroidery will append a COLOR_BREAK rather than SEQUENCE_BREAK after it adds the stitches into the pattern. Depending on your use case, you could implement this yourself using singular calls to add_stitch_relative() or add_stitch_absolute() and then determine the type of break with COLOR_BREAK or SEQUENCE_BREAK afterwards. No break command will cause it to merge these stitches (likely invoking whatever long_stitch_contingency is needed).
+When a call is made to add_stitchblock(), the thread object is required to know whether the current thread is different than the previous one. If a different thread is detected pyembroidery will append a COLOR_BREAK rather than SEQUENCE_BREAK after adding the stitches into the pattern. Depending on your use case, you could implement this yourself using singular calls to add_stitch_relative() or add_stitch_absolute() and then determine the type of break with COLOR_BREAK or SEQUENCE_BREAK afterwards.
 
 
 Middle-Level Commands:
@@ -483,7 +484,7 @@ When a stitch is beyond max_stitch (whether set by the format or by the user) it
 
 Sequin Contingency
 ---
-The enconder needs to decide what to do when there are sequins in a pattern. The current modes here are:
+The encoder needs to decide what to do when there are sequins in a pattern. The current modes here are:
 * CONTINGENCY_SEQUIN_UTILIZE - sets the equin contingency to use the sequin information.
 * CONTINGENCY_SEQUIN_JUMP - Sets the sequin contingency to call the sequins jumps.
 * CONTINGENCY_SEQUIN_STITCH - Sets the sequin contingency to call the sequins stitches.
@@ -493,7 +494,7 @@ Sequins being written into files that do not support sequins can go several ways
 
 Tie On / Tie Off Contingency
 ---
-While there's only NONE, and THREE_SMALL for contingencies here, both the tie-on and tie-off contingencies are setup to be forward compatabile with various other potential tie-on and tie-off methods.
+While there's only NONE, and THREE_SMALL for contingencies here, both the tie-on and tie-off contingencies are setup to be forward compatabile with other future potential tie-on and tie-off methods.
 
 Units
 ---
@@ -536,4 +537,4 @@ Thanks to,
 
 ---
 
-This software is in no way derived from or based on Jackson Yee's abandoned 2006 "pyembroidery" project. The name was simply taken from libEmbroidery and written in python and thus a portmanteau of those. I was unaware of the project until after the all the principle work on this project was complete. I apologize for any confusion this may cause.
+This software is in no way derived from or based on Jackson Yee's abandoned 2006 "pyembroidery" project. The name was simply taken from libEmbroidery and written in python and thus a portmanteau of those. I was unaware of the project until after the all the principal work on this project was complete. I apologize for any confusion this may cause.
