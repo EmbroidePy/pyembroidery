@@ -217,9 +217,13 @@ pattern = pyembroidery.read_pes(file, None, pattern)
 # or even chain together read calls
 pattern = pyembroidery.read("secondread.dst", None, pyembroidery.read("firstread.jef"))
 ```
+*NOTE*: The merged pattern will still have an `END` command at the end of the first loaded pattern.
 
-This will cause the pattern to have the stitches from both files.
-
+If you intend to write the merged pattern as a single unended pattern, convert the `END` commands to `NO_COMMAND` commands.
+```python
+ for stitch in pattern.get_match_commands(pyembroidery.END):
+  stitch[2] = pyembroidery.NO_COMMAND
+```
 
 Writing:
 ---
