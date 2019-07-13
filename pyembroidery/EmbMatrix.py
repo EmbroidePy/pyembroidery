@@ -2,8 +2,29 @@ import math
 
 
 class EmbMatrix:
-    def __init__(self):
-        self.m = self.get_identity()
+    def __init__(self, m=None):
+        if m is None:
+            self.m = self.get_identity()
+        else:
+            self.m = m
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return self.m == other.m
+
+    def __matmul__(self, other):
+        return EmbMatrix(EmbMatrix.matrix_multiply(self.m, other.m))
+
+    def __rmatmul__(self, other):
+        return EmbMatrix(EmbMatrix.matrix_multiply(self.m, other.m))
+
+    def __imatmul__(self, other):
+        self.m = EmbMatrix.matrix_multiply(self.m, other.m)
+
+    def __str__(self):
+        return "[%3f, %3f, %3f\n %3f, %3f, %3f\n %3f, %3f, %3f]" % self.m
 
     def get_matrix(self):
         return self.m

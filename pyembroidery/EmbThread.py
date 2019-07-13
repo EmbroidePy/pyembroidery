@@ -55,7 +55,7 @@ def color_distance_red_mean(
 
 class EmbThread:
 
-    def __init__(self):
+    def __init__(self, thread=None):
         self.color = 0xFF000000
         self.description = None  # type: str
         self.catalog_number = None  # type: str
@@ -64,6 +64,39 @@ class EmbThread:
         self.chart = None  # type: str
         self.weight = None  # type: str
         # description, catalog_number, details, brand, chart, weight
+        if thread is not None:
+            self.set(thread)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        if isinstance(other, int):
+            return (0xFF000000 | self.color) == (0xFF000000 | other)
+        if isinstance(other, str):
+            return (0xFF000000 | self.color) == (0xFF000000 | EmbThread.parse_string_color(other))
+        if not isinstance(other, EmbThread):
+            return False
+        if (0xFF000000 | self.color) != (0xFF000000 | other.color):
+            return False
+        if self.description != other.description:
+            return False
+        if self.catalog_number != other.description:
+            return False
+        if self.details != other.details:
+            return False
+        if self.brand != other.brand:
+            return False
+        if self.chart != other.chart:
+            return False
+        if self.weight != other.weight:
+            return False
+        return True
+
+    def __hash__(self):
+        return self.color & 0xFFFFFF
 
     def set_color(self, r, g, b):
         self.color = color_rgb(r, g, b)
