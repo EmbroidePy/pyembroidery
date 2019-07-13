@@ -7,10 +7,102 @@ class EmbPattern:
     def __init__(self):
         self.stitches = []  # type: list
         self.threadlist = []  # type: list
-        self.extras = {}
+        self.extras = {}  # type: dict
         # filename, name, category, author, keywords, comments, are typical
         self._previousX = 0  # type: float
         self._previousY = 0  # type: float
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if not isinstance(other, EmbPattern):
+            return False
+        if self.stitches != other.stitches:
+            return False
+        if self.threadlist != other.threadlist:
+            return False
+        if self.extras != other.extras:
+            return False
+        return True
+
+    def __str__(self):
+        if "name" in self.extras:
+            return "EmbPattern %s (commands: %3d, threads: %3d)" % \
+                   (self.extras["name"], len(self.stitches), len(self.threadlist))
+        return "EmbPattern (commands: %3d, threads: %3d)" % (len(self.stitches), len(self.threadlist))
+
+    def __len__(self):
+        return len(self.stitches)
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return self.extras[item]
+        return self.stitches[item]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
+            self.extras[key] = value
+        else:
+            self.stitches[key] = value
+
+    def __copy__(self):
+        return self.copy()
+
+    def __deepcopy__(self):
+        return self.copy()
+
+    def __iadd__(self, other):
+        if isinstance(other, EmbPattern):
+            self.add_pattern(other)
+        elif isinstance(other, EmbThread) or isinstance(other, str):
+            self.add_thread(other)
+            for i in range(0, len(self.stitches)):
+                data = self.stitches[i][2] & COMMAND_MASK
+                if data == STITCH or data == SEW_TO or data == NEEDLE_AT:
+                    self.color_change()
+                    break  # Only add color change if stitching exists.
+        elif isinstance(other, int):
+            self.add_command(other)
+        elif isinstance(other, list) or isinstance(other, tuple):  # tuple or list
+            if len(other) == 0:
+                return
+            v = other[0]
+            if isinstance(v, list) or isinstance(v, tuple):  # tuple or list of tuple or lists
+                for v in other:
+                    x = v[0]
+                    y = v[1]
+                    try:
+                        cmd = v[2]
+                    except IndexError:
+                        cmd = STITCH
+                    self.add_stitch_absolute(cmd, x, y)
+            elif isinstance(v, complex):  # tuple or list of complex
+                for v in other:
+                    x = v.real
+                    y = v.imag
+                    self.add_stitch_absolute(STITCH, x, y)
+            elif isinstance(v, int) or isinstance(v, float):  # tuple or list of numbers.
+                i = 0
+                ie = len(other)
+                while i < ie:
+                    self.add_stitch_absolute(STITCH, other[i], other[i + 1])
+                    i += 2
+            elif isinstance(v, str):
+                self.extras[v] = other[1]
+        else:
+            raise ValueError()
+        return self
+
+    def __add__(self, other):
+        p = self.copy()
+        p.add_pattern(other)
+        return p
+
+    def __radd__(self, other):
+        p = other.copy()
+        p.add_pattern(self)
+        return p
 
     def copy(self):
         emb_pattern = EmbPattern()
@@ -238,7 +330,7 @@ class EmbPattern:
             matrix.apply(stitch)
 
     def fix_color_count(self):
-        """Ensure the there are threads for all color blocks."""
+        """Ensure that there are threads for all color blocks."""
         thread_index = 0
         init_color = True
         for stitch in self.stitches:
@@ -321,6 +413,41 @@ class EmbPattern:
             except AttributeError:
                 self.add_stitch_absolute(stitch[2], stitch[0], stitch[1])
 
+    def add_pattern(self, pattern):
+        """
+        add_pattern merges the given pattern with the current pattern. It accounts for some edge conditions but
+        not all of them.
+
+        If there is an end command on the current pattern, that is removed.
+        If the color ending the current pattern is equal to the color starting the next those color blocks are merged.
+        Any prepended thread change command to the merging pattern is suppressed.
+
+        :param pattern: pattern to add to current pattern
+        :return:
+        """
+        if self.stitches[-1][2] == END:
+            self.stitches = self.stitches[:-1]  # Remove END, if exists
+
+        # Add the new thread only if it's different from the last one
+        self.fix_color_count()
+
+        if len(pattern.threadlist) > 0:
+            if pattern.threadlist[0] == self.threadlist[-1]:
+                self.threadlist.extend(pattern.threadlist[1:])
+            else:
+                self.threadlist.extend(pattern.threadlist)
+                self.color_change()
+        join_position = len(self.stitches)
+        self.stitches.extend(pattern.stitches)
+
+        for i in range(join_position, len(self.stitches)):
+            data = self.stitches[i][2] & COMMAND_MASK
+            if data == STITCH or data == SEW_TO or data == NEEDLE_AT:
+                break
+            elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
+                self.stitches[i][2] = NO_COMMAND
+        self.extras.update(pattern.extras)
+
     def get_pattern_interpolate_trim(self, jumps_to_require_trim):
         """Gets a processed pattern with untrimmed jumps merged
         and trims added if merged jumps are beyond the given value.
@@ -337,7 +464,7 @@ class EmbPattern:
             command = stitch[2] & COMMAND_MASK
             if command == STITCH or command == SEQUIN_EJECT:
                 trimmed = False
-            elif command == COLOR_CHANGE or command == TRIM:
+            elif command == COLOR_CHANGE or command == NEEDLE_SET or command == TRIM:
                 trimmed = True
             if trimmed or stitch[2] != JUMP:
                 new_pattern.add_stitch_absolute(stitch[2],

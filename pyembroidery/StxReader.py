@@ -1,5 +1,5 @@
-from .ReadHelper import read_int_32le
 from .ExpReader import read_exp_stitches
+from .ReadHelper import read_int_32le
 
 
 def read(f, out, settings=None):

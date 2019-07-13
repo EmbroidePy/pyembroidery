@@ -1,5 +1,3 @@
-
-
 def read_inb_stitches(f, out):
     count = 0
     while True:

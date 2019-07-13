@@ -1,5 +1,5 @@
-from .PecReader import read_pec_stitches
 from .EmbThreadPec import get_thread_set
+from .PecReader import read_pec_stitches
 from .ReadHelper import read_int_8, read_int_32le, read_int_16le
 
 
