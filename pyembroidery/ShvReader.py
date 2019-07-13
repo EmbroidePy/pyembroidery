@@ -1,8 +1,9 @@
 import math
+
+from .EmbConstant import *
+from .EmbThreadShv import get_thread_set
 from .ReadHelper import read_int_16be, read_int_32be, \
     read_int_8, read_string_8, signed16, signed8
-from .EmbThreadShv import get_thread_set
-from .EmbConstant import *
 
 
 def read(f, out, settings=None):

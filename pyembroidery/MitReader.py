@@ -1,4 +1,3 @@
-
 MIT_SIZE_CONVERSION_RATIO = 2.0 / 1.0
 
 

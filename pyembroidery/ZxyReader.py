@@ -1,4 +1,4 @@
-from .ReadHelper import signed8, read_int_32le, read_int_16be
+from .ReadHelper import read_int_16be
 
 
 def read_zxy_stitches(f, out):

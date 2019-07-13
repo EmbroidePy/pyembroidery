@@ -1,8 +1,8 @@
-from .PecWriter import write_pec
+from .EmbConstant import *
 from .EmbThreadPec import get_thread_set
+from .PecWriter import write_pec
 from .WriteHelper import write_string_utf8, write_int_32le, write_int_24le, write_int_16le, write_int_8, \
     write_float_32le
-from .EmbConstant import *
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = True

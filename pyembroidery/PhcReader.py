@@ -33,5 +33,5 @@ def read(f, out, settings=None):
     bytes_in_section2 = read_int_32le(f)  # Sectional bounds.
     f.seek(bytes_in_section2 + 10, 1)
     color_count2 = read_int_8(f)
-    f.seek(color_count2 + 0x1D, 1) #1D toto back
+    f.seek(color_count2 + 0x1D, 1)  # 1D toto back
     read_pec_stitches(f, out)
