@@ -66,8 +66,7 @@ def find_nearest_color_index(find_color, values):
 
 
 def color_rgb(r, g, b):
-    return int(0xFF000000 |
-               ((r & 255) << 16) |
+    return int(((r & 255) << 16) |
                ((g & 255) << 8) |
                (b & 255))
 
@@ -97,7 +96,7 @@ def color_distance_red_mean(
 class EmbThread:
 
     def __init__(self, thread=None):
-        self.color = 0xFF000000
+        self.color = 0x000000
         self.description = None  # type: str
         self.catalog_number = None  # type: str
         self.details = None  # type: str
@@ -115,12 +114,12 @@ class EmbThread:
         if other is None:
             return False
         if isinstance(other, int):
-            return (0xFF000000 | self.color) == (0xFF000000 | other)
+            return self.color & 0xFFFFFF == other & 0xFFFFFF
         if isinstance(other, str):
-            return (0xFF000000 | self.color) == (0xFF000000 | EmbThread.parse_string_color(other))
+            return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
         if not isinstance(other, EmbThread):
             return False
-        if (0xFF000000 | self.color) != (0xFF000000 | other.color):
+        if self.color & 0xFFFFFF != other.color & 0xFFFFFF:
             return False
         if self.description != other.description:
             return False
@@ -222,7 +221,7 @@ class EmbThread:
     def parse_string_color(color):
         if color == "random":
             import random
-            return 0xFF000000 | random.randint(0, 0xFFFFFF)
+            return random.randint(0, 0xFFFFFF)
         if color[0:1] == "#":
             return color_hex(color[1:])
         color_dict = {
@@ -374,6 +373,5 @@ class EmbThread:
             "yellow": color_rgb(255, 255, 0),
             "yellowgreen": color_rgb(154, 205, 50)
         }
-        if color in color_dict:
-            return color_dict[color]
-        return 0xFF000000  # Failed, so black.
+        return color_dict.get(color.lower(), 0x000000)
+        # return color or black.
