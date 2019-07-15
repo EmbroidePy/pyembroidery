@@ -2,10 +2,23 @@ from .EmbThreadJef import get_thread_set
 from .ReadHelper import read_int_32le, signed8
 
 
-def read_jef_stitches(f, out):
-    count = 0
+def read_jef_stitches(f, out, settings=None):
+    trims = False
+    command_count_max = 3
+    trim_distance = 3.0
+    if settings is not None:
+        command_count_max = settings.get('trim_at', command_count_max)
+        trims = settings.get("trims", trims)
+        trim_distance = settings.get("trim_distance", trim_distance)
+    if trim_distance is not None:
+        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+    jump_count = 0
+    jump_start = 0
+    jump_dx = 0
+    jump_dy = 0
+    jumping = False
+    trimmed = True
     while True:
-        count += 1
         b = bytearray(f.read(2))
         if len(b) != 2:
             break
@@ -13,6 +26,8 @@ def read_jef_stitches(f, out):
             x = signed8(b[0])
             y = -signed8(b[1])
             out.stitch(x, y)
+            trimmed = False
+            jumping = False
             continue
         ctrl = b[1]
         b = bytearray(f.read(2))
@@ -21,13 +36,42 @@ def read_jef_stitches(f, out):
         x = signed8(b[0])
         y = -signed8(b[1])
         if ctrl == 0x02:
-            if x == 0 and y == 0:
-                out.trim()
-            else:
-                out.move(x, y)
+            out.move(x, y)
+            if not jumping:
+                jump_dx = 0
+                jump_dy = 0
+                jump_count = 0
+                jump_start = len(out.stitches) - 1
+                jumping = True
+            jump_count += 1
+            jump_dx += x
+            jump_dy += y
+            if not trimmed and\
+                    (
+                        (
+                            trims
+                            and
+                            jump_count == command_count_max
+                        )
+                        or
+                        (
+                            trim_distance is not None
+                            and
+                            (
+                                abs(jump_dy) > trim_distance or abs(jump_dx) > trim_distance
+                            )
+                        )
+                    ):
+                out.trim(position=jump_start)
+                jump_start += 1  # We inserted a position, start jump has moved.
+                trimmed = True
+            if jump_dx == 0 and jump_dy == 0:  # If our jump displacement is 0, they were part of a trim command.
+                out.stitches = out.stitches[:jump_start]
             continue
         if ctrl == 0x01:
             out.color_change(0, 0)
+            trimmed = True
+            jumping = False
             continue
         if ctrl == 0x10:
             break
@@ -47,4 +91,4 @@ def read(f, out, settings=None):
         out.add_thread(jef_threads[index % len(jef_threads)])
 
     f.seek(stitch_offset, 0)
-    read_jef_stitches(f, out)
+    read_jef_stitches(f, out, settings)

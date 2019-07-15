@@ -32,7 +32,7 @@ def write_mimic(pattern, f):
         write_string_utf8(f, txt_line)
 
 
-def write_basic(pattern, f):
+def write_normal(pattern, f):
     names = get_common_name_dictionary()
     color_index = 0
     color = pattern.get_thread_or_filler(color_index).color
@@ -48,8 +48,14 @@ def write_basic(pattern, f):
 
 
 def write(pattern, f, settings=None):
-    mimic = settings is not None and "mimic" in settings
+    mimic = False
+    if settings is not None:
+        if "mimic" in settings:
+            mimic = True
+        version = settings.get("version", "default")
+        if version != "default":
+            mimic = True
     if mimic:
         write_mimic(pattern, f)
-        return
-    write_basic(pattern, f)
+    else:
+        write_normal(pattern, f)

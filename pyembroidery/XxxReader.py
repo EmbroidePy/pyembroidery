@@ -33,12 +33,13 @@ def read(f, out, settings=None):
             if x != 0 or y != 0:
                 out.move(x, y)
             continue
-        elif b2 == 0x08:
+        elif b2 == 0x08 or 0x0A <= b2 <= 0x17:
             out.color_change()
             continue
         elif b2 == 0x7F:
-            out.end(0)
-            break
+            break  # End
+        elif b2 == 0x18:
+            break  # End
     out.end()
     f.seek(2, 1)
     for i in range(0, num_of_colors):

@@ -103,8 +103,10 @@ def encode_record(x, y, flags):
 def write(pattern, f, settings=None):
     extended_header = False
     if settings is not None:
-        extended_header = settings.get("extended header", extended_header)
-
+        extended_header = settings.get("extended header", extended_header)  # deprecated, use version="extended"
+        version = settings.get("version", "default")
+        if version == "extended":
+            extended_header = True
     bounds = pattern.bounds()
 
     name = pattern.get_metadata("name", "Untitled")

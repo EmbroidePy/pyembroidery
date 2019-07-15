@@ -58,8 +58,17 @@ def dst_read_header(f, out):
             process_header_info(out, line[0:2].strip(), line[3:].strip())
 
 
-def dst_read_stitches(f, out):
+def dst_read_stitches(f, out, settings=None):
+    jump_count_max = 3
+    if settings is not None:
+        jump_count_max = settings.get('trim_at', jump_count_max)
     sequin_mode = False
+    jump_count = 0
+    jump_start = 0
+    jump_dx = 0
+    jump_dy = 0
+    jumping = False
+    trimmed = True
     while True:
         byte = bytearray(f.read(3))
         if len(byte) != 3:
@@ -67,21 +76,42 @@ def dst_read_stitches(f, out):
         dx = decode_dx(byte[0], byte[1], byte[2])
         dy = decode_dy(byte[0], byte[1], byte[2])
         if byte[2] & 0b11110011 == 0b11110011:
-            out.end(dx, dy)
+            break
         elif byte[2] & 0b11000011 == 0b11000011:
             out.color_change(dx, dy)
+            trimmed = True
+            jumping = False
         elif byte[2] & 0b01000011 == 0b01000011:
             out.sequin_mode(dx, dy)
             sequin_mode = not sequin_mode
+            jumping = False
         elif byte[2] & 0b10000011 == 0b10000011:
             if sequin_mode:
                 out.sequin_eject(dx, dy)
             else:
                 out.move(dx, dy)
+            if not jumping:
+                jump_dx = 0
+                jump_dy = 0
+                jump_count = 0
+                jump_start = len(out.stitches) - 1
+                jumping = True
+            jump_count += 1
+            jump_dx += dx
+            jump_dy += dy
+            if not trimmed and jump_count == jump_count_max:
+                out.trim(position=jump_start)
+                jump_start += 1  # We inserted a position, start jump has moved.
+                trimmed = True
+            if jump_dx == 0 and jump_dy == 0:  # If our jump displacement is 0, they were part of a trim command.
+                out.stitches = out.stitches[:jump_start]
         else:
             out.stitch(dx, dy)
+            trimmed = False
+            jumping = False
+    out.end()
 
 
 def read(f, out, settings=None):
     dst_read_header(f, out)
-    dst_read_stitches(f, out)
+    dst_read_stitches(f, out, settings)

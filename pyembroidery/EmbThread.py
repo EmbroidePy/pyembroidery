@@ -1,14 +1,55 @@
+def build_unique_palette(thread_palette, threadlist):
+    """Turns a threadlist into a unique index list with the thread palette"""
+    chart = [None] * len(thread_palette)  # Create a lookup chart.
+    for thread in set(threadlist):  # for each unique color, move closest remaining thread to lookup chart.
+        index = thread.find_nearest_color_index(thread_palette)
+        if index is None:
+            break  # No more threads remain in palette
+        thread_palette[index] = None  # entries may not be reused.
+        chart[index] = thread  # assign the given index to the lookup.
+
+    palette = []
+    for thread in threadlist:  # for each thread, return the index.
+        palette.append(thread.find_nearest_color_index(chart))
+    return palette
+
+
+def build_palette(thread_palette, threadlist):
+    palette = []
+    for thread in threadlist:  # for each thread, return the index.
+        palette.append(thread.find_nearest_color_index(thread_palette))
+    return palette
+
+
+def build_nonrepeat_palette(thread_palette, threadlist):
+    last_index = None
+    last_thread = None
+    palette = []
+    for thread in threadlist:  # for each thread, return the index.
+        index = thread.find_nearest_color_index(thread_palette)
+        if last_index == index and last_thread != thread:
+            repeated_thread = thread_palette[index]
+            repeated_index = index
+            thread_palette[index] = None
+            index = thread.find_nearest_color_index(thread_palette)
+            # index will no longer be repeated.
+            thread_palette[repeated_index] = repeated_thread
+        palette.append(index)
+        last_index = index
+        last_thread = thread
+
+    return palette
+
+
 def find_nearest_color_index(find_color, values):
     if isinstance(find_color, EmbThread):
         find_color = find_color.color
     red = (find_color >> 16) & 0xff
     green = (find_color >> 8) & 0xff
     blue = find_color & 0xff
-    closest_index = -1
-    current_index = -1
+    closest_index = None
     current_closest_value = float("inf")
-    for t in values:
-        current_index += 1
+    for current_index, t in enumerate(values):
         if t is None:
             continue
         dist = color_distance_red_mean(

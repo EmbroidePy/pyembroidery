@@ -1,5 +1,6 @@
 import datetime
 
+import EmbThread
 from .EmbConstant import *
 from .EmbThreadJef import get_thread_set
 from .WriteHelper import write_string_utf8, write_int_32le, write_int_8
@@ -19,11 +20,15 @@ HOOP_200X200 = 4
 
 
 def write(pattern, f, settings=None):
-    trims = True
+    trims = False
+    command_count_max = 3
+
     date_string = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
     if settings is not None:
         trims = settings.get("trims", trims)
+        command_count_max = settings.get('trim_at', command_count_max)
         date_string = settings.get("date", date_string)
+
     pattern.fix_color_count()
     color_count = pattern.count_threads()
     offsets = 0x74 + (color_count * 8)
@@ -42,7 +47,7 @@ def write(pattern, f, settings=None):
             point_count += 2
         elif data == TRIM:
             if trims:
-                point_count += 2
+                point_count += (2 * command_count_max)
         elif data == COLOR_CHANGE:
             point_count += 2
         elif data == END:
@@ -82,9 +87,11 @@ def write(pattern, f, settings=None):
     write_hoop_edge_distance(f, x_hoop_edge, y_hoop_edge)
 
     jef_threads = get_thread_set()
-    for thread in pattern.threadlist:
-        thread_index = thread.find_nearest_color_index(jef_threads)
-        write_int_32le(f, thread_index)
+
+    palette = EmbThread.build_nonrepeat_palette(jef_threads, pattern.threadlist)
+    for t in palette:
+        write_int_32le(f, t)
+
     for i in range(0, color_count):
         write_int_32le(f, 0x0D)
 
@@ -108,8 +115,8 @@ def write(pattern, f, settings=None):
             write_int_8(f, -dy)
             continue
         elif data == TRIM:
-            if trims:
-                f.write(b'\x80\x02\x00\x00')
+            if trims:  # command trim.
+                f.write(b'\x80\x02\x00\x00' * command_count_max)
             continue
         elif data == JUMP:
             f.write(b'\x80\x02')
