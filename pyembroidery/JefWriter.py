@@ -1,6 +1,6 @@
 import datetime
 
-import EmbThread
+from .EmbThread import build_nonrepeat_palette
 from .EmbConstant import *
 from .EmbThreadJef import get_thread_set
 from .WriteHelper import write_string_utf8, write_int_32le, write_int_8
@@ -88,7 +88,7 @@ def write(pattern, f, settings=None):
 
     jef_threads = get_thread_set()
 
-    palette = EmbThread.build_nonrepeat_palette(jef_threads, pattern.threadlist)
+    palette = build_nonrepeat_palette(jef_threads, pattern.threadlist)
     for t in palette:
         write_int_32le(f, t)
 
