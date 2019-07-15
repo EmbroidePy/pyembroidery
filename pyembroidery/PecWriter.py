@@ -1,4 +1,4 @@
-import EmbThread
+from .EmbThread import build_unique_palette
 from .EmbConstant import *
 from .EmbThreadPec import get_thread_set
 from .PecGraphics import get_blank, draw_scaled
@@ -46,7 +46,7 @@ def write_pec_header(pattern, f, threadlist):
 
     thread_set = get_thread_set()
 
-    color_index_list = EmbThread.build_unique_palette(thread_set, pattern.threadlist)
+    color_index_list = build_unique_palette(thread_set, pattern.threadlist)
 
     rgb_list = [thread.color for thread in threadlist]
 
