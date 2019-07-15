@@ -4,7 +4,7 @@ import unittest
 
 from pyembroidery import *
 from pyembroidery.EmbThreadPec import *
-from EmbThread import build_unique_palette, build_nonrepeat_palette, build_palette
+from pyembroidery.EmbThread import build_unique_palette, build_nonrepeat_palette, build_palette
 
 
 class TestPalettes(unittest.TestCase):
