@@ -3,6 +3,7 @@ from .ReadHelper import read_int_32le, signed8
 
 
 def read_jef_stitches(f, out, settings=None):
+    clipping = True
     trims = False
     command_count_max = 3
     trim_distance = 3.0
@@ -10,6 +11,7 @@ def read_jef_stitches(f, out, settings=None):
         command_count_max = settings.get('trim_at', command_count_max)
         trims = settings.get("trims", trims)
         trim_distance = settings.get("trim_distance", trim_distance)
+        clipping = settings.get('clipping', clipping)
     if trim_distance is not None:
         trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
     jump_count = 0
@@ -65,7 +67,7 @@ def read_jef_stitches(f, out, settings=None):
                 out.trim(position=jump_start)
                 jump_start += 1  # We inserted a position, start jump has moved.
                 trimmed = True
-            if jump_dx == 0 and jump_dy == 0:  # If our jump displacement is 0, they were part of a trim command.
+            if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
                 out.stitches = out.stitches[:jump_start]
             continue
         if ctrl == 0x01:

@@ -60,8 +60,10 @@ def dst_read_header(f, out):
 
 def dst_read_stitches(f, out, settings=None):
     jump_count_max = 3
+    clipping = True
     if settings is not None:
         jump_count_max = settings.get('trim_at', jump_count_max)
+        clipping = settings.get('clipping', clipping)
     sequin_mode = False
     jump_count = 0
     jump_start = 0
@@ -103,7 +105,7 @@ def dst_read_stitches(f, out, settings=None):
                 out.trim(position=jump_start)
                 jump_start += 1  # We inserted a position, start jump has moved.
                 trimmed = True
-            if jump_dx == 0 and jump_dy == 0:  # If our jump displacement is 0, they were part of a trim command.
+            if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
                 out.stitches = out.stitches[:jump_start]
         else:
             out.stitch(dx, dy)
