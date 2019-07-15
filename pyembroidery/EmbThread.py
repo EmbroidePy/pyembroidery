@@ -1,3 +1,4 @@
+
 def build_unique_palette(thread_palette, threadlist):
     """Turns a threadlist into a unique index list with the thread palette"""
     chart = [None] * len(thread_palette)  # Create a lookup chart.
@@ -137,6 +138,12 @@ class EmbThread:
 
     def __hash__(self):
         return self.color & 0xFFFFFF
+
+    def __str__(self):
+        if self.description is None:
+            return "EmbThread %s" % self.hex_color()
+        else:
+            return "EmbThread %s %s" % self.description, self.hex_color()
 
     def set_color(self, r, g, b):
         self.color = color_rgb(r, g, b)
