@@ -4,15 +4,13 @@ import unittest
 
 from pyembroidery import *
 from pattern_for_tests import *
-from pattern_fractal_for_test import *
 
 
 class TestTrims(unittest.TestCase):
 
     def test_dst_trims(self):
         file0 = "trim.dst"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_dst(pattern, file0)
         loaded_pattern = read_dst(file0)
         self.assertIsNotNone(loaded_pattern)
@@ -21,8 +19,7 @@ class TestTrims(unittest.TestCase):
 
     def test_dst_trims_fail(self):
         file0 = "trim.dst"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_dst(pattern, file0)
         loaded_pattern = read_dst(file0, {"trim_at": 50})  # Lines beyond 50 jumps get a trim.
         self.assertIsNotNone(loaded_pattern)
@@ -31,8 +28,7 @@ class TestTrims(unittest.TestCase):
 
     def test_dst_trims_success(self):
         file0 = "trim.dst"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_dst(pattern, file0, {"trim_at": 50})  # We make trim jumps big enough.
         loaded_pattern = read_dst(file0, {"trim_at": 50, "clipping": False})  # Lines beyond 50 jumps get a trim.
         self.assertIsNotNone(loaded_pattern)
@@ -41,8 +37,7 @@ class TestTrims(unittest.TestCase):
 
     def test_jef_trims(self):
         file0 = "trim.jef"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_jef(pattern, file0)
         loaded_pattern = read_jef(file0)
         self.assertIsNotNone(loaded_pattern)
@@ -51,8 +46,7 @@ class TestTrims(unittest.TestCase):
 
     def test_jef_trims_off(self):
         file0 = "trim.jef"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_jef(pattern, file0)
         loaded_pattern = read_jef(file0, {"trim_distance": None})
         self.assertEqual(loaded_pattern.count_stitch_commands(JUMP), 15)
@@ -62,8 +56,7 @@ class TestTrims(unittest.TestCase):
 
     def test_jef_trims_commands(self):
         file0 = "trim.jef"
-        pattern = EmbPattern()
-        generate(pattern)
+        pattern = get_fractal_pattern()
         write_jef(pattern, file0, {"trims": True})
         loaded_pattern = read_jef(file0, {"trim_distance": None})
         self.assertEqual(loaded_pattern.count_stitch_commands(JUMP), 15)
