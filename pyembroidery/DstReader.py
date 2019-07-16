@@ -58,7 +58,7 @@ def dst_read_header(f, out):
             process_header_info(out, line[0:2].strip(), line[3:].strip())
 
 
-def dst_read_stitches(f, out):
+def dst_read_stitches(f, out, settings=None):
     sequin_mode = False
     while True:
         byte = bytearray(f.read(3))
@@ -67,7 +67,7 @@ def dst_read_stitches(f, out):
         dx = decode_dx(byte[0], byte[1], byte[2])
         dy = decode_dy(byte[0], byte[1], byte[2])
         if byte[2] & 0b11110011 == 0b11110011:
-            out.end(dx, dy)
+            break
         elif byte[2] & 0b11000011 == 0b11000011:
             out.color_change(dx, dy)
         elif byte[2] & 0b01000011 == 0b01000011:
@@ -80,8 +80,20 @@ def dst_read_stitches(f, out):
                 out.move(dx, dy)
         else:
             out.stitch(dx, dy)
+    out.end()
+
+    count_max = 3
+    clipping = True
+    trim_distance = None
+    if settings is not None:
+        count_max = settings.get('trim_at', count_max)
+        trim_distance = settings.get("trim_distance", trim_distance)
+        clipping = settings.get('clipping', clipping)
+    if trim_distance is not None:
+        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+    out.interpolate_trims(count_max, trim_distance, clipping)
 
 
 def read(f, out, settings=None):
     dst_read_header(f, out)
-    dst_read_stitches(f, out)
+    dst_read_stitches(f, out, settings)

@@ -10,13 +10,12 @@ pip install pyembroidery
 
 Any suggestions or comments please raise an issue on the github.
 
-pyembroidery was coded from the ground up with all projects in mind. It includes a lot of higher level and middle level pattern composition abilities, and should accounts for any knowable error. It should be highly robust with a simple api so as to be reasonable for *any* python embroidery project.
+pyembroidery was coded from the ground up with all projects in mind. It includes a lot of higher level and middle level pattern composition abilities, and should accounts for any knowable error. If you know an error it does not account for, raise an issue. It should be highly robust with a simple api so as to be reasonable for *any* python embroidery project.
 
 It should be complex enough to go very easily from points to stitches, fine grained enough to let you control everything, and good enough that you shouldn't want to.
 
 
-Mandate
----
+## Mandate
 pyembroidery must to be small enough to be finished in short order and big enough to pack a punch.
 
 * pyembroidery must read and write: PES, DST, EXP, JEF, VP3.
@@ -30,12 +29,12 @@ Pyembroidery fully meets and exceeds all of these requirements.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
   * It is currently fully compatable with Python 2.7 and Python 3.6
 
-Philosophy
----
+
+## Philosophy
 Pyembroidery will always attempt to minimize information loss. Embroidery reading and writing, the exporting and importing of embroidery files, is always lossy. If there is information in a file, it is within the purview of the project (but not the mandate) to read that information and provide it to the user. If information can be written to a file, it is within the purview of the project to write that information to the file or provide means by which that can be done.
 
 * Low level commands: Those commands actually found in binary encoded embroidery files.
-    * Low level commands will be transcribed and preserved in their exact order, unless doing so will cause an error.
+    * Low level commands will be transcribed and preserved in their exact order, unless doing so will cause an error or lose information.
 * Middle level commands: Useful ways of thinking about blocks of low level commands. Commands which describe the way the low level commands are encoded, but are not themselves commands executed by embroidery machines.
     * Middle level commands will be helpful and converted to low-level commands during writing events.
     * These will often be context sensitive converting to slightly different low level commands depending on intended writer, or encoder settings.
@@ -43,21 +42,21 @@ Pyembroidery will always attempt to minimize information loss. Embroidery readin
     * High level commands will not exist within this project.
 
 Other reasonable elements:
-* Higher level objects like .PES or .THR containing shapes are currently ignored in favor of reading raw stitches. However, loading such things would be less lossy and thus within the scope of the project.
+* Higher level objects like .PES or .THR containing shapes are currently ignored in favor of reading raw stitches. However, loading those elements would be less lossy and thus within the scope of the project.
 * Conversions from raw low level commands to some middle level interpretations or iterable generators are provided in the EmbPattern class. Additional methods are entirely reasonable feature requests.
+* Complex functionality that requires assistence, especially in cases with significant edge conditions, for example merging patterns.
    
 
-How it works:
----
-Readers are sent a fileobject and an EmbPattern and parses the file, filling in the metadata, threads, stitches, with as much valid information as the file contains.
+## Overview
+Readers are sent a fileobject/stream, an EmbPattern and sometimes a settings dict. The reader parses the file, adding in metadata, threads, and stitches with as much valid information as the file contains.
 
-EmbPattern objects contain all the relevant data. You can iterate stitch blocks .get_as_stitchblocks() or access the raw-stitches, threads, or metadata.
+EmbPattern objects contain all relevant data. You can iterate stitch blocks .get_as_stitchblocks() or access the raw-stitches, threads, or metadata.
 
-Writers are called to save a pattern to disk. They save raw-stitch data to disk. This data may, however, not be formatted in a way the writer can utilize effectively. For this reason, writers (except csv) utilize the encoder to ensure whatever the input is will be presented to the writer in a manner coherent to the writer.
+Writers are called to save a pattern to disk. The writers save raw-stitch data to disk. This data may, however, not be formatted in a way the writer can utilize effectively. For this reason, writers (except lossless csv) utilize the encoder to ensure whatever the data is in the pattern will be presented to the writer in a manner coherent to the writer.
 
-The encoder encode a low level version of the commands in the pattern, not just from low level but also middle-level commands implemented with the encoder. The writer contain format specific information with which to call to the encoder with some format specific values. Each export will reencode the data for the format, without modifying or altering the original data, as doing so would be lossy.
+The encoder encode a low level version of the commands in the pattern, not just from low level but also middle-level commands implemented with the encoder. The writer contain format specific information which is given to the encoder. Each export will reencode the data for the format, without modifying or altering the original data, as doing so would be lossy.
 
-The encoder call can be made directly on the EmbPattern with .get_normalized_pattern() on the pattern, this returns a new pattern. Neither, encoding nor saving will modify a pattern, rather they either return a new pattern or utilize one. Most operations performed on the data will have some degree of loss. So there is a level of isolation between lossy operation converting the pattern.
+The encoder call can be made directly on the EmbPattern with .get_normalized_pattern() on the pattern, this returns a new pattern. Neither encoding, nor saving, will modify a pattern. The either return a new pattern or utilize one provided. Most operations performed on the data will have some degree of loss, so there is a level of isolation between lossy operation converting the pattern.
 
 * Read
   * File -> Reader -> Pattern
@@ -66,30 +65,26 @@ The encoder call can be made directly on the EmbPattern with .get_normalized_pat
 * Convert
   * File -> Reader -> Pattern -> Encoder -> Pattern -> Writer -> File
 
-EmbPattern
----
+## EmbPattern
 EmbPattern objects contain three primary elements:
 * `stitches`: This is a `list` of lists of three elements [x, y, command]
 * `threadlist`: This is a `list` of EmbThread class objects.
 * `extras`: This is a `dict` of various types of things that were found or referenced within the reading or desired for the writing of the file such as metadata info about the label declared within a file or some internal 1 bit graphics found within the embroidery file.
 
-EmbPattern Stitches
----
+### EmbPattern Stitches
 The stitches contain absolute locations x, y and command. Commands are found defined within the EmbConstant.py file and should be referenced by name rather than value. The commands are the lower 8 bits of the command value. The upper bits of the command values are reserved for additional information (See Thread Changes). For best practices these should be masked off `stitch[stitch_index][2] & COMMAND_MASK`. 
 
-EmbPattern Threadlist
----
+### EmbPattern Threadlist
 The threadlist is a reference table of threads and the information about those threads. By default, if not explitly specified, the threadlist is utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one, one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (except if extended headers are requested as those give a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explitly possible. See Thread Changes for more details.
 
-EmbPattern Extras
----
+### EmbPattern Extras
 This can largely be ignored except in cases when the metadata within the file matters. If for example you wish to read files and find the label that exists inside many different embroidery file times, the resulting value will be put into extras. This is to store the metadata and sometimes transfer the metadata from one format type to another. So an internal label might be able to be transferred between a .dst file and .pes file without regard to the external file name. Or the 1-bit images within a PEC file could be viewed.
 
-Thread Changes
----
-Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `NEEDLE_SET` in order to change the thread. The difference here is notable. A color change goes to the next needle in a list usually set within the machine or within the file for the next color of thread. However, some machines like Barudan use what is most properly a needle change. They do not specify the color, but explicitly specifies the needle to be used. This often includes beginning writing the file by explictly setting the current needle, if omitted most machines use the current needle. Setting the same needle again will produce no effect. So often color changes occur between different thread usages, but needle sets occur at the start of each needle usage. Calling for a color change, requires that something be changed, and the machine often stopped. Calling for a needle_set may set the value to the current needle.
 
-When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using correct thread change command indicated and accounting for the implicit differences.
+## Thread Changes
+Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `NEEDLE_SET` in order to change the thread. The difference here is notable. A color change goes to the next needle in a list usually set within the machine or within the file for the next color of thread. However, some machines like Barudan use what is most properly a needle change. They do not specify the color, but explicitly specifies the needle to be used. This often means the current needle is set at the start. But, if omitted most machines use the current needle set in the machine. Setting the same needle again will produce no effect. Color changes occur between different thread usages, but needle sets occur at the start of each needle usage. Calling for a color change, requires that something be changed, and the machine often stopped. Calling for a needle_set may set the value to the current needle.
+
+When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using the correct thread change command indicated and accounting for the implicit differences.
 
 There are some cases where one software suite will encode U01 (Barudan formating with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (techincally in this case C00 or needle #0), while other software will cycle through a list of a few needles, indicating more explicitly these are changes.
 
@@ -105,8 +100,9 @@ There are some other use cases when writing this data out, you could, for exampl
 
 In most cases this information isn't going to matter, but it is provided because it is information sometimes contained within the embroidery file. For writing this information, there are quite often other ways to specify it, but `pyembroidery` tends to be overbuilt by design to capture most known and unknown usecases.
 
-Formats:
----
+## File I/O
+
+### Formats:
 
 Pyembroidery will write:
 * .pes (mandated)
@@ -116,7 +112,7 @@ Pyembroidery will write:
 * .vp3 (mandated)
 * .u01
 * .pec
-* .xxx (experimental)
+* .xxx
 * .csv
 * .svg
 * .png
@@ -164,22 +160,26 @@ Pyembroidery will read:
 * .csv
 * .gcode
 
-Writing to CSV:
+#### Versions
+They .get_supported_formats() in pyembroidery provides an element called 'versions' this will contain a tuple of values which can be passed to the settings object as `{'version': <my version>}`. This provides much of the version controls for the types of outputs provided within each writer. For example there is an extended header version of dst called extended, there's "6" and "6t" in the PesWriter which export other and different versions of the file. 
+
+This is also intended as a good method to create new versions. For example, gcode can control a great many thing and varies greatly from one purpose to another and would be ideal for different versions. There's also different machines which may require different tweaks and these would be extended as versions.
+
+#### Writing to CSV:
 Prints out a workable CSV file with the given data. Starting in 1.3 the csv patterns are written without being encoded. The CSV format is, in this form, lossless. If you wish to encode before you write the file you can set the encoder to True and override the default.
 
 `write_csv(pattern, "file.csv", {"encode": True})`
 
-Writing to PNG:
+#### Writing to PNG:
 Writes to a image/png file.
 
-Writing to TXT:
+#### Writing to TXT:
 Writes to a text file. Generally lossy, it does not write threads or metadata, but certainly more easily parsed for a number of homebrew applications. The "mimic" option should mimic the embroidermodder functionality for exporting to txt files. By default it exports a bit less lossy giving the proper command indexes and their explicit names.
 
-Writing to Gcode:
+#### Writing to Gcode:
 The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue.
 
-Reading:
----
+### Reading
 
 ```python
 import pyembroidery
@@ -225,8 +225,7 @@ If you intend to write the merged pattern as a single unended pattern, convert t
   stitch[2] = pyembroidery.NO_COMMAND
 ```
 
-Writing:
----
+## Writing
 
 To write to a pattern do disk:
 
@@ -292,8 +291,22 @@ Explicitly calling TIE_ON or TIE_OFF within the command sequence performs the se
 
 `explicit_trim` sets whether the encoder should overtly include a trim before color change event or not. Default is False. Setting this to True will include a trim if we are going to perform a thread-change action.
 
-Conversion:
----
+## Manipulation
+
+There are many fully qualified methods of manipulating patterns. For example if you want to add a pattern to another pattern,
+```python
+pattern1 += pattern2
+```
+
+You can also do pattern3 = pattern1 + pattern2 but that requires making an new pattern. With the `__iadd__()` dunder you can also perform actions like adding a colorchange.
+
+`pattern1 += "red"` will add a color change (if correct to do so), and a red thread to the threadlist.
+
+Other elements like `pattern += ((0,0), (20,20), (0,0))` will also work to append stitches.
+
+You can get a particular stitch of the pattern using `pattern[0]`. You can set string metadata elements `pattern['name'] = "My Design"`
+
+## Conversion
 
 As pyembroidery is a fully fleshed out reader/writer within the mandate, it also does conversion.
 
@@ -307,8 +320,7 @@ This will read the embroidery.jef file in JEF format and will export it as conve
 
 You can load the file and call some of the helper functions to process the data like, get_pattern_interpolate_trim(), or get_stablized_pattern(). If there's a completely reasonable way to post-process loaded data that isn't accounted for raise an issue. This is still an open question. Since 1.3 the improved conversion testing means most conversions should overtly work.
 
-Composing a pattern:
----
+## Composing a pattern
 
 * Use core commands to compose a pattern
 * Use shorthand commands to compose a pattern
@@ -335,6 +347,11 @@ You can also add relative and command values to the list.
 pattern.add_stitch_relative(STITCH, dx, dy)
 pattern.add_stitch_absolute(JUMP, x, y)
 pattern.add_command(command)
+```
+
+You can insert a relative stitch inside a pattern. Note that it is relative to the stitch it's being inserted at. This will cause problems if that is a command without x, y operands.
+```python
+pattern.trim(position=48)
 ```
 
 The relative and absolute markers determine whether the numbers given are relative to the last position or an absolute location. Calling add_command does not update the internal record of position. These are taken as positionless and the x and y are taken as parameters. Adding a command that is explicitly positioned with add_command will have undefined behavior.
@@ -373,8 +390,8 @@ pattern.trim()
 pattern.color_change()
 ```
 
-StitchBlocks:
----
+## StitchBlocks
+
 Conceptually a lot of embroidery can be thought of as unbroken blocks of stitches. Given the ubiquity of this, pyembroidery allows several methods for manipulating stitchblocks for reading and writing.
 
 The stitches within pyembroidery are a list of lists, with each 3 values. x, y, command. The stitchblocks given by commands like .get_as_stitchblock() are subsections of this. For adding stitches like with .add_stitchblock(), iterable set of objects with stitch.command, stitch.x, stitch.y will also works for adding a stitch block to a pattern. 
@@ -417,8 +434,7 @@ pattern.add_block([0, 0, 0, 100, 100, 100, 100, 0, 0, 0], "#f00")
 When a call is made to add_stitchblock(), the thread object is required to know whether the current thread is different than the previous one. If a different thread is detected pyembroidery will append a COLOR_BREAK rather than SEQUENCE_BREAK after adding the stitches into the pattern. Depending on your use case, you could implement this yourself using singular calls to add_stitch_relative() or add_stitch_absolute() and then determine the type of break with COLOR_BREAK or SEQUENCE_BREAK afterwards.
 
 
-Middle-Level Commands:
-----
+### Middle-Level Commands:
 
 The middle-level commands, as they currently stand:
 * SET_CHANGE_SEQUENCE - Sets the thread change sequence according to the encoded values. Setting the needle, thread-color, and order of where this occurs. See Thread Changes for more info.
@@ -477,8 +493,8 @@ STITCH_BREAK
 
 Stitch break is only needed for reallocating jumps. It requires that the long stitch contingency is needle_to for the next stitch and any existing jumps directly afterwards are ignored. This causes the jump sequences to reallocate. If an existing jump sequence exists because it was loaded from a file and fed into a write routine. The write routine may only seek a contingency for the long jumps by providing extra subdivisions, because low level commands are only tweaked if a literal transcription would cause errors. However, calling pattern.get_pattern_merge_jumps() returns a pattern with all sequences of JUMP replaced with a single STITCH_BREAK command which is middle level and converted by the encoder into a series of jumps produced by the encoder rather than directly transcribed from their current sequence.
 
-Stitch Contingency
----
+### Stitch Contingency
+
 The encoder needs to decide what to do when a stitch is too long. The current modes here are:
 * CONTINGENCY_NEEDLE_JUMP (default)
 * CONTINGENCY_SEW_TO
@@ -486,8 +502,8 @@ The encoder needs to decide what to do when a stitch is too long. The current mo
 
 When a stitch is beyond max_stitch (whether set by the format or by the user) it must deal with this event, however opinions differ as to how what a stitch beyond the maximum should do. If it is your intent that STITCH means SEW_TO this location then setting the stitch contingency to SEW_TO will create a series of stitches until we get to the end location. If you use the command SEW_TO this overtly works like a stitch with CONTINGENCY_SEW_TO. Likewise NEEDLE_AT is the STITCH flavor that jumps to to the end location and then stitches. If you set CONTINGENCY_NONE then no contingency method is used, long stitches are simply fed to the writer as they appear which may throw an error or crash.
 
-Sequin Contingency
----
+### Sequin Contingency
+
 The encoder needs to decide what to do when there are sequins in a pattern. The current modes here are:
 * CONTINGENCY_SEQUIN_UTILIZE - sets the equin contingency to use the sequin information.
 * CONTINGENCY_SEQUIN_JUMP - Sets the sequin contingency to call the sequins jumps.
@@ -496,18 +512,18 @@ The encoder needs to decide what to do when there are sequins in a pattern. The 
 
 Sequins being written into files that do not support sequins can go several ways, the two typical methods are JUMP and STITCH, this means to replace the SEQUIN_EJECTs with JUMP. This will allow some machines to manually enable sequins for a particular section and interpret the JUMPs as stitches. It is known that some Barudan machines have this ability. The other typical mode is STITCH which will preserve viewable structure of the underlying pattern while destroying the information of where the JUMPs were. With the JUMPs some data will appear to be corrupted, with STITCHes the data will look correct except without the sequins but the information is lost and not recoverable. REMOVE is given for completeness, but it calls all SEQUIN_EJECT commands NO OPERATIONS as if they don't appear in the pattern at all.
 
-Tie On / Tie Off Contingency
----
+### Tie On / Tie Off Contingency
+
 While there's only NONE, and THREE_SMALL for contingencies here, both the tie-on and tie-off contingencies are setup to be forward compatabile with other future potential tie-on and tie-off methods.
 
-Units
----
+### Units
+
 * The core units are 1/10th mm. This is what 1 refers to within most formats, and internally within pyembroidery itself. You are entirely permitted to use floating point numbers. When writing to a format, fractional values will be lost, but this shall happen in such a way to avoid the propagation of error. Relative stitches from position ( 0.0,  0.31 ) of (+5.4, +5.4), (+5.4, +5,4), (+5.4, +5,4) should encode as changes of 5,6 6,5 5,6. Taking the relative distance in the format as the integer change from the last integer position to the new one, maintaining a position as close to the absolute position as possible. All fractional values are considered significant. 
 
 In some read formats the formats themselves have a slightly different unit systems such as .PCD or .MIT these alternative units will be presented seemlessly as 1/10th mm units.
 
-Core Command Ordering
----
+### Core Command Ordering
+
 Stitch is taken to mean move_position(x,y), needle_strike. Jump is taken to mean move_position(x,y), block_needle_bar. In those orders.
 If a format takes stitch to mean needle_strike, move_position(x,y) in that order. The encoder will may insert an extra jump in to avoid stitching an unwanted element. These differences matter, and are accounted for by things like FULL_JUMP in places, and within the formats. However, within the pattern the understanding should be consistently be taken as displace then operation.
 
@@ -515,8 +531,8 @@ Note: This is true for sequin_eject too. DST files are the only currently suppor
 
 So if write your own pattern and you intend to stitch at the origin and then go somewhere you must `stitch, 0, 0` then `stitch, x, y` if you start by stitching somewhere at x, y. It may insert jump stitches to get you to that location, then stitch at that location.
 
-Coordinate System
----
+### Coordinate System
+
 Fundamentally pyembroidery stores the positions such that the +y direction is down and -y is up (when viewed horizontally) with +x right and -x left. This is consistent with most modern graphics coordinate systems, but this is different from how these values are stored within embroidery formats. pyembroidery reads by flipping the y-axis, and writes by flipping the y-axis (except for SVG which uses the same coordinate system). This allows for seemless reading, writing, and interfacing. The flips occur at the level of the format readers and writers and is not subject to encoding. However encoding with scale of (1, -1) would invert this during the encoding. All patterns are stored such that `top` is in the -y direction and `bottom` is in the +y direction.
 
 All patterns start at the origin point (0,0). In keeping with the philosophy the absolute positioning of the data is maintained sometimes this means it an offcenter pattern will move from the origin to an absolute position some distance from the origin. While this preserves information, it might also not be entirely expected at times. This `pattern.move_center_to_origin()` will lose that information and center the pattern at the origin.

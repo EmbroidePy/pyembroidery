@@ -120,50 +120,83 @@ class EmbPattern:
         self._previousX = 0
         self._previousY = 0
 
-    def move(self, dx=0, dy=0):
+    def move(self, dx=0, dy=0, position=None):
         """Move dx, dy"""
-        self.add_stitch_relative(JUMP, dx, dy)
+        if position is None:
+            self.add_stitch_relative(JUMP, dx, dy)
+        else:
+            self.insert_stitch_relative(position, JUMP, dx, dy)
 
-    def move_abs(self, x, y):
+    def move_abs(self, x, y, position=None):
         """Move absolute x, y"""
-        self.add_stitch_absolute(JUMP, x, y)
+        if position is None:
+            self.add_stitch_absolute(JUMP, x, y)
+        else:
+            self.insert(position, JUMP, x, y)
 
-    def stitch(self, dx=0, dy=0):
+    def stitch(self, dx=0, dy=0, position=None):
         """Stitch dx, dy"""
-        self.add_stitch_relative(STITCH, dx, dy)
+        if position is None:
+            self.add_stitch_relative(STITCH, dx, dy)
+        else:
+            self.insert_stitch_relative(position, STITCH, dx, dy)
 
-    def stitch_abs(self, x, y):
+    def stitch_abs(self, x, y, position=None):
         """Stitch absolute x, y"""
-        self.add_stitch_absolute(STITCH, x, y)
+        if position is None:
+            self.add_stitch_absolute(STITCH, x, y)
+        else:
+            self.insert(position, STITCH, x, y)
 
-    def stop(self, dx=0, dy=0):
+    def stop(self, dx=0, dy=0, position=None):
         """Stop dx, dy"""
-        self.add_stitch_relative(STOP, dx, dy)
+        if position is None:
+            self.add_stitch_relative(STOP, dx, dy)
+        else:
+            self.insert_stitch_relative(position, STOP, dx, dy)
 
-    def trim(self, dx=0, dy=0):
+    def trim(self, dx=0, dy=0, position=None):
         """Trim dx, dy"""
-        self.add_stitch_relative(TRIM, dx, dy)
+        if position is None:
+            self.add_stitch_relative(TRIM, dx, dy)
+        else:
+            self.insert_stitch_relative(position, TRIM, dx, dy)
 
-    def color_change(self, dx=0, dy=0):
+    def color_change(self, dx=0, dy=0, position=None):
         """Color Change dx, dy"""
-        self.add_stitch_relative(COLOR_CHANGE, dx, dy)
+        if position is None:
+            self.add_stitch_relative(COLOR_CHANGE, dx, dy)
+        else:
+            self.insert_stitch_relative(position, COLOR_CHANGE, dx, dy)
 
-    def needle_change(self, needle=0, dx=0, dy=0):
+    def needle_change(self, needle=0, dx=0, dy=0, position=None):
         """Needle change, needle, dx, dy"""
         cmd = encode_thread_change(NEEDLE_SET, None, needle)
-        self.add_stitch_relative(cmd, dx, dy)
+        if position is None:
+            self.add_stitch_relative(cmd, dx, dy)
+        else:
+            self.insert_stitch_relative(position, cmd, dx, dy)
 
-    def sequin_eject(self, dx=0, dy=0):
+    def sequin_eject(self, dx=0, dy=0, position=None):
         """Eject Sequin dx, dy"""
-        self.add_stitch_relative(SEQUIN_EJECT, dx, dy)
+        if position is None:
+            self.add_stitch_relative(SEQUIN_EJECT, dx, dy)
+        else:
+            self.insert_stitch_relative(position, SEQUIN_EJECT, dx, dy)
 
-    def sequin_mode(self, dx=0, dy=0):
+    def sequin_mode(self, dx=0, dy=0, position=None):
         """Eject Sequin dx, dy"""
-        self.add_stitch_relative(SEQUIN_MODE, dx, dy)
+        if position is None:
+            self.add_stitch_relative(SEQUIN_MODE, dx, dy)
+        else:
+            self.insert_stitch_relative(position, SEQUIN_MODE, dx, dy)
 
-    def end(self, dx=0, dy=0):
+    def end(self, dx=0, dy=0, position=None):
         """End Design dx, dy"""
-        self.add_stitch_relative(END, dx, dy)
+        if position is None:
+            self.add_stitch_relative(END, dx, dy)
+        else:
+            self.insert_stitch_relative(position, END, dx, dy)
 
     def add_thread(self, thread):
         """Adds thread to design.
@@ -356,6 +389,26 @@ class EmbPattern:
         y = self._previousY + dy
         self.add_stitch_absolute(cmd, x, y)
 
+    def insert_stitch_relative(self, position, cmd, dx=0, dy=0):
+        """Insert a relative stitch into the pattern. The stitch is relative to the stitch before it.
+        If inserting at position 0, it's relative to 0,0. If appending, add is called, updating the positioning.
+        """
+        if position < 0:
+            position += len(self.stitches)  # I need positive positions.
+        if position == 0:
+            self.stitches.insert(0, [dx, dy, TRIM])  # started (0,0)
+        elif position == len(self.stitches) or position is None:  # This is properly just an add.
+            self.add_stitch_relative(cmd, dx, dy)
+        elif 0 < position < len(self.stitches):
+            p = self.stitches[position - 1]
+            x = p[0] + dx
+            y = p[1] + dy
+            self.stitches.insert(position, [x, y, TRIM])
+
+    def insert(self, position, cmd, x=0, y=0):
+        """Insert a stitch or command"""
+        self.stitches.insert(position, [x, y, cmd])
+
     def prepend_command(self, cmd, x=0, y=0):
         """Prepend a command, without treating parameters as locations"""
         self.stitches.insert(0, [x, y, cmd])
@@ -447,6 +500,60 @@ class EmbPattern:
             elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
                 self.stitches[i][2] = NO_COMMAND
         self.extras.update(pattern.extras)
+
+    def interpolate_trims(self, jumps_to_require_trim=None,  distance_to_require_trim=None, clipping=True):
+        """Processes a pattern adding trims according to the given criteria."""
+        i = -1
+        ie = len(self.stitches) - 1
+
+        x = 0
+        y = 0
+        jump_count = 0
+        jump_start = 0
+        jump_dx = 0
+        jump_dy = 0
+        jumping = False
+        trimmed = True
+        while i < ie:
+            i += 1
+            stitch = self.stitches[i]
+            dx = stitch[0] - x
+            dy = stitch[1] - y
+            x = stitch[0]
+            y = stitch[1]
+            command = stitch[2] & COMMAND_MASK
+            if command == STITCH or command == SEQUIN_EJECT:
+                trimmed = False
+                jumping = False
+            elif command == COLOR_CHANGE or command == NEEDLE_SET or command == TRIM:
+                trimmed = True
+                jumping = False
+            if command == JUMP:
+                if not jumping:
+                    jump_dx = 0
+                    jump_dy = 0
+                    jump_count = 0
+                    jump_start = i
+                    jumping = True
+                jump_count += 1
+                jump_dx += dx
+                jump_dy += dy
+                if not trimmed:
+                    if jump_count == jumps_to_require_trim or\
+                            distance_to_require_trim is not None and\
+                            (
+                                abs(jump_dy) > distance_to_require_trim or\
+                                abs(jump_dx) > distance_to_require_trim
+                            ):
+                        self.trim(position=jump_start)
+                        jump_start += 1  # We inserted a position, start jump has moved.
+                        i += 1
+                        ie += 1
+                        trimmed = True
+                if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
+                    del self.stitches[jump_start:i+1]
+                    i = jump_start - 1
+                    ie = len(self.stitches) - 1
 
     def get_pattern_interpolate_trim(self, jumps_to_require_trim):
         """Gets a processed pattern with untrimmed jumps merged

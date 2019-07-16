@@ -2,10 +2,8 @@ from .EmbThreadJef import get_thread_set
 from .ReadHelper import read_int_32le, signed8
 
 
-def read_jef_stitches(f, out):
-    count = 0
+def read_jef_stitches(f, out, settings=None):
     while True:
-        count += 1
         b = bytearray(f.read(2))
         if len(b) != 2:
             break
@@ -21,10 +19,7 @@ def read_jef_stitches(f, out):
         x = signed8(b[0])
         y = -signed8(b[1])
         if ctrl == 0x02:
-            if x == 0 and y == 0:
-                out.trim()
-            else:
-                out.move(x, y)
+            out.move(x, y)
             continue
         if ctrl == 0x01:
             out.color_change(0, 0)
@@ -33,6 +28,21 @@ def read_jef_stitches(f, out):
             break
         break  # Uncaught Control
     out.end(0, 0)
+
+    clipping = True
+    trims = False
+    count_max = None
+    trim_distance = 3.0
+    if settings is not None:
+        count_max = settings.get('trim_at', count_max)
+        trims = settings.get("trims", trims)
+        trim_distance = settings.get("trim_distance", trim_distance)
+        clipping = settings.get('clipping', clipping)
+    if trims and count_max is None:
+        count_max = 3
+    if trim_distance is not None:
+        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+    out.interpolate_trims(count_max, trim_distance, clipping)
 
 
 def read(f, out, settings=None):
@@ -47,4 +57,4 @@ def read(f, out, settings=None):
         out.add_thread(jef_threads[index % len(jef_threads)])
 
     f.seek(stitch_offset, 0)
-    read_jef_stitches(f, out)
+    read_jef_stitches(f, out, settings)

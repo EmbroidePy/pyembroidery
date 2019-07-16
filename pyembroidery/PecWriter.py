@@ -1,3 +1,4 @@
+from .EmbThread import build_unique_palette
 from .EmbConstant import *
 from .EmbThreadPec import get_thread_set
 from .PecGraphics import get_blank, draw_scaled
@@ -45,21 +46,9 @@ def write_pec_header(pattern, f, threadlist):
 
     thread_set = get_thread_set()
 
-    if len(thread_set) <= len(threadlist):
-        threadlist = thread_set[:]
-        # Data is corrupt. Cheat so it won't crash.
+    color_index_list = build_unique_palette(thread_set, pattern.threadlist)
 
-    chart = [None] * len(thread_set)
-    for thread in set(threadlist):
-        index = thread.find_nearest_color_index(thread_set)
-        thread_set[index] = None
-        chart[index] = thread
-
-    color_index_list = []
-    rgb_list = []
-    for thread in threadlist:
-        color_index_list.append(thread.find_nearest_color_index(chart))
-        rgb_list.append(thread.color)
+    rgb_list = [thread.color for thread in threadlist]
 
     current_thread_count = len(color_index_list)
     if current_thread_count is not 0:

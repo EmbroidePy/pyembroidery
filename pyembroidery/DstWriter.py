@@ -102,9 +102,13 @@ def encode_record(x, y, flags):
 
 def write(pattern, f, settings=None):
     extended_header = False
+    trim_at = 3
     if settings is not None:
-        extended_header = settings.get("extended header", extended_header)
-
+        extended_header = settings.get("extended header", extended_header)  # deprecated, use version="extended"
+        version = settings.get("version", "default")
+        if version == "extended":
+            extended_header = True
+        trim_at = settings.get("trim_at", trim_at)
     bounds = pattern.bounds()
 
     name = pattern.get_metadata("name", "Untitled")
@@ -164,8 +168,11 @@ def write(pattern, f, settings=None):
         xx += dx
         yy += dy
         if data == TRIM:
-            f.write(encode_record(2, 2, JUMP))
-            f.write(encode_record(-4, -4, JUMP))
-            f.write(encode_record(2, 2, JUMP))
+            delta = -4
+            f.write(encode_record(-delta/2, -delta/2, JUMP))
+            for p in range(1,trim_at-1):
+                f.write(encode_record(delta, delta, JUMP))
+                delta = -delta
+            f.write(encode_record(delta/2, delta/2, JUMP))
         else:
             f.write(encode_record(dx, dy, data))

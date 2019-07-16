@@ -10,8 +10,8 @@ ROUND = True
 MAX_JUMP_DISTANCE = 2047
 MAX_STITCH_DISTANCE = 2047
 
-VERSION_1 = 1
-VERSION_6 = 6
+VERSION_1 = 1.0
+VERSION_6 = 6.0
 
 PES_VERSION_1_SIGNATURE = "#PES0001"
 PES_VERSION_6_SIGNATURE = "#PES0060"
@@ -21,12 +21,17 @@ EMB_SEG = "CSewSeg"
 
 
 def write(pattern, f, settings=None):
+    version = VERSION_1
+    truncated = False
     if settings is not None:
-        version = float(settings.get("pes version", VERSION_1))
+        version = settings.get("pes version", VERSION_1)  # deprecated, use "version".
+        version = settings.get("version", version)
         truncated = settings.get("truncated", False)
-    else:
-        version = VERSION_1
-        truncated = False
+        if isinstance(version, str):
+            if version.endswith('t'):
+                truncated = True
+                version = float(version[:-1])
+        version = float(version)
     if truncated:
         if version == VERSION_1:
             write_truncated_version_1(pattern, f)

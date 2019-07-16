@@ -3,7 +3,7 @@ from .EmbThread import EmbThread
 
 def get_thread_set():
     return [
-        EmbThreadJef(0x000000, "Placeholder", "000"),
+        None,  #EmbThreadJef(0x000000, "Placeholder", "000"),
         EmbThreadJef(0x000000, "Black", "002"),
         EmbThreadJef(0xffffff, "White", "001"),
         EmbThreadJef(0xffff17, "Yellow", "204"),

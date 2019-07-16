@@ -221,16 +221,21 @@ def write_stitches(pattern, f):
 
 
 def write(pattern, f, settings=None):
-    deltas = settings is not None and "deltas" in settings
-    displacement = settings is not None and "displacement" in settings
+    version = "default"
+    if settings is not None:
+        if "deltas" in settings:
+            version = "delta"
+        elif "displacement" in settings:
+            version = "full"
+        version = settings.get("version", version)
     write_data(pattern, f)
     write_metadata(pattern, f)
     write_threads(pattern, f)
 
     if len(pattern.stitches) > 0:
-        if displacement:
+        if version == "full":
             write_stitches_displacement(pattern, f)
-        elif deltas:
+        elif version == "delta":
             write_stitches_deltas(pattern, f)
         else:
             write_stitches(pattern, f)
