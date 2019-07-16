@@ -107,6 +107,7 @@ def supported_formats():
         "reader": DstReader,
         "writer": DstWriter,
         "read_options": {
+            "trim_distance": (None, 3.0, 50.0),
             "trim_at": (2, 3, 4, 5, 6, 7, 8),
             "clipping": (True, False)
         },

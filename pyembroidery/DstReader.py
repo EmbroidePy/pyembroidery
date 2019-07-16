@@ -59,18 +59,7 @@ def dst_read_header(f, out):
 
 
 def dst_read_stitches(f, out, settings=None):
-    jump_count_max = 3
-    clipping = True
-    if settings is not None:
-        jump_count_max = settings.get('trim_at', jump_count_max)
-        clipping = settings.get('clipping', clipping)
     sequin_mode = False
-    jump_count = 0
-    jump_start = 0
-    jump_dx = 0
-    jump_dy = 0
-    jumping = False
-    trimmed = True
     while True:
         byte = bytearray(f.read(3))
         if len(byte) != 3:
@@ -81,37 +70,28 @@ def dst_read_stitches(f, out, settings=None):
             break
         elif byte[2] & 0b11000011 == 0b11000011:
             out.color_change(dx, dy)
-            trimmed = True
-            jumping = False
         elif byte[2] & 0b01000011 == 0b01000011:
             out.sequin_mode(dx, dy)
             sequin_mode = not sequin_mode
-            jumping = False
         elif byte[2] & 0b10000011 == 0b10000011:
             if sequin_mode:
                 out.sequin_eject(dx, dy)
             else:
                 out.move(dx, dy)
-            if not jumping:
-                jump_dx = 0
-                jump_dy = 0
-                jump_count = 0
-                jump_start = len(out.stitches) - 1
-                jumping = True
-            jump_count += 1
-            jump_dx += dx
-            jump_dy += dy
-            if not trimmed and jump_count == jump_count_max:
-                out.trim(position=jump_start)
-                jump_start += 1  # We inserted a position, start jump has moved.
-                trimmed = True
-            if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
-                out.stitches = out.stitches[:jump_start]
         else:
             out.stitch(dx, dy)
-            trimmed = False
-            jumping = False
     out.end()
+
+    count_max = 3
+    clipping = True
+    trim_distance = None
+    if settings is not None:
+        count_max = settings.get('trim_at', count_max)
+        trim_distance = settings.get("trim_distance", trim_distance)
+        clipping = settings.get('clipping', clipping)
+    if trim_distance is not None:
+        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+    out.interpolate_trims(count_max, trim_distance, clipping)
 
 
 def read(f, out, settings=None):

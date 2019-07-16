@@ -501,6 +501,60 @@ class EmbPattern:
                 self.stitches[i][2] = NO_COMMAND
         self.extras.update(pattern.extras)
 
+    def interpolate_trims(self, jumps_to_require_trim=None,  distance_to_require_trim=None, clipping=True):
+        """Processes a pattern adding trims according to the given criteria."""
+        i = -1
+        ie = len(self.stitches) - 1
+
+        x = 0
+        y = 0
+        jump_count = 0
+        jump_start = 0
+        jump_dx = 0
+        jump_dy = 0
+        jumping = False
+        trimmed = True
+        while i < ie:
+            i += 1
+            stitch = self.stitches[i]
+            dx = stitch[0] - x
+            dy = stitch[1] - y
+            x = stitch[0]
+            y = stitch[1]
+            command = stitch[2] & COMMAND_MASK
+            if command == STITCH or command == SEQUIN_EJECT:
+                trimmed = False
+                jumping = False
+            elif command == COLOR_CHANGE or command == NEEDLE_SET or command == TRIM:
+                trimmed = True
+                jumping = False
+            if command == JUMP:
+                if not jumping:
+                    jump_dx = 0
+                    jump_dy = 0
+                    jump_count = 0
+                    jump_start = i
+                    jumping = True
+                jump_count += 1
+                jump_dx += dx
+                jump_dy += dy
+                if not trimmed:
+                    if jump_count == jumps_to_require_trim or\
+                            distance_to_require_trim is not None and\
+                            (
+                                abs(jump_dy) > distance_to_require_trim or\
+                                abs(jump_dx) > distance_to_require_trim
+                            ):
+                        self.trim(position=jump_start)
+                        jump_start += 1  # We inserted a position, start jump has moved.
+                        i += 1
+                        ie += 1
+                        trimmed = True
+                if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
+                    del self.stitches[jump_start:i+1]
+                    i = jump_start - 1
+                    ie = len(self.stitches) - 1
+
     def get_pattern_interpolate_trim(self, jumps_to_require_trim):
         """Gets a processed pattern with untrimmed jumps merged
         and trims added if merged jumps are beyond the given value.
