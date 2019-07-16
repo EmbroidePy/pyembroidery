@@ -124,7 +124,7 @@ class EmbThread:
             return False
         if self.description != other.description:
             return False
-        if self.catalog_number != other.description:
+        if self.catalog_number != other.catalog_number:
             return False
         if self.details != other.details:
             return False
