@@ -13,6 +13,7 @@ class TestEmbpattern(unittest.TestCase):
     def test_thread_reorder(self):
         test_file = "reorder.pes"
         shift = get_shift_pattern()
+        shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, thread=1, order=0))
         shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, 0, None, 1))
         shift.add_command(encode_thread_change(SET_CHANGE_SEQUENCE, 1, None, 0))
         self.assertEqual(0xFFFFFF & shift.threadlist[0].color, 0xFF0000)

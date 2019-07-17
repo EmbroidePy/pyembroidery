@@ -145,3 +145,21 @@ class TestWrites(unittest.TestCase):
         write_txt(get_big_pattern(), file1)
         write_txt(get_big_pattern(), file1, {"mimic": True})
         self.addCleanup(os.remove, file1)
+
+    def test_write_pes_mismatched(self):
+        file1 = "file.pes"
+        pattern = EmbPattern()
+        pattern += "red"
+        pattern += "red"
+        pattern += "red"
+        pattern += (0, 0), (100, 100)
+        pattern += COLOR_CHANGE
+        pattern += (100, 0), (0, 100)
+        pattern += COLOR_CHANGE
+        pattern += (0, 0), (100, 100)
+        pattern += COLOR_CHANGE
+        pattern += (100, 0), (0, 100)
+        write_pes(pattern, file1, {"version": "6t"})
+        write_pes(pattern, file1)
+        self.addCleanup(os.remove, file1)
+

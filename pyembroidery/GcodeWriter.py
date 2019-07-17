@@ -43,8 +43,12 @@ def write_data(pattern, f):
 def write_metadata(pattern, f):
     if len(pattern.extras) > 0:
         for the_key, the_value in pattern.extras.items():
-            if isinstance(the_value, str):
-                write_string_utf8(f, '(%s: %s)\n' % (the_key, the_value))
+            try:
+                if isinstance(the_value, basestring):
+                    write_string_utf8(f, '(%s: %s)\n' % (the_key, the_value))
+            except NameError:
+                if isinstance(the_value, str):
+                    write_string_utf8(f, '(%s: %s)\n' % (the_key, the_value))
 
 
 def write_threads(pattern, f):

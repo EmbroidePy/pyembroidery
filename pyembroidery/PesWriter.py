@@ -21,6 +21,8 @@ EMB_SEG = "CSewSeg"
 
 
 def write(pattern, f, settings=None):
+    pattern.fix_color_count()
+    pattern.interpolate_stop_as_duplicate_color()
     version = VERSION_1
     truncated = False
     if settings is not None:

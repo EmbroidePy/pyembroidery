@@ -372,7 +372,7 @@ class EmbPattern:
                 if init_color:
                     thread_index += 1
                     init_color = False
-            elif data == COLOR_CHANGE or data == COLOR_BREAK:
+            elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
                 init_color = True
         while len(self.threadlist) < thread_index:
             self.add_thread(self.get_thread_or_filler(len(self.threadlist)))
@@ -501,7 +501,84 @@ class EmbPattern:
                 self.stitches[i][2] = NO_COMMAND
         self.extras.update(pattern.extras)
 
-    def interpolate_trims(self, jumps_to_require_trim=None,  distance_to_require_trim=None, clipping=True):
+    def interpolate_duplicate_color_as_stop(self):
+        """Processes a pattern replacing any duplicate colors in the threadlist as a stop."""
+        thread_index = 0
+        init_color = True
+        last_change = None
+        for position, stitch in enumerate(self.stitches):
+            data = stitch[2] & COMMAND_MASK
+            if data == STITCH or data == SEW_TO or data == NEEDLE_AT:
+                if init_color:
+                    try:
+                        if last_change is not None and thread_index != 0 and \
+                                self.threadlist[thread_index - 1] == self.threadlist[thread_index]:
+                            del self.threadlist[thread_index]
+                            self.stitches[last_change][2] = STOP
+                        else:
+                            thread_index += 1
+                    except IndexError:  # Non-existant threads cannot double
+                        return
+                    init_color = False
+            elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
+                init_color = True
+                last_change = position
+
+    def interpolate_stop_as_duplicate_color(self, thread_change_command=COLOR_CHANGE):
+        """Processes a pattern replacing any stop as a duplicate color, and color_change
+         or another specified thread_change_command"""
+        thread_index = 0
+        for position, stitch in enumerate(self.stitches):
+            data = stitch[2] & COMMAND_MASK
+            if data == STITCH or data == SEW_TO or data == NEEDLE_AT:
+                continue
+            elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
+                thread_index += 1
+            elif data == STOP:
+                try:
+                    self.threadlist.insert(thread_index, self.threadlist[thread_index])
+                    self.stitches[position][2] = thread_change_command
+                    thread_index += 1
+                except IndexError:  # There are no colors to duplicate
+                    return
+
+    def interpolate_frame_eject(self):
+        """Processes a pattern replacing jump-stop-jump/jump-stop-end sequences with FRAME_EJECT."""
+        mode = 0
+        stop_x = None
+        stop_y = None
+        sequence_start_position = None
+        position = 0
+        ie = len(self.stitches)
+        while position < ie:
+            stitch = self.stitches[position]
+            data = stitch[2] & COMMAND_MASK
+            if data == STITCH or data == SEW_TO or data == NEEDLE_AT or \
+                    data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
+                if mode == 3:
+                    del self.stitches[sequence_start_position:position]
+                    position = sequence_start_position
+                    self.stitches.insert(position, [stop_x, stop_y, FRAME_EJECT])
+                    ie = len(self.stitches)
+                mode = 0
+            elif data == JUMP:
+                if mode == 2:
+                    mode = 3
+                if mode == 0:
+                    sequence_start_position = position
+                    mode = 1
+            elif data == STOP:
+                if mode == 1:
+                    mode = 2
+                    stop_x = stitch[0]
+                    stop_y = stitch[1]
+            position += 1
+        if mode >= 2:  # Frame_eject at end.
+            del self.stitches[sequence_start_position:position]
+            position = sequence_start_position
+            self.stitches.insert(position, [stop_x, stop_y, FRAME_EJECT])
+
+    def interpolate_trims(self, jumps_to_require_trim=None, distance_to_require_trim=None, clipping=True):
         """Processes a pattern adding trims according to the given criteria."""
         i = -1
         ie = len(self.stitches) - 1
@@ -539,11 +616,11 @@ class EmbPattern:
                 jump_dx += dx
                 jump_dy += dy
                 if not trimmed:
-                    if jump_count == jumps_to_require_trim or\
-                            distance_to_require_trim is not None and\
+                    if jump_count == jumps_to_require_trim or \
+                            distance_to_require_trim is not None and \
                             (
-                                abs(jump_dy) > distance_to_require_trim or\
-                                abs(jump_dx) > distance_to_require_trim
+                                    abs(jump_dy) > distance_to_require_trim or \
+                                    abs(jump_dx) > distance_to_require_trim
                             ):
                         self.trim(position=jump_start)
                         jump_start += 1  # We inserted a position, start jump has moved.
@@ -551,7 +628,7 @@ class EmbPattern:
                         ie += 1
                         trimmed = True
                 if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
-                    del self.stitches[jump_start:i+1]
+                    del self.stitches[jump_start:i + 1]
                     i = jump_start - 1
                     ie = len(self.stitches) - 1
 
@@ -638,4 +715,4 @@ class EmbPattern:
         """Appends translation to the pattern.
         All commands will be translated by the given amount,
         including absolute location commands."""
-        self.add_stitch_relative(MATRIX_TRANSLATE, x, y, )
+        self.add_stitch_relative(MATRIX_TRANSLATE, x, y)
