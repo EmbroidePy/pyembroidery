@@ -481,7 +481,8 @@ def read_embroidery(reader, f, settings=None, pattern=None):
         return None
     if pattern is None:
         pattern = EmbPattern()
-    if isinstance(f, str):
+
+    if is_str(f):
         text_mode = False
         try:
             text_mode = reader.READ_FILE_IN_TEXT_MODE
@@ -633,11 +634,7 @@ def write_embroidery(writer, pattern, stream, settings=None):
                 pass
         pattern = pattern.get_normalized_pattern(settings)
 
-    try:
-        basestring
-    except NameError:
-        basestring = str
-    if isinstance(stream, basestring):
+    if is_str(stream):
         with open(stream, "wb") as stream:
             writer.write(pattern, stream, settings)
     else:
@@ -721,3 +718,10 @@ def write(pattern, filename, settings=None):
         if writer is None:
             continue
         write_embroidery(writer, pattern, filename, settings)
+
+
+def is_str(obj):
+    try:
+        return isinstance(obj, basestring)
+    except NameError:
+        return isinstance(obj, str)

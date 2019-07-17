@@ -4,6 +4,7 @@ import unittest
 from pyembroidery import *
 from pattern_for_tests import *
 
+
 class TestConverts(unittest.TestCase):
 
     def position_equals(self, stitches, j, k):

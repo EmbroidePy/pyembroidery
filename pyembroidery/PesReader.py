@@ -9,6 +9,7 @@ def read(f, out, settings=None):
 
     if pes_string == "#PEC0001":
         read_pec(f, out, loaded_thread_values)
+        out.interpolate_duplicate_color_as_stop()
         return
 
     pec_block_position = read_int_32le(f)
@@ -17,7 +18,7 @@ def read(f, out, settings=None):
     # All versions allow, abort and read PEC block.
     # Metadata started appearing in V4
     # Threads appeared in V5.
-    # We quickly abort if there's any complex items in the header.
+    # We quickly abort if there are any complex items in the header.
     if pes_string == "PES0100":
         out.metadata("version", 10)
     elif pes_string == "#PES0090":
@@ -54,6 +55,7 @@ def read(f, out, settings=None):
         pass  # Header is unrecognised.
     f.seek(pec_block_position, 0)
     read_pec(f, out, loaded_thread_values)
+    out.interpolate_duplicate_color_as_stop()
 
 
 def read_pes_string(f):

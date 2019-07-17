@@ -26,7 +26,6 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
-
     def test_convert_exp_to_csv(self):
         file1 = "convert_csv.exp"
         file2 = "converted_exp.csv"

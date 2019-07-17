@@ -10,6 +10,7 @@ def read(f, out, settings=None):
     pec_string = read_string_8(f, 8)
     # pec_string must equal #PEC0001
     read_pec(f, out)
+    out.interpolate_duplicate_color_as_stop()
 
 
 def read_pec(f, out, pes_chart=None):

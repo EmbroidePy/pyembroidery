@@ -29,3 +29,4 @@ def read(f, out, settings=None):
     f.seek(color_count2 + 0x15, 1)
 
     read_pec_stitches(f, out)
+    out.interpolate_duplicate_color_as_stop()

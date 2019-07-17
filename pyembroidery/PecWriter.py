@@ -20,6 +20,8 @@ PEC_ICON_HEIGHT = 38
 
 
 def write(pattern, f, settings=None):
+    pattern.fix_color_count()
+    pattern.interpolate_stop_as_duplicate_color()
     f.write(bytes("#PEC0001".encode('utf8')))
     write_pec(pattern, f)
 
@@ -29,9 +31,7 @@ def write_pec(pattern, f, threadlist=None):
     if threadlist is None:
         pattern.fix_color_count()
         threadlist = pattern.threadlist
-        color_info = write_pec_header(pattern, f, threadlist)
-    else:
-        color_info = write_pec_header(pattern, f, threadlist)
+    color_info = write_pec_header(pattern, f, threadlist)
     write_pec_block(pattern, f, extends)
     write_pec_graphics(pattern, f, extends)
     return color_info
@@ -173,7 +173,7 @@ def pec_encode(pattern, f):
             color_two = not color_two
             continue
         elif data == STOP:
-            continue
+            continue  # These will already be processed into duplicate colors.
         elif data == TRIM:
             continue
         elif data == END:

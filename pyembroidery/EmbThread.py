@@ -116,8 +116,12 @@ class EmbThread:
             return False
         if isinstance(other, int):
             return self.color & 0xFFFFFF == other & 0xFFFFFF
-        if isinstance(other, str):
-            return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
+        try:
+            if isinstance(other, basestring):
+                return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
+        except NameError:
+            if isinstance(other, str):
+                return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
         if not isinstance(other, EmbThread):
             return False
         if self.color & 0xFFFFFF != other.color & 0xFFFFFF:
@@ -203,21 +207,30 @@ class EmbThread:
                     color = thread["rgb"]
                 if isinstance(color, int):
                     self.color = color
-                elif isinstance(color, str):
-                    self.color = self.parse_string_color(color)
                 elif isinstance(color, tuple) or isinstance(color, list):
                     self.color = (color[0] & 0xFF) << 16 | \
                                  (color[1] & 0xFF) << 8 | \
                                  (color[2] & 0xFF)
+                else:
+                    try:
+                        if isinstance(color, basestring):
+                            self.color = self.parse_string_color(color)
+                    except NameError:
+                        if isinstance(color, str):
+                            self.color = self.parse_string_color(color)
             if "hex" in thread:
                 self.set_hex_color(thread["hex"])
             if "id" in thread:
                 self.catalog_number = thread["id"]
             if "catalog" in thread:
                 self.catalog_number = thread["catalog"]
-        elif isinstance(thread, str):
-            self.color = self.parse_string_color(thread)
         else:
+            try:
+                if isinstance(thread, basestring):
+                    self.color = self.parse_string_color(thread)
+            except NameError:
+                if isinstance(thread, str):
+                    self.color = self.parse_string_color(thread)
             try:  # We might be using python 3.
                 if isinstance(thread, long):
                     self.color = int(thread)
