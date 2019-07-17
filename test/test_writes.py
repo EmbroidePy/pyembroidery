@@ -163,3 +163,25 @@ class TestWrites(unittest.TestCase):
         write_pes(pattern, file1)
         self.addCleanup(os.remove, file1)
 
+    def test_pes_writes_stop(self):
+        """Test if pes can read/write a stop command."""
+        file1 = "file.pes"
+        pattern = EmbPattern()
+        pattern += "red"
+        pattern += (0, 0), (100, 100)
+        pattern += STOP
+        pattern += (100, 0), (0, 100)
+        pattern += "blue"
+        pattern += (0, 0), (100, 100)
+        pattern += STOP
+        pattern += (100, 0), (0, 100)
+        write_pes(pattern, file1, {"version": "6t"})
+        loaded = read_pes(file1)
+        self.assertEqual(pattern.count_stitch_commands(STOP), 2)
+        self.assertEqual(pattern.count_stitch_commands(COLOR_CHANGE), 1)
+        self.assertEqual(pattern.count_threads(), 2)
+        self.assertEqual(loaded.count_stitch_commands(STOP), 2)
+        self.assertEqual(loaded.count_stitch_commands(COLOR_CHANGE), 1)
+        self.assertEqual(loaded.count_threads(), 2)
+        self.addCleanup(os.remove, file1)
+
