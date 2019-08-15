@@ -55,6 +55,8 @@ def read(f, out, settings=None):
     count_colors = read_int_16be(f)
     for i in range(0, count_colors):
         vp3_read_colorblock(f, out, center_x, center_y)
+        if (i + 1) < count_colors:  # Don't add the color change on the final read.
+            out.color_change()
 
 
 def vp3_read_colorblock(f, out, center_x, center_y):
@@ -96,10 +98,7 @@ def vp3_read_colorblock(f, out, center_x, center_y):
         elif y == 0x02:
             pass  # ends long stitch mode.
         elif y == 0x03:
-            out.end(0, 0)
-            return
-    out.trim()
-    out.color_change()
+            out.trim()
 
 
 def vp3_read_thread(f):
