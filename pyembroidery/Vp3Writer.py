@@ -225,11 +225,12 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         y = stitch[1]
         flags = stitch[2] & COMMAND_MASK
         if flags == END:
-            f.write(b'\x80\x03')
+            f.write(b'\x80\x03')  # Write a trim at end of file.
             break
         elif flags == COLOR_CHANGE:
             continue
         elif flags == TRIM:
+            f.write(b'\x80\x03')
             continue
         elif flags == SEQUIN_MODE:
             continue
