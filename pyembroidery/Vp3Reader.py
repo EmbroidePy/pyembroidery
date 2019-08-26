@@ -57,6 +57,7 @@ def read(f, out, settings=None):
         vp3_read_colorblock(f, out, center_x, center_y)
         if (i + 1) < count_colors:  # Don't add the color change on the final read.
             out.color_change()
+    out.end()
 
 
 def vp3_read_colorblock(f, out, center_x, center_y):

@@ -89,13 +89,13 @@ def encode_record(x, y, flags):
             y += 1
         if y != 0:
             raise ValueError("The dy value given to the writer exceeds maximum allowed.")
-    elif flags is COLOR_CHANGE:
+    elif flags == COLOR_CHANGE:
         b2 = 0b11000011
-    elif flags is STOP:
+    elif flags == STOP:
         b2 = 0b11000011
-    elif flags is END:
+    elif flags == END:
         b2 = 0b11110011
-    elif flags is SEQUIN_MODE:
+    elif flags == SEQUIN_MODE:
         b2 = 0b01000011
     return bytes(bytearray([b0, b1, b2]))
 
