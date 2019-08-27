@@ -24,7 +24,7 @@ pyembroidery must to be small enough to be finished in short order and big enoug
 
 Pyembroidery fully meets and exceeds all of these requirements.
 * It writes 13 formats, including the mandated ones.
-* It reads 40 formats, including the mandated ones.
+* It reads 41 formats, including the mandated ones.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
   * It is currently fully compatable with Python 2.7 and Python 3.6
@@ -135,6 +135,7 @@ Pyembroidery will read:
 * .exy
 * .fxy
 * .gt
+* .hus
 * .inb
 * .jpx
 * .ksm
@@ -161,7 +162,7 @@ Pyembroidery will read:
 * .gcode
 
 #### Versions
-They .get_supported_formats() in pyembroidery provides an element called 'versions' this will contain a tuple of values which can be passed to the settings object as `{'version': <my version>}`. This provides much of the version controls for the types of outputs provided within each writer. For example there is an extended header version of dst called extended, there's "6" and "6t" in the PesWriter which export other and different versions of the file. 
+They .get_supported_formats() in pyembroidery provides an element called 'versions' this will contain a tuple of values which can be passed to the settings object as `{'version': <my version>}`. This provides much of the version controls for the types of outputs provided within each writer. For example, there is an extended header version of dst called `extended`, there's "6" and "6t" in the PesWriter which exports other and different versions of the file. 
 
 This is also intended as a good method to create new versions. For example, gcode can control a great many thing and varies greatly from one purpose to another and would be ideal for different versions. There's also different machines which may require different tweaks and these would be extended as versions.
 
@@ -178,6 +179,9 @@ Writes to a text file. Generally lossy, it does not write threads or metadata, b
 
 #### Writing to Gcode:
 The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue.
+
+#### Reading from HUS:
+The HUS format requires an obscure and defunct form of compression. The EmbCompress performs this decompression. It is written from the ground up in pure python. It does not require any compiled element or dll file. It has no obfuscation and is intended to be easily understood.
 
 ### Reading
 
