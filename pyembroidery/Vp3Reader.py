@@ -77,7 +77,7 @@ def vp3_read_colorblock(f, out, center_x, center_y):
     bytescheck = f.read(3)  # \x0A\xF6\x00
     stitch_byte_length = block_end_position - f.tell()
     stitch_bytes = read_signed(f, stitch_byte_length)
-
+    trimmed = False
     i = 0
     while i < len(stitch_bytes) - 1:
         x = stitch_bytes[i]
@@ -85,6 +85,7 @@ def vp3_read_colorblock(f, out, center_x, center_y):
         i += 2
         if (x & 0xFF) != 0x80:
             out.stitch(x, y)
+            trimmed = False
             continue
         if y == 0x01:
             x = signed16(stitch_bytes[i], stitch_bytes[i + 1])
@@ -92,14 +93,18 @@ def vp3_read_colorblock(f, out, center_x, center_y):
             y = signed16(stitch_bytes[i], stitch_bytes[i + 1])
             i += 2
             if abs(x) > 255 or abs(y) > 255:
-                out.trim()
+                if not trimmed:
+                    out.trim()
                 out.move(x, y)
+                trimmed = True
             else:
                 out.stitch(x, y)
         elif y == 0x02:
             pass  # ends long stitch mode.
         elif y == 0x03:
-            out.trim()
+            if not trimmed:
+                out.trim()
+            trimmed = True
 
 
 def vp3_read_thread(f):
