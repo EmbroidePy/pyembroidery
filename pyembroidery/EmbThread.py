@@ -147,7 +147,7 @@ class EmbThread:
         if self.description is None:
             return "EmbThread %s" % self.hex_color()
         else:
-            return "EmbThread %s %s" % self.description, self.hex_color()
+            return "EmbThread %s %s" % (self.description, self.hex_color())
 
     def set_color(self, r, g, b):
         self.color = color_rgb(r, g, b)
