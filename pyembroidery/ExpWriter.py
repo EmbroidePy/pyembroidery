@@ -19,7 +19,7 @@ def write(pattern, f, settings=None):
         dy = int(round(y - yy))
         xx += dx
         yy += dy
-        if data is STITCH:
+        if data == STITCH:
             # consider bounds checking the delta_x, delta_y and raising ValueError if exceeds.
             delta_x = dx & 0xFF
             delta_y = -dy & 0xFF

@@ -18,6 +18,7 @@ import pyembroidery.FxyReader as FxyReader
 import pyembroidery.GcodeReader as GcodeReader
 import pyembroidery.GcodeWriter as GcodeWriter
 import pyembroidery.GtReader as GtReader
+import pyembroidery.HusReader as HusReader
 import pyembroidery.InbReader as InbReader
 import pyembroidery.JefReader as JefReader
 import pyembroidery.JefWriter as JefWriter
@@ -461,6 +462,14 @@ def supported_formats():
         "write_options": {
             "stitch_z_travel": (5.0, 10.0),
         },
+    })
+    yield ({
+        "description": "Husqvarna Embroidery Format",
+        "extension": "hus",
+        "extensions": ("hus",),
+        "mimetype": "application/x-hus",
+        "category": "embroidery",
+        "reader": HusReader
     })
 
 

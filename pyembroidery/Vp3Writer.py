@@ -224,8 +224,8 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         x = stitch[0]
         y = stitch[1]
         flags = stitch[2] & COMMAND_MASK
+        alt = stitch[2] & FLAGS_MASK
         if flags == END:
-            f.write(b'\x80\x03')  # Write a trim at end of file.
             break
         elif flags == COLOR_CHANGE:
             continue
@@ -248,7 +248,7 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         last_x += dx
         last_y += dy
         if flags == STITCH:
-            if -127 <= dx <= 127 and -127 <= dy <= 127:
+            if -127 <= dx <= 127 and -127 <= dy <= 127 and alt == 0:
                 write_int_8(f, dx)
                 write_int_8(f, dy)
             else:

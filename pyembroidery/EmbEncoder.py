@@ -75,6 +75,7 @@ class Transcoder:
         self.state_jumping = False
         self.needle_x = 0
         self.needle_y = 0
+        self.high_flags = 0
 
     def transcode(self, source_pattern, destination_pattern):
         if source_pattern is destination_pattern:
@@ -198,6 +199,7 @@ class Transcoder:
                 x = round(x)
                 y = round(y)
             flags = self.stitch[2] & COMMAND_MASK
+            self.high_flags = self.stitch[2] & FLAGS_MASK
 
             if flags == NO_COMMAND:
                 continue
@@ -351,13 +353,17 @@ class Transcoder:
         self.state_trimmed = False
 
     def add_thread_change(self, command, thread=None, needle=None, order=None):
-        self.add(encode_thread_change(command, thread, needle, order))
+        x = self.needle_x
+        y = self.needle_y
+        cmd = encode_thread_change(command, thread, needle, order)
+        self.destination_pattern.stitches.append([x, y, cmd])
 
     def add(self, flags, x=None, y=None):
         if x is None:
             x = self.needle_x
         if y is None:
             y = self.needle_y
+        flags |= self.high_flags
         self.destination_pattern.stitches.append([x, y, flags])
 
     def lookahead_stitch(self):
@@ -615,7 +621,7 @@ class Transcoder:
                 # we need the gap stitches only, not start or end stitch.
                 qx += step_size_x
                 qy += step_size_y
-                stitch = [qx, qy, data]
+                stitch = [qx, qy, data | self.high_flags]
                 transcode.append(stitch)
                 self.update_needle_position(stitch[0], stitch[1])
 

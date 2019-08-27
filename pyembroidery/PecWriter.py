@@ -132,7 +132,7 @@ def pec_encode(pattern, f):
         dy = int(round(y - yy))
         xx += dx
         yy += dy
-        if data is STITCH:
+        if data == STITCH:
             if jumping and dx != 0 and dy != 0:
                 f.write(b'\x00\x00')
                 jumping = False
