@@ -16,11 +16,11 @@ class Huffman:
         self.table = []
         size = (1 << self.table_width)
         for bit_length in range(1, self.table_width + 1):
-            size /= 2
+            size /= 2.0
             for len_index in range(0, len(self.lengths)):
                 length = self.lengths[len_index]
                 if length == bit_length:
-                    self.table += [len_index] * size
+                    self.table += [len_index] * int(size)
 
     def lookup(self, byte_lookup):
         """lookup into the index, returns value and length
