@@ -23,6 +23,16 @@ def write(pattern, f, settings=None):
     import json
     names = get_common_name_dictionary()
 
+    metadata = {}
+    for item in pattern.extras.items():
+        key, value = item
+        if isinstance(value, str):
+            metadata[key] = value
+        elif isinstance(value, int):
+            metadata[key] = value
+        elif isinstance(value, float):
+            metadata[key] = value
+
     json_normal = {
         "threadlist": [
             {
@@ -37,6 +47,6 @@ def write(pattern, f, settings=None):
             for thread in pattern.threadlist
         ],
         "stitches": [[s[0], s[1], str(decoded_name(names, s[2]))] for s in pattern.stitches],
-        "extras": pattern.extras
+        "extras": metadata
     }
     json.dump(json_normal, f, indent=4)
