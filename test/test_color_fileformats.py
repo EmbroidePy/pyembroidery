@@ -5,7 +5,7 @@ import unittest
 from pattern_for_tests import *
 
 
-class TestConverts(unittest.TestCase):
+class TestColorFormats(unittest.TestCase):
 
     def test_write_read_col(self):
         file1 = "color.col"
