@@ -544,7 +544,7 @@ When a stitch is beyond max_stitch (whether set by the format or by the user) it
 ### Sequin Contingency
 
 The encoder needs to decide what to do when there are sequins in a pattern. The current modes here are:
-* CONTINGENCY_SEQUIN_UTILIZE - sets the equin contingency to use the sequin information.
+* CONTINGENCY_SEQUIN_UTILIZE - sets the sequin contingency to use the sequin information.
 * CONTINGENCY_SEQUIN_JUMP - Sets the sequin contingency to call the sequins jumps.
 * CONTINGENCY_SEQUIN_STITCH - Sets the sequin contingency to call the sequins stitches.
 * CONTINGENCY_SEQUIN_REMOVE - Sets the sequin contingency to remove the commands completely.
