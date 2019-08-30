@@ -23,8 +23,8 @@ pyembroidery must to be small enough to be finished in short order and big enoug
 * pyembroidery must support and function in Python 2.7
 
 Pyembroidery fully meets and exceeds all of these requirements.
-* It writes 13 formats, including the mandated ones.
-* It reads 41 formats, including the mandated ones.
+* It writes 9 embroidery formats including the mandated ones. 19 different format in total.
+* It reads 40 embroidery formats including the mandated ones. 46 different formats in total.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
   * It is currently fully compatable with Python 2.7 and Python 3.6
@@ -102,7 +102,7 @@ In most cases this information isn't going to matter, but it is provided because
 
 ## File I/O
 
-### Formats:
+### Embroidery Formats:
 
 Pyembroidery will write:
 * .pes (mandated)
@@ -113,10 +113,6 @@ Pyembroidery will write:
 * .u01
 * .pec
 * .xxx
-* .csv
-* .svg
-* .png
-* .txt
 * .gcode
 
 Pyembroidery will read:
@@ -158,30 +154,69 @@ Pyembroidery will read:
 * .u01
 * .xxx
 * .zxy
-* .csv
 * .gcode
 
-#### Versions
-They .get_supported_formats() in pyembroidery provides an element called 'versions' this will contain a tuple of values which can be passed to the settings object as `{'version': <my version>}`. This provides much of the version controls for the types of outputs provided within each writer. For example, there is an extended header version of dst called `extended`, there's "6" and "6t" in the PesWriter which exports other and different versions of the file. 
+### Related Formats
+Pyembroidery includes some related formats like pure color formats that can be loaded as helpers for formats without colors. Or .pmv which is a stitch pattern format for Brother sewing machines.
 
-This is also intended as a good method to create new versions. For example, gcode can control a great many thing and varies greatly from one purpose to another and would be ideal for different versions. There's also different machines which may require different tweaks and these would be extended as versions.
+Pyembroidery will write:
+* .col : Color format.
+* .edr : Color format.
+* .inf : Color format.
+* .pmv : Brother Stitch Format.
+
+Pyembroidery will read:
+* .col : Color format.
+* .edr : Color format.
+* .inf : Color format.
+* .pmv : Brother Stitch Format.
+
+
+### Utility Formats:
+CSV and JSON are the two primary forms of lossless saving formats. PNG is an image format, txt output is sometimes used for easy parsing. And SVG is an open source interchange format for vectors.
+
+Pyembroidery will write:
+* .csv : comma-separated values 
+* .json : JavaScript Object Notation
+* .png : Portable Network Graphic
+* .txt : text file.
+* .svg : Scalable Vector Graphics
+
+Pyembroidery will read:
+* .csv : comma-separated values 
+* .json : JavaScript Object Notation
+
+
+#### Versions
+Formats within .get_supported_formats() in pyembroidery provides an element called 'versions' this will contain a tuple of values which can be passed to the settings object as `{'version': <my version>}`. This provides version controls for the types of outputs provided within each writer. For example, there is an extended header version of dst called `extended`, there's `6` and `6t` in the PesWriter which exports other and different versions of the file. 
+
+This is intended as a good method to create new versions. For example, gcode can control a many things, but varies greatly from one purpose to another and would be ideal for different versions. There are also different embroidery machines which may require different tweaks. Versions is the intended method to deliver machine specific files.
 
 #### Writing to CSV:
 Prints out a workable CSV file with the given data. Starting in 1.3 the csv patterns are written without being encoded. The CSV format is, in this form, lossless. If you wish to encode before you write the file you can set the encoder to True and override the default.
 
 `write_csv(pattern, "file.csv", {"encode": True})`
 
+
+#### Reading/Writing to JSON:
+Saves the pattern as a JSON object. This is intended to be useful as an interchange format since JSON is the most common data interchange format availible currently. 
+
+
 #### Writing to PNG:
 Writes to a image/png file.
+
 
 #### Writing to TXT:
 Writes to a text file. Generally lossy, it does not write threads or metadata, but certainly more easily parsed for a number of homebrew applications. The "mimic" option should mimic the embroidermodder functionality for exporting to txt files. By default it exports a bit less lossy giving the proper command indexes and their explicit names.
 
+
 #### Writing to Gcode:
-The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue.
+The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue. Other gcode versions should be able to be added through the versions method.
+
 
 #### Reading from HUS:
 The HUS format requires an obscure and defunct form of compression. The EmbCompress performs this decompression. It is written from the ground up in pure python. It does not require any compiled element or dll file. It has no obfuscation and is intended to be easily understood.
+
 
 ### Reading
 
@@ -518,7 +553,7 @@ Sequins being written into files that do not support sequins can go several ways
 
 ### Tie On / Tie Off Contingency
 
-While there's only NONE, and THREE_SMALL for contingencies here, both the tie-on and tie-off contingencies are setup to be forward compatabile with other future potential tie-on and tie-off methods.
+While there's only NONE, and THREE_SMALL for contingencies currently, both the tie-on and tie-off contingencies are setup to be forward compatabile with other future potential tie-on and tie-off methods.
 
 ### Units
 

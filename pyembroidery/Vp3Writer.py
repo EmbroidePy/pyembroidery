@@ -226,8 +226,12 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         flags = stitch[2] & COMMAND_MASK
         alt = stitch[2] & FLAGS_MASK
         if flags == END:
+            # This is a trim command. The machine does not autotrim.
+            # Consequently writers tend to add this explicit trim command.
+            f.write(b'\x80\x03')
             break
         elif flags == COLOR_CHANGE:
+            # Colorchange commands divided the pattern into colorblocks.
             continue
         elif flags == TRIM:
             f.write(b'\x80\x03')
@@ -237,11 +241,10 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         elif flags == SEQUIN_EJECT:
             continue
         elif flags == STOP:
-            # Not sure what to do here.
-            # f.write(b'\x80\x04')
             continue
         elif flags == JUMP:
-            # Since VP3.Jump == VP3.Stitch, we combine jumps.
+            # VP3 has no jump commands. These are skipped.
+            # It moves to the relevant location without needing to block the needlebar.
             continue
         dx = int(x - last_x)
         dy = int(y - last_y)
@@ -256,5 +259,4 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
                 write_int_16be(f, dx)
                 write_int_16be(f, dy)
                 f.write(b'\x80\x02')
-    # VSM gave ending stitches as 80 03 35 A5, so, 80 03 isn't strictly end.
     vp3_patch_byte_offset(f, placeholder_distance_to_end_of_stitches_block_010)

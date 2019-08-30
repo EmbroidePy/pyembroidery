@@ -3,6 +3,8 @@ import os.path
 import pyembroidery.A100Reader as A100Reader
 import pyembroidery.A10oReader as A10oReader
 import pyembroidery.BroReader as BroReader
+import pyembroidery.ColReader as ColReader
+import pyembroidery.ColWriter as ColWriter
 import pyembroidery.CsvReader as CsvReader
 import pyembroidery.CsvWriter as CsvWriter
 import pyembroidery.DatReader as DatReader
@@ -10,6 +12,8 @@ import pyembroidery.DsbReader as DsbReader
 import pyembroidery.DstReader as DstReader
 import pyembroidery.DstWriter as DstWriter
 import pyembroidery.DszReader as DszReader
+import pyembroidery.EdrReader as EdrReader
+import pyembroidery.EdrWriter as EdrWriter
 import pyembroidery.EmdReader as EmdReader
 import pyembroidery.ExpReader as ExpReader
 import pyembroidery.ExpWriter as ExpWriter
@@ -19,10 +23,14 @@ import pyembroidery.GcodeReader as GcodeReader
 import pyembroidery.GcodeWriter as GcodeWriter
 import pyembroidery.GtReader as GtReader
 import pyembroidery.HusReader as HusReader
+import pyembroidery.InfReader as InfReader
+import pyembroidery.InfWriter as InfWriter
 import pyembroidery.InbReader as InbReader
 import pyembroidery.JefReader as JefReader
 import pyembroidery.JefWriter as JefWriter
 import pyembroidery.JpxReader as JpxReader
+import pyembroidery.JsonWriter as JsonWriter
+import pyembroidery.JsonReader as JsonReader
 import pyembroidery.KsmReader as KsmReader
 import pyembroidery.MaxReader as MaxReader
 import pyembroidery.MitReader as MitReader
@@ -471,6 +479,42 @@ def supported_formats():
         "category": "embroidery",
         "reader": HusReader
     })
+    yield ({
+        "description": "Edr Color Format",
+        "extension": "edr",
+        "extensions": ("edr",),
+        "mimetype": "application/x-edr",
+        "category": "color",
+        "reader": EdrReader,
+        "writer": EdrWriter
+    })
+    yield ({
+        "description": "Col Color Format",
+        "extension": "col",
+        "extensions": ("col",),
+        "mimetype": "application/x-col",
+        "category": "color",
+        "reader": ColReader,
+        "writer": ColWriter
+    })
+    yield ({
+        "description": "Inf Color Format",
+        "extension": "inf",
+        "extensions": ("inf",),
+        "mimetype": "application/x-inf",
+        "category": "color",
+        "reader": InfReader,
+        "writer": InfWriter
+    })
+    yield ({
+        "description": "Json Export",
+        "extension": "json",
+        "extensions": ("json",),
+        "mimetype": "application/json",
+        "category": "debug",
+        "reader": JsonReader,
+        "writer": JsonWriter
+    })
 
 
 def convert(filename_from, filename_to, settings=None):
@@ -645,8 +689,23 @@ def write_embroidery(writer, pattern, stream, settings=None):
         pattern = pattern.get_normalized_pattern(settings)
 
     if is_str(stream):
-        with open(stream, "wb") as stream:
-            writer.write(pattern, stream, settings)
+        text_mode = False
+        try:
+            text_mode = writer.WRITE_FILE_IN_TEXT_MODE
+        except AttributeError:
+            pass
+        if text_mode:
+            try:
+                with open(stream, "w") as stream:
+                    writer.write(pattern, stream, settings)
+            except IOError:
+                pass
+        else:
+            try:
+                with open(stream, "wb") as stream:
+                    writer.write(pattern, stream, settings)
+            except IOError:
+                pass
     else:
         writer.write(pattern, stream, settings)
 

@@ -47,6 +47,7 @@ class TestConverts(unittest.TestCase):
         file2 = "converted_vp3.exp"
         write_vp3(get_big_pattern(), file1)
         f_pattern = read_vp3(file1)
+
         write_exp(f_pattern, file2)
         t_pattern = read_exp(file2)
 
