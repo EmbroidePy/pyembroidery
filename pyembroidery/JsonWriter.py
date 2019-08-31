@@ -36,7 +36,7 @@ def write(pattern, f, settings=None):
     json_normal = {
         "threadlist": [
             {
-                "color": thread.color,
+                "color": thread.hex_color(),
                 "description": thread.description,
                 "catalog_number": thread.catalog_number,
                 "details": thread.details,
