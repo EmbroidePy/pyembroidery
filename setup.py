@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyembroidery",
-    version="1.4.9",
+    version="1.4.11",
     author="Tatarize",
     author_email="tatarize@gmail.com",
     description="Embroidery IO library",
@@ -14,9 +14,13 @@ setuptools.setup(
     url="https://github.com/EmbroidePy/pyembroidery",
     packages=setuptools.find_packages(),
     classifiers=(
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 3",
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ),
 )
