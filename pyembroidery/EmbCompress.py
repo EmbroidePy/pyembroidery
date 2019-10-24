@@ -1,6 +1,11 @@
 def expand(data, uncompressed_size=None):
-    compress = EmbCompress()
-    return compress.decompress(data, uncompressed_size)
+    emb_compress = EmbCompress()
+    return emb_compress.decompress(data, uncompressed_size)
+
+
+def compress(data):
+    size = len(data)
+    return bytearray([(size >> 0) & 0xFF, (size >> 8) & 0xFF, 0x02, 0xA0, 0x01, 0xFE]) + data
 
 
 class Huffman:
