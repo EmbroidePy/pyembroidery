@@ -52,10 +52,13 @@ def process_header_info(out, prefix, value):
 
 def dst_read_header(f, out):
     header = f.read(512)
-    header_string = header.decode('utf8')
-    for line in [x.strip() for x in header_string.split('\r')]:
-        if len(line) > 3:
-            process_header_info(out, line[0:2].strip(), line[3:].strip())
+    try:
+        header_string = header.decode('utf8')
+        for line in [x.strip() for x in header_string.split('\r')]:
+            if len(line) > 3:
+                process_header_info(out, line[0:2].strip(), line[3:].strip())
+    except UnicodeDecodeError:  # The header contains non-utf8 information and omitted. See #83
+        pass
 
 
 def dst_read_stitches(f, out, settings=None):
@@ -90,7 +93,7 @@ def dst_read_stitches(f, out, settings=None):
         trim_distance = settings.get("trim_distance", trim_distance)
         clipping = settings.get('clipping', clipping)
     if trim_distance is not None:
-        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+        trim_distance *= 10  # Pixels per mm. Native units are 1/10 mm.
     out.interpolate_trims(count_max, trim_distance, clipping)
 
 
