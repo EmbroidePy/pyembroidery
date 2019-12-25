@@ -136,7 +136,7 @@ def write(pattern, f, settings=None):
     else:
         write_string_utf8(f, "AY:-%5d\r" % abs(ay))
     write_string_utf8(f, "MX:+%5d\r" % 0)
-    write_string_utf8(f, "AY:+%5d\r" % 0)
+    write_string_utf8(f, "MY:+%5d\r" % 0)
     write_string_utf8(f, "PD:%6s\r" % "******")
     if extended_header:
         author = pattern.get_metadata("author")
