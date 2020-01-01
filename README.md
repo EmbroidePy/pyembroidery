@@ -1,7 +1,9 @@
 # pyembroidery
 
 Python library for the reading and writing of embroidery files.
-Compatable with Python 2 and 3 Explictly tested with 3.6 and 2.7.
+
+Compatible with Python 3. Python 2 support was dropped at end-of-life 1-1-2020.
+
 
 To install:
 ```bash
@@ -20,14 +22,14 @@ pyembroidery must to be small enough to be finished in short order and big enoug
 
 * pyembroidery must read and write: PES, DST, EXP, JEF, VP3.
 * pyembroidery must fully support commands: STITCH, JUMP, TRIM, STOP, END, COLOR_CHANGE, NEEDLE_SET, SEQUIN_MODE and SEQUIN_EJECT.
-* pyembroidery must support and function in Python 2.7
 
 Pyembroidery fully meets and exceeds all of these requirements.
 * It writes 9 embroidery formats including the mandated ones. 19 different format in total.
 * It reads 40 embroidery formats including the mandated ones. 46 different formats in total.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
-  * It is currently fully compatable with Python 2.7 and Python 3.6
+
+Though previously mandated support for Python 2.7, this support was dropped at the end of life for that version. It is highly recommended that you upgrade. A `python27` branch is availible but that branch was merely forked from when the version was supported.
 
 
 ## Philosophy
@@ -44,7 +46,7 @@ Pyembroidery will always attempt to minimize information loss. Embroidery readin
 Other reasonable elements:
 * Higher level objects like .PES or .THR containing shapes are currently ignored in favor of reading raw stitches. However, loading those elements would be less lossy and thus within the scope of the project.
 * Conversions from raw low level commands to some middle level interpretations or iterable generators are provided in the EmbPattern class. Additional methods are entirely reasonable feature requests.
-* Complex functionality that requires assistence, especially in cases with significant edge conditions, for example merging patterns.
+* Complex functionality that requires assistance, especially in cases with significant edge conditions, for example merging patterns.
    
 
 ## Overview
@@ -75,7 +77,7 @@ EmbPattern objects contain three primary elements:
 The stitches contain absolute locations x, y and command. Commands are found defined within the EmbConstant.py file and should be referenced by name rather than value. The commands are the lower 8 bits of the command value. The upper bits of the command values are reserved for additional information (See Thread Changes). For best practices these should be masked off `stitch[stitch_index][2] & COMMAND_MASK`. 
 
 ### EmbPattern Threadlist
-The threadlist is a reference table of threads and the information about those threads. By default, if not explitly specified, the threadlist is utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one, one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (except if extended headers are requested as those give a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explitly possible. See Thread Changes for more details.
+The threadlist is a reference table of threads and the information about those threads. By default, if not explicitly specified, the threadlist is utilized in the order given. Prior to `pyembroidery` version 1.3, this was the only method to use these. Usually is it sufficient to provide a thread for each color change in the sequence. However, if a color is not provided one, one will be invented when writing to a format that requires one. In some cases like .dst files, no colors exists so this will simply be ignored (except if extended headers are requested as those give a color sequence). The colors are checked and validated during the encoding process, so specifying these elements with greater detail is explicitly possible. See Thread Changes for more details.
 
 ### EmbPattern Extras
 This can largely be ignored except in cases when the metadata within the file matters. If for example you wish to read files and find the label that exists inside many different embroidery file times, the resulting value will be put into extras. This is to store the metadata and sometimes transfer the metadata from one format type to another. So an internal label might be able to be transferred between a .dst file and .pes file without regard to the external file name. Or the 1-bit images within a PEC file could be viewed.
@@ -86,7 +88,7 @@ Some formats do not explicitly use a `COLOR_CHANGE` command, some of them use `N
 
 When data is loaded from a source with needle set commands. These `NEEDLE_SET` commands are explicitly used rather than color changes as they more accurately represent the original intent of the file. During a write, the encoder will transcribe these in the way requested by the writer settings (as determined by the format itself), using the correct thread change command indicated and accounting for the implicit differences.
 
-There are some cases where one software suite will encode U01 (Barudan formating with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (techincally in this case C00 or needle #0), while other software will cycle through a list of a few needles, indicating more explicitly these are changes.
+There are some cases where one software suite will encode U01 (Barudan formatting with needle sets) commands such that, rather than using needle set, it simply uses `STOP` commands (technically in this case C00 or needle #0), while other software will cycle through a list of a few needles, indicating more explicitly these are changes.
 
 There is some ambiguity as to whether the same needle will have the same thread. Whether needle_set=1, needle_set_2, needle_set=1... means use a new color each time, or whether the second "needle_set=1" indicates that we are going back to the first needle with the first thread, or the first needle with a different thread. Pyembroidery therefore makes no affirmative stance as to the meaning indicated here.
 
@@ -96,7 +98,7 @@ There is a middle level command, `SET_CHANGE_SEQUENCE` that can be used to prese
 
 `encode_thread_change(SET_CHANGE_SEQUENCE,17)` would, for example, make the first color change switch to the Threadlist index 17. After this, the subsequent color changes would be to index 0, index 1, index 2, ... etc.
 
-There are some other use cases when writing this data out, you could, for example, make the threadlist equal to all the threads you have availiable and declare their usages simply reference the relevant thread index. To do this you would add all your threads, then at the start of the commands declare a group of SET_CHANGE_SEQUENCE commands to set the order you want. Or to use `COLOR_BREAK`s encoded with the order you desire.
+There are some other use cases when writing this data out, you could, for example, make the threadlist equal to all the threads you have available and declare their usages simply reference the relevant thread index. To do this you would add all your threads, then at the start of the commands declare a group of SET_CHANGE_SEQUENCE commands to set the order you want. Or to use `COLOR_BREAK`s encoded with the order you desire.
 
 In most cases this information isn't going to matter, but it is provided because it is information sometimes contained within the embroidery file. For writing this information, there are quite often other ways to specify it, but `pyembroidery` tends to be overbuilt by design to capture most known and unknown usecases.
 
@@ -211,7 +213,7 @@ Writes to a text file. Generally lossy, it does not write threads or metadata, b
 
 
 #### Writing to Gcode:
-The Gcode is intended for a number of hobbiest projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue. Other gcode versions should be able to be added through the versions method.
+The Gcode is intended for a number of hobbyist projects that use a gcode controller to operate a sewing machine, usually X,Y for plotter and Z to turn the handwheel. However, if you have a hobbiest project and need a different command structure feel free to ask or discuss it by raising an issue. Other gcode versions should be able to be added through the versions method.
 
 
 #### Reading from HUS:
@@ -231,7 +233,7 @@ pattern = pyembroidery.read("myembroidery.exp")
 ```
 
 If only a file name is given, pyembroidery will use the extension to determine what reader it should use. 
-(In the case of .dat where there are two non-compatable embroidery files with the same extension, the difference is detected by the reader.)
+(In the case of .dat where there are two non-compatible embroidery files with the same extension, the difference is detected by the reader.)
 
 For the discrete readers, the file may be a FileObject or the string of the path.
 
@@ -483,9 +485,9 @@ The middle-level commands, as they currently stand:
 * STITCH_BREAK - Next location is jumped to. Existing jumps are reallocated.
 * MATRIX_TRANSLATE(tx,ty) - Applies an inline translation shift for the encoder. It will treat all future stitches translated from here.
 * MATRIX_SCALE_ORIGIN(sx,sy) - Applies an inline scale shift. It will scale by that factor for future stitches. Against the origin (0,0)
-* MATRIX_ROTATE_ORIGIN(r) - Applies an inline rotateion shift. It will rotate by that factor for future stitches (in degrees). Against the origin (0,0)
+* MATRIX_ROTATE_ORIGIN(r) - Applies an inline rotation shift. It will rotate by that factor for future stitches (in degrees). Against the origin (0,0)
 * MATRIX_SCALE(sx,sy) - Applies an inline scale shift. It will scale by that factor for future stitches. Scaling based on current point.
-* MATRIX_ROTATE(r) - Applies an inline rotateion shift. It will rotate by that factor for future stitches (in degrees).
+* MATRIX_ROTATE(r) - Applies an inline rotation shift. It will rotate by that factor for future stitches (in degrees).
 * MATRIX_RESET - Resets the affine transformation matrix.
 * OPTION_MAX_STITCH_LENGTH(x) - Sets the max stitch length on the fly.
 * OPTION_MAX_JUMP_LENGTH(x) - Sets the max jump length on the fly.
@@ -500,7 +502,7 @@ The middle-level commands, as they currently stand:
 * CONTINGENCY_LONG_STITCH_NONE - Disables long stitch contingency encoding.
 * CONTINGENCY_LONG_STITCH_JUMP_NEEDLE - Sets, long stitch contingency to jump the needle to the new position.
 * CONTINGENCY_LONG_STITCH_SEW_TO - Sets, long stitch contingency to sew to the new position with interpolated stitches.
-* CONTINGENCY_SEQUIN_UTILIZE - sets the equin contingency to use the sequin information.
+* CONTINGENCY_SEQUIN_UTILIZE - sets the sequin contingency to use the sequin information.
 * CONTINGENCY_SEQUIN_JUMP - Sets the sequin contingency to call the sequins jumps.
 * CONTINGENCY_SEQUIN_STITCH - Sets the sequin contingency to call the sequins stitches.
 * CONTINGENCY_SEQUIN_REMOVE - Sets the sequin contingency to remove the commands completely.
@@ -526,7 +528,7 @@ The encoder will by default ignore any COLOR_BREAK that occurs before any stitch
 
 You can expressly add any of the core commands to the patterns. These are generalized and try to play nice with other commands. When the patterns are written to disk, they call pattern.get_normalized_pattern() and save the normalized pattern. Saving to any format does not modify the pattern, ever. It writes the modified pattern out. It adds the max_jump and max_stitch to the encoding when it normalizes this to save. So each format can compile to a different set of stitches due to the max_jump etc. This is expressly an attempt to maintain as much data integrity as possible.
 
-After a load, the pattern will be filled with raw basic stitch data, it's perfectly reasonable call .get_stable_pattern() on this which will make it into a series of stitches, color_breaks, sequence_breaks or get_pattern_interpolate_trim() which will allow you to introduce trim commands after a series of JUMP commands as specified and merge the untrimmed jumps. Or to iterate through the data with .get_as_stitchblocks() which is a generator that will produce stitch blocks from the raw loaded data. The stablized pattern simply makes a new pattern, iterates through the current pattern by the stitchblocks and feeds that into add_stitch_block(). This results in a pattern without any jumps, trims, etc.
+After a load, the pattern will be filled with raw basic stitch data, it's perfectly reasonable call .get_stable_pattern() on this which will make it into a series of stitches, color_breaks, sequence_breaks or get_pattern_interpolate_trim() which will allow you to introduce trim commands after a series of JUMP commands as specified and merge the untrimmed jumps. Or to iterate through the data with .get_as_stitchblocks() which is a generator that will produce stitch blocks from the raw loaded data. The stabilized pattern simply makes a new pattern, iterates through the current pattern by the stitchblocks and feeds that into add_stitch_block(). This results in a pattern without any jumps, trims, etc.
 
 STITCH_BREAK
 
@@ -553,7 +555,7 @@ Sequins being written into files that do not support sequins can go several ways
 
 ### Tie On / Tie Off Contingency
 
-While there's only NONE, and THREE_SMALL for contingencies currently, both the tie-on and tie-off contingencies are setup to be forward compatabile with other future potential tie-on and tie-off methods.
+While there's only NONE, and THREE_SMALL for contingencies currently, both the tie-on and tie-off contingencies are setup to be forward compatible with other future potential tie-on and tie-off methods.
 
 ### Units
 
@@ -572,9 +574,9 @@ So if write your own pattern and you intend to stitch at the origin and then go 
 
 ### Coordinate System
 
-Fundamentally pyembroidery stores the positions such that the +y direction is down and -y is up (when viewed horizontally) with +x right and -x left. This is consistent with most modern graphics coordinate systems, but this is different from how these values are stored within embroidery formats. pyembroidery reads by flipping the y-axis, and writes by flipping the y-axis (except for SVG which uses the same coordinate system). This allows for seemless reading, writing, and interfacing. The flips occur at the level of the format readers and writers and is not subject to encoding. However encoding with scale of (1, -1) would invert this during the encoding. All patterns are stored such that `top` is in the -y direction and `bottom` is in the +y direction.
+Fundamentally pyembroidery stores the positions such that the +y direction is down and -y is up (when viewed horizontally) with +x right and -x left. This is consistent with most modern graphics coordinate systems, but this is different from how these values are stored within embroidery formats. pyembroidery reads by flipping the y-axis, and writes by flipping the y-axis (except for SVG which uses the same coordinate system). This allows for seamless reading, writing, and interfacing. The flips occur at the level of the format readers and writers and is not subject to encoding. However encoding with scale of (1, -1) would invert this during the encoding. All patterns are stored such that `top` is in the -y direction and `bottom` is in the +y direction.
 
-All patterns start at the origin point (0,0). In keeping with the philosophy the absolute positioning of the data is maintained sometimes this means it an offcenter pattern will move from the origin to an absolute position some distance from the origin. While this preserves information, it might also not be entirely expected at times. This `pattern.move_center_to_origin()` will lose that information and center the pattern at the origin.
+All patterns start at the origin point (0,0). In keeping with the philosophy the absolute positioning of the data is maintained sometimes this means it an off-center pattern will move from the origin to an absolute position some distance from the origin. While this preserves information, it might also not be entirely expected at times. This `pattern.move_center_to_origin()` will lose that information and center the pattern at the origin.
 
 ---
 
@@ -597,3 +599,4 @@ Thanks to,
 ---
 
 This software is in no way derived from or based on Jackson Yee's abandoned 2006 "pyembroidery" project. The name was simply taken from libEmbroidery and written in python and thus a portmanteau of those. I was unaware of the project until after the all the principal work on this project was complete. I apologize for any confusion this may cause.
+
