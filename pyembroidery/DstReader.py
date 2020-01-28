@@ -52,6 +52,7 @@ def process_header_info(out, prefix, value):
 
 def dst_read_header(f, out):
     header = f.read(512)
+    # TODO: Do not omit the entire header. Rather parse each element and proceed on error.
     try:
         header_string = header.decode('utf8')
         for line in [x.strip() for x in header_string.split('\r')]:
