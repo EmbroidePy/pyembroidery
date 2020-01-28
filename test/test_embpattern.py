@@ -313,6 +313,11 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(blocks[2][1].color, 0x0000FF)
         self.assertEqual(len(blocks), 3)
 
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
+
         pattern = EmbPattern()
         pattern.add_thread('random')
         pattern.color_change()  # end block 1, empty
@@ -351,6 +356,10 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(blocks[0][1], 0xFF0000)
         self.assertEqual(blocks[1][1], 0x0000FF)
         self.assertEqual(len(blocks), 2)
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
 
         pattern = EmbPattern()
 
@@ -392,8 +401,13 @@ class TestEmbpattern(unittest.TestCase):
         pattern.add_block(stitches_2, 0x0000FF)
         pattern += COLOR_BREAK
         blocks = list(pattern.get_as_colorblocks())
-        for q in blocks:
-            print(q)
+        # for q in blocks:
+        #     print(q)
+        
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
         self.assertEqual(blocks[0][1], 0xFF0000)
         self.assertEqual(blocks[1][1], 0x0000FF)
         self.assertEqual(len(list(pattern.get_as_colorblocks())), 2)
