@@ -279,3 +279,135 @@ class TestEmbpattern(unittest.TestCase):
         print("csv-encoded: ", csv_pattern.stitches)
         self.assertEqual(encoded_command, csv_pattern.stitches[-1][2])
         self.addCleanup(os.remove, file1)
+
+    def test_issue_87(self):
+        """
+        Initial test raised by issue 87.
+        """
+        pattern = EmbPattern()
+        stitches_1 = [[0, 1], [2, 3]]
+        stitches_2 = [[4, 5], [6, 7]]
+        pattern.add_block(stitches_1, 0xFF0000)
+        pattern.add_block(stitches_2, 0x0000FF)
+        self.assertEqual(len(list(pattern.get_as_colorblocks())), 2)
+
+    def test_issue_87_2(self):
+        """
+        Tests a pattern arbitrarily starting with a color change.
+        With two predefined blocks. The blocks should maintain their blockness.
+        The color change should isolate 0 stitches, of an unknown color.
+        :return:
+        """
+        pattern = EmbPattern()
+        stitches_1 = [[0, 1], [2, 3]]
+        stitches_2 = [[4, 5], [6, 7]]
+
+        pattern.color_change()
+        pattern.add_thread('random')
+        pattern.add_block(stitches_1, 0xFF0000)
+        pattern.add_block(stitches_2, 0x0000FF)
+        blocks = list(pattern.get_as_colorblocks())
+        # for q in blocks:
+        #     print(q)
+        self.assertEqual(blocks[1][1].color, 0xFF0000)
+        self.assertEqual(blocks[2][1].color, 0x0000FF)
+        self.assertEqual(len(blocks), 3)
+
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
+
+        pattern = EmbPattern()
+        pattern.add_thread('random')
+        pattern.color_change()  # end block 1, empty
+        pattern.add_thread(0xFF0000)
+        pattern += stitches_1
+        pattern.color_change()  # end block 2
+        pattern.add_thread(0x0000FF)
+        pattern += stitches_2
+        blocks = list(pattern.get_as_colorblocks())
+        # end block 3, no explicit end.
+        # for q in blocks:
+        #     print(q)
+        self.assertEqual(blocks[0][0][-1][2], COLOR_CHANGE)  # Color change ends the block.
+        self.assertEqual(blocks[1][0][-1][2], COLOR_CHANGE)  # Color change ends the block.
+        self.assertEqual(blocks[1][1].color, 0xFF0000)
+        self.assertEqual(blocks[2][1].color, 0x0000FF)
+        self.assertEqual(len(blocks), 3)
+
+    def test_issue_87_3(self):
+        """
+        Tests a pattern arbitrarily starting with a needle_set.
+        With two predefined blocks. The blocks should maintain their blockness.
+        The needle set should not contribute a block. Initial needle_set, only
+        define a starting needle.
+        :return:
+        """
+        pattern = EmbPattern()
+        pattern.needle_change()
+        stitches_1 = [[0, 1], [2, 3]]
+        stitches_2 = [[4, 5], [6, 7]]
+        pattern.add_block(stitches_1, 0xFF0000)
+        pattern.add_block(stitches_2, 0x0000FF)
+        blocks = list(pattern.get_as_colorblocks())
+        # for q in blocks:
+        #     print(q)
+        self.assertEqual(blocks[0][1], 0xFF0000)
+        self.assertEqual(blocks[1][1], 0x0000FF)
+        self.assertEqual(len(blocks), 2)
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
+
+        pattern = EmbPattern()
+
+        pattern.needle_change()  # start block 0
+        pattern += stitches_1
+        pattern += EmbThread(0xFF0000)
+
+        pattern.needle_change()  # start block 1
+        pattern += stitches_1
+        pattern += EmbThread(0x0000FF)
+
+        pattern.needle_change()  # start block 2
+        pattern += EmbThread('random')
+
+        blocks = list(pattern.get_as_colorblocks())
+        # for q in blocks:
+        #     print(q)
+        # Mask is required here since needle_set automatically appends extended data.
+        self.assertEqual(blocks[0][0][0][2] & COMMAND_MASK, NEEDLE_SET)  # Needle_set starts the block.
+        self.assertEqual(blocks[1][0][0][2] & COMMAND_MASK, NEEDLE_SET)  # Needle_set starts the block.
+        self.assertEqual(blocks[0][1], 0xFF0000)
+        self.assertEqual(blocks[1][1], 0x0000FF)
+        self.assertEqual(len(blocks), 3)
+
+    def test_issue_87_4(self):
+        """
+        Tests a pattern arbitrarily starting with a color break.
+        With two predefined blocks. The blocks should maintain their blockness.
+        And ending with another arbitrary color break. This should give exactly
+        2 blocks which were defined as prepended colorbreaks postpended color breaks
+        are not to have an impact.
+        :return:
+        """
+        pattern = EmbPattern()
+        pattern += COLOR_BREAK
+        stitches_1 = [[0, 1], [2, 3]]
+        stitches_2 = [[4, 5], [6, 7]]
+        pattern.add_block(stitches_1, 0xFF0000)
+        pattern.add_block(stitches_2, 0x0000FF)
+        pattern += COLOR_BREAK
+        blocks = list(pattern.get_as_colorblocks())
+        # for q in blocks:
+        #     print(q)
+        
+        for block in blocks:
+            stitch_block = block[0]
+            for stitch in stitch_block:
+                self.assertNotEqual(stitch[2], COLOR_BREAK)
+        self.assertEqual(blocks[0][1], 0xFF0000)
+        self.assertEqual(blocks[1][1], 0x0000FF)
+        self.assertEqual(len(list(pattern.get_as_colorblocks())), 2)

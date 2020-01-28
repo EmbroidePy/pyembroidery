@@ -312,18 +312,41 @@ class EmbPattern:
         yield self.stitches[last_pos:]
 
     def get_as_colorblocks(self):
+        """
+        Returns a generator for colorblocks. Color blocks defined with color_breaks will have
+        the command omitted whereas color blocks delimited with color_change will end with the
+        color_change command, and if delimited with needle_set, the blocks will begin the new
+        color block with the needle_set.
+        """
         thread_index = 0
-        last_pos = 0
+        colorblock_start = 0
+
         for pos, stitch in enumerate(self.stitches):
             command = stitch[2] & COMMAND_MASK
-            if command != COLOR_CHANGE and command != NEEDLE_SET:
+            if command == COLOR_BREAK:
+                if colorblock_start != pos:
+                    thread = self.get_thread_or_filler(thread_index)
+                    thread_index += 1
+                    yield self.stitches[colorblock_start:pos-1], thread
+                colorblock_start = pos + 1
                 continue
+            if command == COLOR_CHANGE:
+                thread = self.get_thread_or_filler(thread_index)
+                thread_index += 1
+                yield self.stitches[colorblock_start:pos+1], thread
+                colorblock_start = pos+1
+                continue
+            if command == NEEDLE_SET and colorblock_start != pos:
+                thread = self.get_thread_or_filler(thread_index)
+                thread_index += 1
+                yield self.stitches[colorblock_start:pos-1], thread
+                colorblock_start = pos-1
+                continue
+
+
+        if colorblock_start != len(self.stitches):
             thread = self.get_thread_or_filler(thread_index)
-            thread_index += 1
-            yield (self.stitches[last_pos:pos], thread)
-            last_pos = pos
-        thread = self.get_thread_or_filler(thread_index)
-        yield (self.stitches[last_pos:], thread)
+            yield (self.stitches[colorblock_start:], thread)
 
     def get_as_stitches(self):
         """pos, x, y, command, v1, v2, v3"""

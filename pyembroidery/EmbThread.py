@@ -96,17 +96,34 @@ def color_distance_red_mean(
 
 class EmbThread:
 
-    def __init__(self, thread=None):
+    def __init__(self, thread=None, description=None, catalog_number=None, details=None, brand=None, chart=None, weight=None):
         self.color = 0x000000
-        self.description = None  # type: str
-        self.catalog_number = None  # type: str
-        self.details = None  # type: str
-        self.brand = None  # type: str
-        self.chart = None  # type: str
-        self.weight = None  # type: str
+        self.description = description  # type: str
+        self.catalog_number = catalog_number  # type: str
+        self.details = details  # type: str
+        self.brand = brand  # type: str
+        self.chart = chart  # type: str
+        self.weight = weight  # type: str
         # description, catalog_number, details, brand, chart, weight
         if thread is not None:
             self.set(thread)
+
+    def __repr__(self):
+        parts = list()
+        parts.append("thread='%s'" % self.hex_color())
+        if self.description is not None:
+            parts.append("description='%s'" % self.description)
+        if self.catalog_number is not None:
+            parts.append("catalog_number='%s'" % self.catalog_number)
+        if self.details is not None:
+            parts.append("details='%s'" % self.details)
+        if self.brand is not None:
+            parts.append("brand='%s'" % self.brand)
+        if self.chart is not None:
+            parts.append("chart='%s'" % self.chart)
+        if self.weight is not None:
+            parts.append("weight='%s'" % self.weight)
+        return "EmbThread(%s)" % " ,".join(parts)
 
     def __ne__(self, other):
         return not self.__eq__(other)

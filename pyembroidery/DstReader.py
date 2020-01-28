@@ -52,13 +52,18 @@ def process_header_info(out, prefix, value):
 
 def dst_read_header(f, out):
     header = f.read(512)
-    try:
-        header_string = header.decode('utf8')
-        for line in [x.strip() for x in header_string.split('\r')]:
-            if len(line) > 3:
-                process_header_info(out, line[0:2].strip(), line[3:].strip())
-    except UnicodeDecodeError:  # The header contains non-utf8 information and omitted. See #83
-        pass
+    start = 0
+    for i, element in enumerate(header):
+        if element == 13 or element == 10 or element == '\n' or element == '\r':  # 13 =='\r', 10 = '\n'
+            end = i
+            data = header[start:end]
+            start = end
+            try:
+                line = data.decode('utf8').strip()
+                if len(line) > 3:
+                    process_header_info(out, line[0:2].strip(), line[3:].strip())
+            except UnicodeDecodeError:  # Non-utf8 information. See #83
+                continue
 
 
 def dst_read_stitches(f, out, settings=None):
