@@ -289,7 +289,12 @@ class TestEmbpattern(unittest.TestCase):
         stitches_2 = [[4, 5], [6, 7]]
         pattern.add_block(stitches_1, 0xFF0000)
         pattern.add_block(stitches_2, 0x0000FF)
-        self.assertEqual(len(list(pattern.get_as_colorblocks())), 2)
+        blocks = list(pattern.get_as_colorblocks())
+        for q in blocks:
+            print(q)
+        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks[0][0]), 2)  # 0,1 and 2,3
+        self.assertEqual(len(blocks[1][0]), 2)  # 4,5 and 6,7
 
     def test_issue_87_2(self):
         """
@@ -312,6 +317,9 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(blocks[1][1].color, 0xFF0000)
         self.assertEqual(blocks[2][1].color, 0x0000FF)
         self.assertEqual(len(blocks), 3)
+        self.assertEqual(len(blocks[0][0]), 1)
+        self.assertEqual(len(blocks[1][0]), 2)
+        self.assertEqual(len(blocks[2][0]), 2)
 
         for block in blocks:
             stitch_block = block[0]
@@ -335,6 +343,12 @@ class TestEmbpattern(unittest.TestCase):
         self.assertEqual(blocks[1][1].color, 0xFF0000)
         self.assertEqual(blocks[2][1].color, 0x0000FF)
         self.assertEqual(len(blocks), 3)
+        self.assertEqual(len(blocks[0][0]), 1)
+        self.assertEqual(len(blocks[1][0]), 3)
+        self.assertEqual(len(blocks[2][0]), 2)  # Final color change is part of no block.
+        pattern.color_change()  # end block 3
+        blocks = list(pattern.get_as_colorblocks())
+        self.assertEqual(len(blocks[2][0]), 3) # Final block with colorchange.
 
     def test_issue_87_3(self):
         """
@@ -365,24 +379,27 @@ class TestEmbpattern(unittest.TestCase):
 
         pattern.needle_change()  # start block 0
         pattern += stitches_1
-        pattern += EmbThread(0xFF0000)
+        pattern.add_thread(EmbThread(0xFF0000))
 
         pattern.needle_change()  # start block 1
         pattern += stitches_1
-        pattern += EmbThread(0x0000FF)
+        pattern.add_thread(EmbThread(0x0000FF))
 
         pattern.needle_change()  # start block 2
-        pattern += EmbThread('random')
+        pattern.add_thread(EmbThread('random'))
 
         blocks = list(pattern.get_as_colorblocks())
-        # for q in blocks:
-        #     print(q)
+        for q in blocks:
+            print(q)
         # Mask is required here since needle_set automatically appends extended data.
         self.assertEqual(blocks[0][0][0][2] & COMMAND_MASK, NEEDLE_SET)  # Needle_set starts the block.
         self.assertEqual(blocks[1][0][0][2] & COMMAND_MASK, NEEDLE_SET)  # Needle_set starts the block.
         self.assertEqual(blocks[0][1], 0xFF0000)
         self.assertEqual(blocks[1][1], 0x0000FF)
         self.assertEqual(len(blocks), 3)
+        self.assertEqual(len(blocks[0][0]), 3)
+        self.assertEqual(len(blocks[1][0]), 3)
+        self.assertEqual(len(blocks[2][0]), 1)
 
     def test_issue_87_4(self):
         """
@@ -401,13 +418,15 @@ class TestEmbpattern(unittest.TestCase):
         pattern.add_block(stitches_2, 0x0000FF)
         pattern += COLOR_BREAK
         blocks = list(pattern.get_as_colorblocks())
-        # for q in blocks:
-        #     print(q)
-        
+        for q in blocks:
+            print(q)
+
         for block in blocks:
             stitch_block = block[0]
             for stitch in stitch_block:
                 self.assertNotEqual(stitch[2], COLOR_BREAK)
         self.assertEqual(blocks[0][1], 0xFF0000)
         self.assertEqual(blocks[1][1], 0x0000FF)
-        self.assertEqual(len(list(pattern.get_as_colorblocks())), 2)
+        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks[0][0]), 2)
+        self.assertEqual(len(blocks[1][0]), 2)

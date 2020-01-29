@@ -327,26 +327,25 @@ class EmbPattern:
                 if colorblock_start != pos:
                     thread = self.get_thread_or_filler(thread_index)
                     thread_index += 1
-                    yield self.stitches[colorblock_start:pos-1], thread
+                    yield self.stitches[colorblock_start:pos], thread
                 colorblock_start = pos + 1
                 continue
             if command == COLOR_CHANGE:
                 thread = self.get_thread_or_filler(thread_index)
                 thread_index += 1
-                yield self.stitches[colorblock_start:pos+1], thread
-                colorblock_start = pos+1
+                yield self.stitches[colorblock_start:pos + 1], thread
+                colorblock_start = pos + 1
                 continue
             if command == NEEDLE_SET and colorblock_start != pos:
                 thread = self.get_thread_or_filler(thread_index)
                 thread_index += 1
-                yield self.stitches[colorblock_start:pos-1], thread
-                colorblock_start = pos-1
+                yield self.stitches[colorblock_start:pos], thread
+                colorblock_start = pos
                 continue
-
 
         if colorblock_start != len(self.stitches):
             thread = self.get_thread_or_filler(thread_index)
-            yield (self.stitches[colorblock_start:], thread)
+            yield self.stitches[colorblock_start:], thread
 
     def get_as_stitches(self):
         """pos, x, y, command, v1, v2, v3"""
