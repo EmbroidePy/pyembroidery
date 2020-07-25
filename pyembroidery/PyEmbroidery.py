@@ -50,6 +50,7 @@ import pyembroidery.PmvWriter as PmvWriter
 import pyembroidery.PngWriter as PngWriter
 import pyembroidery.SewReader as SewReader
 import pyembroidery.ShvReader as ShvReader
+import pyembroidery.SpxReader as SpxReader
 import pyembroidery.StcReader as StcReader
 import pyembroidery.StxReader as StxReader
 import pyembroidery.SvgWriter as SvgWriter
@@ -317,6 +318,14 @@ def supported_formats():
         "mimetype": "application/x-tap",
         "category": "embroidery",
         "reader": TapReader
+    })
+    yield ({
+        "description": "Pfaff Embroidery Format",
+        "extension": "spx",
+        "extensions": ("spx"),
+        "mimetype": "application/x-spx",
+        "category": "embroidery",
+        "reader": SpxReader
     })
     yield ({
         "description": "Data Stitch Embroidery Format",
