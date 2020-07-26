@@ -199,7 +199,11 @@ def read_pes_header_version_8(f, out, threadlist):
 def read_pes_header_version_9(f, out, threadlist):
     f.seek(4, 1)
     read_pes_metadata(f, out)
-    f.seek(45, 1)  # this is 36 in version 6 and 24 in version 5
+    f.seek(14, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("hoop_name", v)
+    f.seek(30, 1)  # this is 36 in version 6 and 24 in version 5
     v = read_pes_string(f)
     if v is not None and len(v) > 0:
         out.metadata("image_file", v)
