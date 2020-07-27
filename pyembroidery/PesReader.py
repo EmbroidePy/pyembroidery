@@ -19,14 +19,18 @@ def read(f, out, settings=None):
     # Metadata started appearing in V4
     # Threads appeared in V5.
     # We quickly abort if there are any complex items in the header.
-    if pes_string == "PES0100":
+    if pes_string == "#PES0100":
         out.metadata("version", 10)
+        read_pes_header_version_10(f, out, loaded_thread_values)
     elif pes_string == "#PES0090":
         out.metadata("version", 9)
+        read_pes_header_version_9(f, out, loaded_thread_values)
     elif pes_string == "#PES0080":
         out.metadata("version", 8)
+        read_pes_header_version_8(f, out, loaded_thread_values)
     elif pes_string == "#PES0070":
         out.metadata("version", 7)
+        read_pes_header_version_7(f, out, loaded_thread_values)
     elif pes_string == "#PES0060":
         out.metadata("version", 6)
         read_pes_header_version_6(f, out, loaded_thread_values)
@@ -134,6 +138,102 @@ def read_pes_header_version_6(f, out, threadlist):
     if v is not None and len(v) > 0:
         out.metadata("image_file", v)
     f.seek(24, 1)
+    count_programmable_fills = read_int_16le(f)
+    if count_programmable_fills != 0:
+        return
+    count_motifs = read_int_16le(f)
+    if count_motifs != 0:
+        return
+    count_feather_patterns = read_int_16le(f)
+    if count_feather_patterns != 0:
+        return
+    count_threads = read_int_16le(f)
+    for i in range(0, count_threads):
+        read_pes_thread(f, threadlist)
+
+
+def read_pes_header_version_7(f, out, threadlist):
+    f.seek(4, 1)
+    read_pes_metadata(f, out)
+    f.seek(36, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("image_file", v)
+    f.seek(24, 1)
+    count_programmable_fills = read_int_16le(f)
+    if count_programmable_fills != 0:
+        return
+    count_motifs = read_int_16le(f)
+    if count_motifs != 0:
+        return
+    count_feather_patterns = read_int_16le(f)
+    if count_feather_patterns != 0:
+        return
+    count_threads = read_int_16le(f)
+    for i in range(0, count_threads):
+        read_pes_thread(f, threadlist)
+
+
+def read_pes_header_version_8(f, out, threadlist):
+    f.seek(4, 1)
+    read_pes_metadata(f, out)
+    f.seek(38, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("image_file", v)
+    f.seek(26, 1)
+    count_programmable_fills = read_int_16le(f)
+    if count_programmable_fills != 0:
+        return
+    count_motifs = read_int_16le(f)
+    if count_motifs != 0:
+        return
+    count_feather_patterns = read_int_16le(f)
+    if count_feather_patterns != 0:
+        return
+    count_threads = read_int_16le(f)
+    for i in range(0, count_threads):
+        read_pes_thread(f, threadlist)
+
+
+def read_pes_header_version_9(f, out, threadlist):
+    f.seek(4, 1)
+    read_pes_metadata(f, out)
+    f.seek(14, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("hoop_name", v)
+    f.seek(30, 1)  # this is 36 in version 6 and 24 in version 5
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("image_file", v)
+    f.seek(34, 1)
+    count_programmable_fills = read_int_16le(f)
+    if count_programmable_fills != 0:
+        return
+    count_motifs = read_int_16le(f)
+    if count_motifs != 0:
+        return
+    count_feather_patterns = read_int_16le(f)
+    if count_feather_patterns != 0:
+        return
+    count_threads = read_int_16le(f)
+    for i in range(0, count_threads):
+        read_pes_thread(f, threadlist)
+
+
+def read_pes_header_version_10(f, out, threadlist):
+    f.seek(4, 1)
+    read_pes_metadata(f, out)
+    f.seek(14, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("hoop_name", v)
+    f.seek(38, 1)
+    v = read_pes_string(f)
+    if v is not None and len(v) > 0:
+        out.metadata("image_file", v)
+    f.seek(34, 1)
     count_programmable_fills = read_int_16le(f)
     if count_programmable_fills != 0:
         return

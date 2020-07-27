@@ -123,7 +123,7 @@ class EmbThread:
             parts.append("chart='%s'" % self.chart)
         if self.weight is not None:
             parts.append("weight='%s'" % self.weight)
-        return "EmbThread(%s)" % " ,".join(parts)
+        return "EmbThread(%s)" % ", ".join(parts)
 
     def __ne__(self, other):
         return not self.__eq__(other)
