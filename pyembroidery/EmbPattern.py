@@ -580,7 +580,7 @@ class EmbPattern:
             except AttributeError:
                 self.add_stitch_absolute(stitch[2], stitch[0], stitch[1])
 
-    def add_pattern(self, pattern):
+    def add_pattern(self, pattern, dx=None, dy=None, sx=None, sy=None, rotate=None):
         """
         add_pattern merges the given pattern with the current pattern. It accounts for some edge conditions but
         not all of them.
@@ -592,9 +592,24 @@ class EmbPattern:
         :param pattern: pattern to add to current pattern
         :return:
         """
+        if isinstance(pattern, str):
+            pattern = EmbPattern(pattern)
         if self.stitches[-1][2] == END:
             self.stitches = self.stitches[:-1]  # Remove END, if exists
-
+        if dx is not None or dy is not None:
+            if dx is None:
+                dx = 0
+            if dy is None:
+                dy = 0
+            self.add_command(MATRIX_TRANSLATE, dx, dy)
+        if sx is not None or sx is not None:
+            if sx is None:
+                sx = sy
+            if sy is None:
+                sy = sx
+            self.add_command(MATRIX_SCALE, sx, sy)
+        if rotate is not None:
+            self.add_command(MATRIX_ROTATE, rotate)
         # Add the new thread only if it's different from the last one
         self.fix_color_count()
 
