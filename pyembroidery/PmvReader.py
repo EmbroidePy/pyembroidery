@@ -40,7 +40,7 @@ def read_pmv_stitches(f, out, settings=None):
             if x > 32:
                 x = -(64 - x)  # This is a 6 bit signed number.
             x *= 2.5
-            y *= 2.5
+            y *= -2.5
             dx = x
             out.stitch_abs(px + x, y)  # This is a hybrid relative, absolute value.
             px += dx

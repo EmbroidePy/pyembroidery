@@ -14,7 +14,7 @@ def write(pattern, f, settings=None):
     for stitch in pattern.stitches:
         data = stitch[2]
         x = stitch[0]
-        y = stitch[1]
+        y = -stitch[1]
         if data == STITCH or data == JUMP:
             point_count += 1
             if x > max_x:
@@ -57,7 +57,7 @@ def write(pattern, f, settings=None):
             break
         data = stitch[2] & COMMAND_MASK
         x = stitch[0]
-        y = stitch[1]
+        y = -stitch[1]
         x *= scale_x
         y -= center_y
         y *= scale_y
