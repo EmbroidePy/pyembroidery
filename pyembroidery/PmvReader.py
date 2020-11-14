@@ -44,6 +44,25 @@ def read_pmv_stitches(f, out, settings=None):
             dx = x
             out.stitch_abs(px + x, y)  # This is a hybrid relative, absolute value.
             px += dx
+    # f.seek(20,1)
+    # length_table_index = read_int_8(f)
+    # length_table_size = read_int_8(f)
+    # length_table = []
+    # for j in range(length_table_size):
+    #     v1 = read_int_16le(f)
+    #     v2 = read_int_16le(f)
+    #     length_table.append((v1, v2))
+    # print("Length Index is: %d -- %s" % (length_table_index, str(length_table[length_table_index])))
+    # print(length_table)
+    # width_table_index = read_int_8(f)
+    # width_table_size = read_int_8(f)
+    # width_table = []
+    # for j in range(width_table_size):
+    #     v1 = read_int_16le(f)
+    #     v2 = read_int_16le(f)
+    #     width_table.append((v1, v2))
+    # print("Width Index is: %d -- %s" % (width_table_index, str(width_table[width_table_index])))
+    # print(width_table)
     out.end()
 
 
