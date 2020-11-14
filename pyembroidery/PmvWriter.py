@@ -91,7 +91,7 @@ def write(pattern, f, settings=None):
     length_range = max_x - min_x
     write_length_lookup_table(f, length_range)
     width_range = max_y - min_y
-    write_width_lookup_table(f, width_range * 2)
+    write_width_lookup_table(f, width_range)
     write_int_16le(f, 0x12)
     f.write(b'\x00\x00\x00\x00\x00\x00\x00\x00'
             b'\x00\x00\x00\x00\x00\x00\x00\x00')
