@@ -65,10 +65,10 @@ def write(pattern, f, settings=None):
         x = int(round(x - xx))
         xx += x
         if data == STITCH or data == JUMP:
-            if x > max_x:
-                max_x = x
-            if x < min_x:
-                min_x = x
+            if xx > max_x:
+                max_x = xx
+            if xx < min_x:
+                min_x = xx
             if y > max_y:
                 max_y = y
             if y < min_y:
@@ -102,7 +102,7 @@ def write_length_lookup_table(f, length_range):
     write_values = [(0, 0), (10, 71), (20, 143), (40, 214), (60, 286), (80, 357),
                     (100, 429), (120, 500), (140, 571), (160, 714), (180, 786), (200, 857),
                     (250, 1000), (300, 1286), (350, 1429), (400, 1571), (450, 1786), (500, 2000)]
-    write_int_8(f, 12)
+    write_int_8(f, 12)  # (250, 1000)
     steps = len(write_values)
     write_int_8(f, steps)
     for value in write_values:
@@ -113,17 +113,17 @@ def write_length_lookup_table(f, length_range):
 
 
 def write_width_lookup_table(f, width_range):
-    pos = int(width_range / 2)
-    write_int_8(f, pos)
     if width_range == 0:
+        write_int_8(f, 0)
         write_int_8(f, 1)
         write_int_16le(f, 8192)
         write_int_16le(f, 1000)
         return
     steps = 15
-    write_int_8(f, steps)
     second_max = 28000.0 / float(width_range)
     second_step = second_max / float(steps - 1)
+    write_int_8(f, steps-1)
+    write_int_8(f, steps)
     for i in range(0, steps):
         width_at_step = 50 * i
         other_at_step = second_step * i
