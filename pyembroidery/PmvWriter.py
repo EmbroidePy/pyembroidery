@@ -102,8 +102,9 @@ def write_length_lookup_table(f, length_range):
     write_values = [(0, 0), (10, 71), (20, 143), (40, 214), (60, 286), (80, 357),
                     (100, 429), (120, 500), (140, 571), (160, 714), (180, 786), (200, 857),
                     (250, 1000), (300, 1286), (350, 1429), (400, 1571), (450, 1786), (500, 2000)]
-    write_int_8(f, 12)  # (250, 1000)
+
     steps = len(write_values)
+    write_int_8(f, steps-1)  # (500, 2000)
     write_int_8(f, steps)
     for value in write_values:
         length_at_step = value[0]
