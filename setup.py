@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyembroidery",
-    version="1.4.26",
+    version="1.4.27",
     author="Tatarize",
     author_email="tatarize@gmail.com",
     description="Embroidery IO library",
