@@ -593,7 +593,7 @@ class EmbPattern:
         :param dx: position change of the added pattern x
         :param dy: position change of the added pattern y
         :param sx: scale of the added pattern x
-        :param sy: scale fo the added pattern y
+        :param sy: scale of the added pattern y
         :param rotate: rotation of the added pattern
         :return:
         """
