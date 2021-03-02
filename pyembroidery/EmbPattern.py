@@ -590,6 +590,11 @@ class EmbPattern:
         Any prepended thread change command to the merging pattern is suppressed.
 
         :param pattern: pattern to add to current pattern
+        :param dx: position change of the added pattern x
+        :param dy: position change of the added pattern y
+        :param sx: scale of the added pattern x
+        :param sy: scale of the added pattern y
+        :param rotate: rotation of the added pattern
         :return:
         """
         if isinstance(pattern, str):

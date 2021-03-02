@@ -133,8 +133,9 @@ def pec_encode(pattern, f):
         xx += dx
         yy += dy
         if data == STITCH:
-            if jumping and dx != 0 and dy != 0:
-                f.write(b'\x00\x00')
+            if jumping:
+                if dx != 0 and dy != 0:
+                    f.write(b'\x00\x00')
                 jumping = False
             if -64 < dx < 63 and -64 < dy < 63:
                 f.write(bytes(bytearray([dx & MASK_07_BIT, dy & MASK_07_BIT])))
