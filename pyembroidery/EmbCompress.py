@@ -5,7 +5,10 @@ def expand(data, uncompressed_size=None):
 
 def compress(data):
     size = len(data)
-    return bytearray([(size >> 0) & 0xFF, (size >> 8) & 0xFF, 0x02, 0xA0, 0x01, 0xFE]) + data
+    return (
+        bytearray([(size >> 0) & 0xFF, (size >> 8) & 0xFF, 0x02, 0xA0, 0x01, 0xFE])
+        + data
+    )
 
 
 class Huffman:
@@ -19,7 +22,7 @@ class Huffman:
         """Build an index huffman table based on the lengths. lowest index value wins in a tie."""
         self.table_width = max(self.lengths)
         self.table = []
-        size = (1 << self.table_width)
+        size = 1 << self.table_width
         for bit_length in range(1, self.table_width + 1):
             size /= 2.0
             for len_index in range(0, len(self.lengths)):
@@ -75,7 +78,9 @@ class EmbCompress:
         m = self.pop(3)
         if m != 7:
             return m
-        for q in range(0, 13):  # max read is 16 bit, 3 bits already used. It can't exceed 16-3
+        for q in range(
+            0, 13
+        ):  # max read is 16 bit, 3 bits already used. It can't exceed 16-3
             s = self.pop(1)
             if s == 1:
                 m += 1
@@ -171,8 +176,10 @@ class EmbCompress:
         self.input_data = input_data
         output_data = []
         self.block_elements = -1
-        bits_total = (len(input_data) * 8)
-        while bits_total > self.bit_position and (uncompressed_size is None or len(output_data) <= uncompressed_size):
+        bits_total = len(input_data) * 8
+        while bits_total > self.bit_position and (
+            uncompressed_size is None or len(output_data) <= uncompressed_size
+        ):
             character = self.get_token()
             if character <= 255:  # literal.
                 output_data.append(character)
@@ -184,7 +191,7 @@ class EmbCompress:
                 position = len(output_data) - back
                 if back > length:
                     # Entire lookback is already within output data.
-                    output_data += output_data[position:position + length]
+                    output_data += output_data[position : position + length]
                 else:
                     # Will read & write the same data at some point.
                     for i in range(position, position + length):

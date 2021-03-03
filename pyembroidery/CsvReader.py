@@ -5,13 +5,14 @@ READ_FILE_IN_TEXT_MODE = True
 
 def read(f, out, settings=None):
     import csv
-    csv_reader = csv.reader(f, delimiter=',')
+
+    csv_reader = csv.reader(f, delimiter=",")
     command_dict = get_command_dictionary()
     for row in csv_reader:
         if len(row) == 0:
             continue
         if "*" in row[0]:
-            split = row[2].split(' ')
+            split = row[2].split(" ")
             command = command_dict[split[0]]
             for sp in split[1:]:
                 if sp[0] == "n":
@@ -35,7 +36,12 @@ def read(f, out, settings=None):
             out.metadata(row[1], row[2])
         elif "$" in row[0]:
             thread_add = {}
-            if len(row) == 7 and len(row[2]) <= 3 and len(row[3]) <= 3 and len(row[4]) <= 3:
+            if (
+                len(row) == 7
+                and len(row[2]) <= 3
+                and len(row[3]) <= 3
+                and len(row[4]) <= 3
+            ):
                 # This is an embroidermodder csv file, I changed the colors and added more details.
                 # [THREAD_NUMBER], [RED], [GREEN], [BLUE], [DESCRIPTION], [CATALOG_NUMBER]\"\n");
                 thread_add["rgb"] = (int(row[2]), int(row[3]), int(row[4]))

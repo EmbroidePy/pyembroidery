@@ -34,14 +34,14 @@ def read_jef_stitches(f, out, settings=None):
     count_max = None
     trim_distance = 3.0
     if settings is not None:
-        count_max = settings.get('trim_at', count_max)
+        count_max = settings.get("trim_at", count_max)
         trims = settings.get("trims", trims)
         trim_distance = settings.get("trim_distance", trim_distance)
-        clipping = settings.get('clipping', clipping)
+        clipping = settings.get("clipping", clipping)
     if trims and count_max is None:
         count_max = 3
     if trim_distance is not None:
-        trim_distance *= 10 # Pixels per mm. Native units are 1/10 mm.
+        trim_distance *= 10  # Pixels per mm. Native units are 1/10 mm.
     out.interpolate_trims(count_max, trim_distance, clipping)
 
 

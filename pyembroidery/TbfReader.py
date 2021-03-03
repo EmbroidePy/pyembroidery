@@ -1,5 +1,5 @@
 from .EmbThread import EmbThread
-from .ReadHelper import signed8, read_int_8, read_int_24be
+from .ReadHelper import read_int_8, read_int_24be, signed8
 
 
 def read(f, out, settings=None):

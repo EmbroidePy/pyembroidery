@@ -31,7 +31,7 @@ def get_thread_set():
         EmbThreadHus("#ff52b5", "Dark Pink", "010"),
         EmbThreadHus("#ffc6de", "Light Pink", "012"),
         EmbThreadHus("#523100", "Dark Brown", "027"),
-        EmbThreadHus("#b5a584", "Light Brown", "029")
+        EmbThreadHus("#b5a584", "Light Brown", "029"),
     ]
 
 
@@ -43,4 +43,3 @@ class EmbThreadHus(EmbThread):
         self.catalog_number = catalog_number
         self.brand = "Hus"
         self.chart = "Hus"
-

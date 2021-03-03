@@ -1,6 +1,12 @@
 from .EmbConstant import *
-from .WriteHelper import write_int_8, write_int_24be, \
-    write_int_32be, write_int_16be, write_string_utf8, write_string
+from .WriteHelper import (
+    write_int_8,
+    write_int_16be,
+    write_int_24be,
+    write_int_32be,
+    write_string,
+    write_string_utf8,
+)
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = False
@@ -63,7 +69,7 @@ def write(pattern, f, settings=None):
 
 
 def write_file(pattern, f):
-    f.write(b'\x00\x02\x00')
+    f.write(b"\x00\x02\x00")
     placeholder_distance_end_of_file_block_020 = f.tell()
     write_int_32be(f, 0)  # placeholder
     # This refers to the end of the final block, not entire bytes.
@@ -104,7 +110,7 @@ def write_file(pattern, f):
 
 
 def write_design_block(f, extends, colorblocks):
-    f.write(b'\x00\x03\x00')
+    f.write(b"\x00\x03\x00")
     placeholder_distance_end_of_design_block_030 = f.tell()
     write_int_32be(f, 0)
 
@@ -133,14 +139,14 @@ def write_design_block(f, extends, colorblocks):
     write_int_32be(f, int(height) * 100)
     vp3_write_string_16(f, "")  # This is notes and settings string.
 
-    f.write(b'\x64\x64')  # write_int_16be(f, 25700)
+    f.write(b"\x64\x64")  # write_int_16be(f, 25700)
     # maybe b'dd', maybe 100, 100
     write_int_32be(f, 4096)  # b'\x00\x00\x10\x00'
     write_int_32be(f, 0)  # b'\x00\x00\x00\x00'
     write_int_32be(f, 0)  # b'\x00\x00\x10\x00'
     write_int_32be(f, 4096)  # b'\x00\x00\x10\x00'
 
-    f.write(b'xxPP\x01\x00')
+    f.write(b"xxPP\x01\x00")
 
     vp3_write_string_16(f, "Produced by     Software Ltd")
 
@@ -156,7 +162,7 @@ def write_design_block(f, extends, colorblocks):
 
 
 def write_vp3_colorblock(f, first, center_x, center_y, stitches, thread):
-    f.write(b'\x00\x05\x00')
+    f.write(b"\x00\x05\x00")
     placeholder_distance_end_of_color_block_050 = f.tell()
     write_int_32be(f, 0)
 
@@ -193,9 +199,9 @@ def write_vp3_colorblock(f, first, center_x, center_y, stitches, thread):
 
 
 def vp3_write_thread(f, thread):
-    f.write(b'\x01\x00')  # Single color, no transition.
+    f.write(b"\x01\x00")  # Single color, no transition.
     write_int_24be(f, thread.color)
-    f.write(b'\x00\x00\x00\x05\x28')  # no parts, no length, Rayon 40-weight
+    f.write(b"\x00\x00\x00\x05\x28")  # no parts, no length, Rayon 40-weight
     if thread.catalog_number is not None:
         vp3_write_string_8(f, thread.catalog_number)
     else:
@@ -212,11 +218,11 @@ def vp3_write_thread(f, thread):
 
 def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
     # The 0, x, 0 bytes come before placeholders
-    f.write(b'\x00\x01\x00')
+    f.write(b"\x00\x01\x00")
     placeholder_distance_to_end_of_stitches_block_010 = f.tell()
     write_int_32be(f, 0)  # placeholder
 
-    f.write(b'\x0A\xF6\x00')
+    f.write(b"\x0A\xF6\x00")
     last_x = first_pos_x
     last_y = first_pos_y
 
@@ -228,13 +234,13 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
         if flags == END:
             # This is a trim command. The machine does not autotrim.
             # Consequently writers tend to add this explicit trim command.
-            f.write(b'\x80\x03')
+            f.write(b"\x80\x03")
             break
         elif flags == COLOR_CHANGE:
             # Colorchange commands divided the pattern into colorblocks.
             continue
         elif flags == TRIM:
-            f.write(b'\x80\x03')
+            f.write(b"\x80\x03")
             continue
         elif flags == SEQUIN_MODE:
             continue
@@ -255,8 +261,8 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
                 write_int_8(f, dx)
                 write_int_8(f, dy)
             else:
-                f.write(b'\x80\x01')
+                f.write(b"\x80\x01")
                 write_int_16be(f, dx)
                 write_int_16be(f, dy)
-                f.write(b'\x80\x02')
+                f.write(b"\x80\x02")
     vp3_patch_byte_offset(f, placeholder_distance_to_end_of_stitches_block_010)

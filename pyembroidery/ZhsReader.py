@@ -1,4 +1,4 @@
-from .ReadHelper import signed8, read_int_32le
+from .ReadHelper import read_int_32le, signed8
 
 
 def read_zhs_stitches(f, out):

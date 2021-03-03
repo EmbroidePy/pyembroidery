@@ -23,8 +23,10 @@
 #     contents = compoundfiles.CompoundFileReader(f).open('Contents')
 #     contents.seek(4)  # file size
 #     art = BytesIO(zlib.decompress(bytes([swizzle(b) for b in contents.read()])))
-#     while True:
-#         b = read_int_8(art)
-#         if b is None or b == -1:
-#             break
-#         print('%02X' % b)
+#     with open('file.bin', 'bw') as f:
+#         while True:
+#             b = read_int_8(art)
+#             if b is None or b == -1:
+#                 break
+#             f.write(bytearray(chr(b), 'utf-8'))
+#             print('%02X' % b)

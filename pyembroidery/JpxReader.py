@@ -1,4 +1,4 @@
-from .ReadHelper import signed8, read_int_32le
+from .ReadHelper import read_int_32le, signed8
 
 
 def read_jpx_stitches(f, out):
@@ -40,9 +40,6 @@ def read(f, out, settings=None):
         color_index = read_int_32le(f)
         if color_index is None:
             break
-        out.add_thread({
-            "color": "random",
-            "name": "JPX index " + str(color_index)
-        })
+        out.add_thread({"color": "random", "name": "JPX index " + str(color_index)})
     f.seek(stitch_start_position, 0)
     read_jpx_stitches(f, out)

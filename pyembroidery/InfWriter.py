@@ -1,4 +1,4 @@
-from .WriteHelper import write_int_8, write_int_32be, write_int_16be, write_string_utf8
+from .WriteHelper import write_int_8, write_int_16be, write_int_32be, write_string_utf8
 
 ENCODE = False
 
@@ -25,7 +25,9 @@ def write(pattern, f, settings=None):
         chart = thread.chart
         if chart is None:
             chart = "Unknown"
-        write_int_16be(f, 11 + len(details) + len(chart))  # 2 + 2 + 1 + 1 + 1 + 2 + d + 1 + c + 1 = 11 + d + c
+        write_int_16be(
+            f, 11 + len(details) + len(chart)
+        )  # 2 + 2 + 1 + 1 + 1 + 2 + d + 1 + c + 1 = 11 + d + c
         write_int_16be(f, index)  # record index
         index += 1
         write_int_8(f, thread.get_red())

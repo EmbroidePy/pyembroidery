@@ -1,6 +1,12 @@
 from .EmbThread import EmbThread
 from .PecReader import read_pec
-from .ReadHelper import read_string_8, read_int_8, read_int_32le, read_int_24be, read_int_16le
+from .ReadHelper import (
+    read_int_8,
+    read_int_16le,
+    read_int_24be,
+    read_int_32le,
+    read_string_8,
+)
 
 
 def read(f, out, settings=None):

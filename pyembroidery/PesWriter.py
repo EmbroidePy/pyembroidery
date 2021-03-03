@@ -1,8 +1,14 @@
 from .EmbConstant import *
 from .EmbThreadPec import get_thread_set
 from .PecWriter import write_pec
-from .WriteHelper import write_string_utf8, write_int_32le, write_int_24le, write_int_16le, write_int_8, \
-    write_float_32le
+from .WriteHelper import (
+    write_float_32le,
+    write_int_8,
+    write_int_16le,
+    write_int_24le,
+    write_int_32le,
+    write_string_utf8,
+)
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = True
@@ -30,7 +36,7 @@ def write(pattern, f, settings=None):
         version = settings.get("version", version)
         truncated = settings.get("truncated", False)
         if isinstance(version, str):
-            if version.endswith('t'):
+            if version.endswith("t"):
                 truncated = True
                 version = float(version[:-1])
         version = float(version)
@@ -48,7 +54,7 @@ def write(pattern, f, settings=None):
 
 def write_truncated_version_1(pattern, f):
     write_string_utf8(f, PES_VERSION_1_SIGNATURE)
-    f.write(b'\x16\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    f.write(b"\x16\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
     write_pec(pattern, f)
 
 
@@ -154,7 +160,7 @@ def write_pes_header_v1(f, distinct_block_objects):
 
 def write_pes_header_v6(pattern, f, chart, distinct_block_objects):
     write_int_16le(f, 0x01)  # 0 = 100x100, 130x180 hoop
-    f.write(b'02')  # This is an 2-digit ascii number.
+    f.write(b"02")  # This is an 2-digit ascii number.
     write_pes_string_8(f, pattern.get_metadata("name", None))
     write_pes_string_8(f, pattern.get_metadata("category", None))
     write_pes_string_8(f, pattern.get_metadata("author", None))
@@ -301,7 +307,7 @@ def write_pes_sewsegheader(f, left, top, right, bottom):
     write_int_16le(f, 0)
     write_int_16le(f, int(width))
     write_int_16le(f, int(height))
-    f.write(b'\x00\x00\x00\x00\x00\x00\x00\x00')
+    f.write(b"\x00\x00\x00\x00\x00\x00\x00\x00")
 
     placeholder_needs_section_data = f.tell()
     # sections
