@@ -3,7 +3,7 @@ from .EmbThread import EmbThread
 
 def get_thread_set():
     return [
-        None, #  EmbThreadPec(0, 0, 0, "Unknown", "0"),
+        None,  #  EmbThreadPec(0, 0, 0, "Unknown", "0"),
         EmbThreadPec(14, 31, 124, "Prussian Blue", "1"),
         EmbThreadPec(10, 85, 163, "Blue", "2"),
         EmbThreadPec(0, 135, 119, "Teal Green", "3"),
@@ -67,7 +67,7 @@ def get_thread_set():
         EmbThreadPec(227, 243, 91, "Fresh Green", "61"),
         EmbThreadPec(255, 153, 0, "Orange", "62"),
         EmbThreadPec(255, 240, 141, "Cream Yellow", "63"),
-        EmbThreadPec(255, 200, 200, "Applique", "64")
+        EmbThreadPec(255, 200, 200, "Applique", "64"),
     ]
 
 

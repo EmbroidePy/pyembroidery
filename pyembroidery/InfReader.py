@@ -1,5 +1,5 @@
 from .EmbThread import EmbThread
-from .ReadHelper import read_int_32be, read_int_16be
+from .ReadHelper import read_int_16be, read_int_32be
 
 
 def read(f, out, settings=None):
@@ -21,12 +21,12 @@ def read(f, out, settings=None):
         for j in range(0, len(byte_data)):
             b = byte_data[j]
             if b == 0:
-                thread.description = byte_data[:j].decode('utf8')
-                byte_data = byte_data[j+1:]
+                thread.description = byte_data[:j].decode("utf8")
+                byte_data = byte_data[j + 1 :]
                 break
         for j in range(0, len(byte_data)):
             b = byte_data[j]
             if b == 0:
-                thread.chart = byte_data[:j].decode('utf8')
+                thread.chart = byte_data[:j].decode("utf8")
                 break
         out.add_thread(thread)

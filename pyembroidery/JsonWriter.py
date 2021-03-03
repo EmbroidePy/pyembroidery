@@ -21,6 +21,7 @@ def decoded_name(names, data):
 
 def write(pattern, f, settings=None):
     import json
+
     names = get_common_name_dictionary()
 
     metadata = {}
@@ -42,11 +43,13 @@ def write(pattern, f, settings=None):
                 "details": thread.details,
                 "brand": thread.brand,
                 "chart": thread.chart,
-                "weight": thread.weight
+                "weight": thread.weight,
             }
             for thread in pattern.threadlist
         ],
-        "stitches": [[s[0], s[1], str(decoded_name(names, s[2]))] for s in pattern.stitches],
-        "extras": metadata
+        "stitches": [
+            [s[0], s[1], str(decoded_name(names, s[2]))] for s in pattern.stitches
+        ],
+        "extras": metadata,
     }
     json.dump(json_normal, f, indent=4)

@@ -28,7 +28,12 @@ def write_mimic(pattern, f):
         if (flags & COMMAND_MASK) == COLOR_CHANGE:
             color += 1
         flags = emb_mod_convert[(flags & COMMAND_MASK)]
-        txt_line = "%.1f,%.1f color:%i flags:%s\n" % (xx / 10.0, yy / 10.0, color, flags)
+        txt_line = "%.1f,%.1f color:%i flags:%s\n" % (
+            xx / 10.0,
+            yy / 10.0,
+            color,
+            flags,
+        )
         write_string_utf8(f, txt_line)
 
 
@@ -43,7 +48,13 @@ def write_normal(pattern, f):
         if (flags & COMMAND_MASK) == COLOR_CHANGE:
             color = pattern.get_thread_or_filler(color_index).color
         named_command = names[(flags & COMMAND_MASK)]
-        txt_line = "%.1f,%.1f color:%i command:%s flags:%i\n" % (xx, yy, color, named_command, flags)
+        txt_line = "%.1f,%.1f color:%i command:%s flags:%i\n" % (
+            xx,
+            yy,
+            color,
+            named_command,
+            flags,
+        )
         write_string_utf8(f, txt_line)
 
 

@@ -53,7 +53,7 @@ def write_xxx_header_a(pattern, f):
     write_int_16le(f, int(-stitches[-1][1]))  # correct
     for i in range(0, 0x85):
         write_int_8(f, 0x00)
-    f.write(b'XXX')
+    f.write(b"XXX")
     for i in range(0, 0x39):
         write_int_8(f, 0x00)
     write_int_16le(f, 0x20)

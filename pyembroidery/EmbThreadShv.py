@@ -45,7 +45,7 @@ def get_thread_set():
         EmbThreadShv(0, 0, 0, "Black", "39"),
         EmbThreadShv(0, 0, 0, "Black", "40"),
         EmbThreadShv(232, 63, 0, "Dark Orange", "41"),
-        EmbThreadShv(255, 102, 122, "Dark Pink", "42")
+        EmbThreadShv(255, 102, 122, "Dark Pink", "42"),
     ]
 
 

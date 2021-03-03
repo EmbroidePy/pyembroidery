@@ -56,7 +56,9 @@ def encode_record(x, y, flags):
             b0 += bit(1)
             x += 1
         if x != 0:
-            raise ValueError("The dx value given to the writer exceeds maximum allowed.")
+            raise ValueError(
+                "The dx value given to the writer exceeds maximum allowed."
+            )
         if y > 40:
             b2 += bit(5)
             y -= 81
@@ -88,7 +90,9 @@ def encode_record(x, y, flags):
             b0 += bit(6)
             y += 1
         if y != 0:
-            raise ValueError("The dy value given to the writer exceeds maximum allowed.")
+            raise ValueError(
+                "The dy value given to the writer exceeds maximum allowed."
+            )
     elif flags == COLOR_CHANGE:
         b2 = 0b11000011
     elif flags == STOP:
@@ -104,7 +108,9 @@ def write(pattern, f, settings=None):
     extended_header = False
     trim_at = 3
     if settings is not None:
-        extended_header = settings.get("extended header", extended_header)  # deprecated, use version="extended"
+        extended_header = settings.get(
+            "extended header", extended_header
+        )  # deprecated, use version="extended"
         version = settings.get("version", "default")
         if version == "extended":
             extended_header = True
@@ -147,13 +153,14 @@ def write(pattern, f, settings=None):
             write_string_utf8(f, "CP:%s\r" % meta_copyright)
         if len(pattern.threadlist) > 0:
             for thread in pattern.threadlist:
-                write_string_utf8(f, "TC:%s,%s,%s\r" %
-                                  (thread.hex_color(),
-                                   thread.description,
-                                   thread.catalog_number))
-    f.write(b'\x1a')
+                write_string_utf8(
+                    f,
+                    "TC:%s,%s,%s\r"
+                    % (thread.hex_color(), thread.description, thread.catalog_number),
+                )
+    f.write(b"\x1a")
     for i in range(f.tell(), DSTHEADERSIZE):
-        f.write(b'\x20')  # space
+        f.write(b"\x20")  # space
 
     stitches = pattern.stitches
     xx = 0
@@ -169,10 +176,10 @@ def write(pattern, f, settings=None):
         yy += dy
         if data == TRIM:
             delta = -4
-            f.write(encode_record(-delta/2, -delta/2, JUMP))
-            for p in range(1,trim_at-1):
+            f.write(encode_record(-delta / 2, -delta / 2, JUMP))
+            for p in range(1, trim_at - 1):
                 f.write(encode_record(delta, delta, JUMP))
                 delta = -delta
-            f.write(encode_record(delta/2, delta/2, JUMP))
+            f.write(encode_record(delta / 2, delta / 2, JUMP))
         else:
             f.write(encode_record(dx, dy, data))

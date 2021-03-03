@@ -2,10 +2,10 @@ from .ReadHelper import read_int_8, read_int_16le
 
 
 def find_extends(stitches):
-    min_x = float('inf')
-    min_y = float('inf')
-    max_x = -float('inf')
-    max_y = -float('inf')
+    min_x = float("inf")
+    min_y = float("inf")
+    max_x = -float("inf")
+    max_y = -float("inf")
 
     for stitch in stitches:
         if stitch[0] > max_x:

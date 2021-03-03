@@ -8,8 +8,8 @@ class Transcoder:
     def __init__(self, settings=None):
         if settings is None:
             settings = {}
-        self.max_stitch = settings.get("max_stitch", float('inf'))
-        self.max_jump = settings.get("max_jump", float('inf'))
+        self.max_stitch = settings.get("max_stitch", float("inf"))
+        self.max_jump = settings.get("max_jump", float("inf"))
         self.full_jump = settings.get("full_jump", False)
         self.round = settings.get("round", False)
         self.needle_count = settings.get("needle_count", 5)
@@ -22,7 +22,9 @@ class Transcoder:
             self.sequin_contingency = CONTINGENCY_SEQUIN_JUMP
         else:
             self.sequin_contingency = CONTINGENCY_SEQUIN_UTILIZE
-        self.sequin_contingency = settings.get("sequin_contingency", self.sequin_contingency)
+        self.sequin_contingency = settings.get(
+            "sequin_contingency", self.sequin_contingency
+        )
 
         self.writes_speeds = settings.get("writes_speeds", True)
         self.explicit_trim = settings.get("explicit_trim", False)
@@ -39,8 +41,9 @@ class Transcoder:
         if self.tie_off_contingency is False:
             self.tie_off_contingency = CONTINGENCY_TIE_OFF_NONE
 
-        self.long_stitch_contingency = \
-            settings.get("long_stitch_contingency", CONTINGENCY_LONG_STITCH_JUMP_NEEDLE)
+        self.long_stitch_contingency = settings.get(
+            "long_stitch_contingency", CONTINGENCY_LONG_STITCH_JUMP_NEEDLE
+        )
 
         self.matrix = EmbMatrix()
         translate = settings.get("translate", None)
@@ -106,7 +109,12 @@ class Transcoder:
             command = change[0]
             flags = command & COMMAND_MASK
             if current_index == 0:
-                if flags == STITCH or flags == SEW_TO or flags == NEEDLE_AT or flags == SEQUIN_EJECT:
+                if (
+                    flags == STITCH
+                    or flags == SEW_TO
+                    or flags == NEEDLE_AT
+                    or flags == SEQUIN_EJECT
+                ):
                     current_index = 1
             if flags == SET_CHANGE_SEQUENCE:
                 thread = change[1]
@@ -126,7 +134,13 @@ class Transcoder:
         change_sequence = {}
         lookahead_index = 0
         change_sequence[0] = [None, None, None, None]
-        for flags, thread, needle, order, current_index in self.get_as_thread_change_sequence_events():
+        for (
+            flags,
+            thread,
+            needle,
+            order,
+            current_index,
+        ) in self.get_as_thread_change_sequence_events():
             if flags == SET_CHANGE_SEQUENCE:
                 if order is None:
                     try:
@@ -368,7 +382,7 @@ class Transcoder:
 
     def lookahead_stitch(self):
         """Looks forward from current position and
-         determines if anymore stitching will occur."""
+        determines if anymore stitching will occur."""
         source = self.source_pattern.stitches
         for pos in range(self.position, len(source)):
             stitch = source[pos]
@@ -423,10 +437,15 @@ class Transcoder:
                     self.source_pattern.stitches[self.position - 1]
                 )
                 flags = b[2]
-                if flags == STITCH or flags == NEEDLE_AT or \
-                        flags == SEW_TO or flags == SEQUIN_EJECT:
-                    self.lock_stitch(self.needle_x, self.needle_y,
-                                     b[0], b[1], self.max_stitch)
+                if (
+                    flags == STITCH
+                    or flags == NEEDLE_AT
+                    or flags == SEW_TO
+                    or flags == SEQUIN_EJECT
+                ):
+                    self.lock_stitch(
+                        self.needle_x, self.needle_y, b[0], b[1], self.max_stitch
+                    )
             except IndexError:
                 pass  # must be an island stitch. jump-stitch-jump
 
@@ -437,10 +456,15 @@ class Transcoder:
                     self.source_pattern.stitches[self.position + 1]
                 )
                 flags = b[2]
-                if flags == STITCH or flags == NEEDLE_AT or \
-                        flags == SEW_TO or flags == SEQUIN_EJECT:
-                    self.lock_stitch(self.needle_x, self.needle_y,
-                                     b[0], b[1], self.max_stitch)
+                if (
+                    flags == STITCH
+                    or flags == NEEDLE_AT
+                    or flags == SEW_TO
+                    or flags == SEQUIN_EJECT
+                ):
+                    self.lock_stitch(
+                        self.needle_x, self.needle_y, b[0], b[1], self.max_stitch
+                    )
             except IndexError:
                 pass  # must be an island stitch. jump-stitch-jump
 
@@ -497,7 +521,7 @@ class Transcoder:
 
     def sew_to(self, new_x, new_y):
         """Stitches to a specific location, with the emphasis on sewing.
-         Subdivides long stitches into additional stitches.
+        Subdivides long stitches into additional stitches.
         """
         x0 = self.needle_x
         y0 = self.needle_y
@@ -637,11 +661,10 @@ class Transcoder:
             p = oriented(x, y, anchor_x, anchor_y, max_length)
             anchor_x = p[0]
             anchor_y = p[1]
-        for amount in (.33, .66, .33, 0):
-            transcode.append([
-                towards(x, anchor_x, amount),
-                towards(y, anchor_y, amount),
-                STITCH])
+        for amount in (0.33, 0.66, 0.33, 0):
+            transcode.append(
+                [towards(x, anchor_x, amount), towards(y, anchor_y, amount), STITCH]
+            )
 
 
 def distance_squared(x0, y0, x1, y1):

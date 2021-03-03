@@ -1,9 +1,9 @@
 import datetime
 
-from .EmbThread import build_nonrepeat_palette
 from .EmbConstant import *
+from .EmbThread import build_nonrepeat_palette
 from .EmbThreadJef import get_thread_set
-from .WriteHelper import write_string_utf8, write_int_32le, write_int_8
+from .WriteHelper import write_int_8, write_int_32le, write_string_utf8
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = True
@@ -23,10 +23,10 @@ def write(pattern, f, settings=None):
     trims = False
     command_count_max = 3
 
-    date_string = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
+    date_string = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
     if settings is not None:
         trims = settings.get("trims", trims)
-        command_count_max = settings.get('trim_at', command_count_max)
+        command_count_max = settings.get("trim_at", command_count_max)
         date_string = settings.get("date", date_string)
 
     pattern.fix_color_count()
@@ -47,7 +47,7 @@ def write(pattern, f, settings=None):
             point_count += 2
         elif data == TRIM:
             if trims:
-                point_count += (2 * command_count_max)
+                point_count += 2 * command_count_max
         elif data == COLOR_CHANGE:
             point_count += 2
         elif data == END:
@@ -110,22 +110,22 @@ def write(pattern, f, settings=None):
             write_int_8(f, -dy)
             continue
         elif data == COLOR_CHANGE:
-            f.write(b'\x80\x01')
+            f.write(b"\x80\x01")
             write_int_8(f, dx)
             write_int_8(f, -dy)
             continue
         elif data == TRIM:
             if trims:  # command trim.
-                f.write(b'\x80\x02\x00\x00' * command_count_max)
+                f.write(b"\x80\x02\x00\x00" * command_count_max)
             continue
         elif data == JUMP:
-            f.write(b'\x80\x02')
+            f.write(b"\x80\x02")
             write_int_8(f, dx)
             write_int_8(f, -dy)
             continue
         elif data == END:
             break
-    f.write(b'\x80\x10')
+    f.write(b"\x80\x10")
 
 
 def get_jef_hoop_size(width, height):

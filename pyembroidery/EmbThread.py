@@ -1,8 +1,9 @@
-
 def build_unique_palette(thread_palette, threadlist):
     """Turns a threadlist into a unique index list with the thread palette"""
     chart = [None] * len(thread_palette)  # Create a lookup chart.
-    for thread in set(threadlist):  # for each unique color, move closest remaining thread to lookup chart.
+    for thread in set(
+        threadlist
+    ):  # for each unique color, move closest remaining thread to lookup chart.
         index = thread.find_nearest_color_index(thread_palette)
         if index is None:
             break  # No more threads remain in palette
@@ -45,21 +46,17 @@ def build_nonrepeat_palette(thread_palette, threadlist):
 def find_nearest_color_index(find_color, values):
     if isinstance(find_color, EmbThread):
         find_color = find_color.color
-    red = (find_color >> 16) & 0xff
-    green = (find_color >> 8) & 0xff
-    blue = find_color & 0xff
+    red = (find_color >> 16) & 0xFF
+    green = (find_color >> 8) & 0xFF
+    blue = find_color & 0xFF
     closest_index = None
     current_closest_value = float("inf")
     for current_index, t in enumerate(values):
         if t is None:
             continue
         dist = color_distance_red_mean(
-            red,
-            green,
-            blue,
-            t.get_red(),
-            t.get_green(),
-            t.get_blue())
+            red, green, blue, t.get_red(), t.get_green(), t.get_blue()
+        )
         if dist <= current_closest_value:  # <= choose second if they tie.
             current_closest_value = dist
             closest_index = current_index
@@ -67,13 +64,11 @@ def find_nearest_color_index(find_color, values):
 
 
 def color_rgb(r, g, b):
-    return int(((r & 255) << 16) |
-               ((g & 255) << 8) |
-               (b & 255))
+    return int(((r & 255) << 16) | ((g & 255) << 8) | (b & 255))
 
 
 def color_hex(hex_string):
-    h = hex_string.lstrip('#')
+    h = hex_string.lstrip("#")
     size = len(h)
     if size == 6 or size == 8:
         return int(h[:6], 16)
@@ -81,22 +76,31 @@ def color_hex(hex_string):
         return int(h[0] + h[0] + h[1] + h[1] + h[2] + h[2], 16)
 
 
-def color_distance_red_mean(
-        r1, g1, b1,
-        r2, g2, b2):
+def color_distance_red_mean(r1, g1, b1, r2, g2, b2):
     red_mean = int(round((r1 + r2) / 2))
     r = int(r1 - r2)
     g = int(g1 - g2)
     b = int(b1 - b2)
-    return (((512 + red_mean) * r * r) >> 8) + 4 * g * g + \
-           (((767 - red_mean) * b * b) >> 8)
+    return (
+        (((512 + red_mean) * r * r) >> 8)
+        + 4 * g * g
+        + (((767 - red_mean) * b * b) >> 8)
+    )
     # See the very good color distance paper:
     # https://www.compuphase.com/cmetric.htm
 
 
 class EmbThread:
-
-    def __init__(self, thread=None, description=None, catalog_number=None, details=None, brand=None, chart=None, weight=None):
+    def __init__(
+        self,
+        thread=None,
+        description=None,
+        catalog_number=None,
+        details=None,
+        brand=None,
+        chart=None,
+        weight=None,
+    ):
         self.color = 0x000000
         self.description = description  # type: str
         self.catalog_number = catalog_number  # type: str
@@ -135,10 +139,16 @@ class EmbThread:
             return self.color & 0xFFFFFF == other & 0xFFFFFF
         try:
             if isinstance(other, basestring):
-                return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
+                return (
+                    self.color & 0xFFFFFF
+                    == EmbThread.parse_string_color(other) & 0xFFFFFF
+                )
         except NameError:
             if isinstance(other, str):
-                return self.color & 0xFFFFFF == EmbThread.parse_string_color(other) & 0xFFFFFF
+                return (
+                    self.color & 0xFFFFFF
+                    == EmbThread.parse_string_color(other) & 0xFFFFFF
+                )
         if not isinstance(other, EmbThread):
             return False
         if self.color & 0xFFFFFF != other.color & 0xFFFFFF:
@@ -188,9 +198,7 @@ class EmbThread:
         return find_nearest_color_index(int(self.color), values)
 
     def hex_color(self):
-        return "#%02x%02x%02x" % (
-            self.get_red(), self.get_green(), self.get_blue()
-        )
+        return "#%02x%02x%02x" % (self.get_red(), self.get_green(), self.get_blue())
 
     def set_hex_color(self, hex_string):
         self.color = color_hex(hex_string)
@@ -225,9 +233,11 @@ class EmbThread:
                 if isinstance(color, int):
                     self.color = color
                 elif isinstance(color, tuple) or isinstance(color, list):
-                    self.color = (color[0] & 0xFF) << 16 | \
-                                 (color[1] & 0xFF) << 8 | \
-                                 (color[2] & 0xFF)
+                    self.color = (
+                        (color[0] & 0xFF) << 16
+                        | (color[1] & 0xFF) << 8
+                        | (color[2] & 0xFF)
+                    )
                 else:
                     try:
                         if isinstance(color, basestring):
@@ -258,6 +268,7 @@ class EmbThread:
     def parse_string_color(color):
         if color == "random":
             import random
+
             return random.randint(0, 0xFFFFFF)
         if color[0:1] == "#":
             return color_hex(color[1:])
@@ -408,7 +419,7 @@ class EmbThread:
             "white": color_rgb(255, 255, 255),
             "whitesmoke": color_rgb(245, 245, 245),
             "yellow": color_rgb(255, 255, 0),
-            "yellowgreen": color_rgb(154, 205, 50)
+            "yellowgreen": color_rgb(154, 205, 50),
         }
         return color_dict.get(color.lower(), 0x000000)
         # return color or black.

@@ -106,7 +106,7 @@ class EmbMatrix:
                 return [
                     v0[0] * m[0] + v0[1] * m[3] + 1 * m[6],
                     v0[0] * m[1] + v0[1] * m[4] + 1 * m[7],
-                    v0[2]
+                    v0[2],
                 ]
             except IndexError:
                 return [
@@ -114,10 +114,7 @@ class EmbMatrix:
                     v0[0] * m[1] + v0[1] * m[4] + 1 * m[7]
                     # Must not have had a 3rd element.
                 ]
-        return [
-            v0 * m[0] + v1 * m[3] + 1 * m[6],
-            v0 * m[1] + v1 * m[4] + 1 * m[7]
-        ]
+        return [v0 * m[0] + v1 * m[3] + 1 * m[6], v0 * m[1] + v1 * m[4] + 1 * m[7]]
 
     def apply(self, v):
         m = self.m
@@ -128,26 +125,17 @@ class EmbMatrix:
 
     @staticmethod
     def get_identity():
-        return \
-            1, 0, 0, \
-            0, 1, 0, \
-            0, 0, 1  # identity
+        return 1, 0, 0, 0, 1, 0, 0, 0, 1  # identity
 
     @staticmethod
     def get_scale(sx, sy=None):
         if sy is None:
             sy = sx
-        return \
-            sx, 0, 0, \
-            0, sy, 0, \
-            0, 0, 1
+        return sx, 0, 0, 0, sy, 0, 0, 0, 1
 
     @staticmethod
     def get_translate(tx, ty):
-        return \
-            1, 0, 0, \
-            0, 1, 0, \
-            tx, ty, 1
+        return 1, 0, 0, 0, 1, 0, tx, ty, 1
 
     @staticmethod
     def get_rotate(theta):
@@ -155,10 +143,7 @@ class EmbMatrix:
         theta *= tau / 360
         ct = math.cos(theta)
         st = math.sin(theta)
-        return \
-            ct, st, 0, \
-            -st, ct, 0, \
-            0, 0, 1
+        return ct, st, 0, -st, ct, 0, 0, 0, 1
 
     @staticmethod
     def matrix_multiply(m0, m1):
@@ -171,4 +156,5 @@ class EmbMatrix:
             m1[3] * m0[2] + m1[4] * m0[5] + m1[5] * m0[8],
             m1[6] * m0[0] + m1[7] * m0[3] + m1[8] * m0[6],
             m1[6] * m0[1] + m1[7] * m0[4] + m1[8] * m0[7],
-            m1[6] * m0[2] + m1[7] * m0[5] + m1[8] * m0[8]]
+            m1[6] * m0[2] + m1[7] * m0[5] + m1[8] * m0[8],
+        ]

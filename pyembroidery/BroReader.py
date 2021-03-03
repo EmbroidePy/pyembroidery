@@ -1,7 +1,7 @@
-from .ReadHelper import read_int_16le, read_int_8, signed8, signed16
-
+from .ReadHelper import read_int_8, read_int_16le, signed8, signed16
 
 # Do you even embroider .bro?
+
 
 def read_bro_stitches(f, out):
     count = 0

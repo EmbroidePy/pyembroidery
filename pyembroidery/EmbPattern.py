@@ -1,7 +1,8 @@
 import os
 
-import pyembroidery.A100Reader as A100Reader
 import pyembroidery.A10oReader as A10oReader
+import pyembroidery.A100Reader as A100Reader
+
 # import pyembroidery.ArtReader as ArtReader
 import pyembroidery.BroReader as BroReader
 import pyembroidery.ColReader as ColReader
@@ -64,8 +65,10 @@ import pyembroidery.Vp3Reader as Vp3Reader
 import pyembroidery.Vp3Writer as Vp3Writer
 import pyembroidery.XxxReader as XxxReader
 import pyembroidery.XxxWriter as XxxWriter
+
 # import pyembroidery.ZhsReader as ZhsReader
 import pyembroidery.ZxyReader as ZxyReader
+
 from .EmbEncoder import Transcoder as Normalizer
 from .EmbFunctions import *
 from .EmbThread import EmbThread
@@ -91,8 +94,8 @@ class EmbPattern:
                 return
             if len(args) >= 2:
                 settings = args[1]
-            elif 'settings' in kwargs:
-                settings = kwargs['settings']
+            elif "settings" in kwargs:
+                settings = kwargs["settings"]
             else:
                 settings = kwargs
             if isinstance(arg0, str):
@@ -114,9 +117,15 @@ class EmbPattern:
 
     def __str__(self):
         if "name" in self.extras:
-            return "EmbPattern %s (commands: %3d, threads: %3d)" % \
-                   (self.extras["name"], len(self.stitches), len(self.threadlist))
-        return "EmbPattern (commands: %3d, threads: %3d)" % (len(self.stitches), len(self.threadlist))
+            return "EmbPattern %s (commands: %3d, threads: %3d)" % (
+                self.extras["name"],
+                len(self.stitches),
+                len(self.threadlist),
+            )
+        return "EmbPattern (commands: %3d, threads: %3d)" % (
+            len(self.stitches),
+            len(self.threadlist),
+        )
 
     def __len__(self):
         return len(self.stitches)
@@ -154,7 +163,9 @@ class EmbPattern:
             if len(other) == 0:
                 return
             v = other[0]
-            if isinstance(v, list) or isinstance(v, tuple):  # tuple or list of tuple or lists
+            if isinstance(v, list) or isinstance(
+                v, tuple
+            ):  # tuple or list of tuple or lists
                 for v in other:
                     x = v[0]
                     y = v[1]
@@ -168,7 +179,9 @@ class EmbPattern:
                     x = v.real
                     y = v.imag
                     self.add_stitch_absolute(STITCH, x, y)
-            elif isinstance(v, int) or isinstance(v, float):  # tuple or list of numbers.
+            elif isinstance(v, int) or isinstance(
+                v, float
+            ):  # tuple or list of numbers.
                 i = 0
                 ie = len(other)
                 while i < ie:
@@ -311,10 +324,10 @@ class EmbPattern:
     def bounds(self):
         """Returns the bounds of the stitch data:
         min_x, min_y, max_x, max_y"""
-        min_x = float('inf')
-        min_y = float('inf')
-        max_x = -float('inf')
-        max_y = -float('inf')
+        min_x = float("inf")
+        min_y = float("inf")
+        max_x = -float("inf")
+        max_y = -float("inf")
 
         for stitch in self.stitches:
             if stitch[0] > max_x:
@@ -425,7 +438,7 @@ class EmbPattern:
             if command == COLOR_CHANGE:
                 thread = self.get_thread_or_filler(thread_index)
                 thread_index += 1
-                yield self.stitches[colorblock_start:pos + 1], thread
+                yield self.stitches[colorblock_start : pos + 1], thread
                 colorblock_start = pos + 1
                 continue
             if command == NEEDLE_SET and colorblock_start != pos:
@@ -511,7 +524,9 @@ class EmbPattern:
             position += len(self.stitches)  # I need positive positions.
         if position == 0:
             self.stitches.insert(0, [dx, dy, TRIM])  # started (0,0)
-        elif position == len(self.stitches) or position is None:  # This is properly just an add.
+        elif (
+            position == len(self.stitches) or position is None
+        ):  # This is properly just an add.
             self.add_stitch_relative(cmd, dx, dy)
         elif 0 < position < len(self.stitches):
             p = self.stitches[position - 1]
@@ -529,7 +544,7 @@ class EmbPattern:
 
     def add_command(self, cmd, x=0, y=0):
         """Add a command, without treating parameters as locations
-         that require an update"""
+        that require an update"""
         self.stitches.append([x, y, cmd])
 
     def add_block(self, block, thread=None):
@@ -645,8 +660,12 @@ class EmbPattern:
             if data == STITCH or data == SEW_TO or data == NEEDLE_AT:
                 if init_color:
                     try:
-                        if last_change is not None and thread_index != 0 and \
-                                self.threadlist[thread_index - 1] == self.threadlist[thread_index]:
+                        if (
+                            last_change is not None
+                            and thread_index != 0
+                            and self.threadlist[thread_index - 1]
+                            == self.threadlist[thread_index]
+                        ):
                             del self.threadlist[thread_index]
                             self.stitches[last_change][2] = STOP
                         else:
@@ -660,7 +679,7 @@ class EmbPattern:
 
     def interpolate_stop_as_duplicate_color(self, thread_change_command=COLOR_CHANGE):
         """Processes a pattern replacing any stop as a duplicate color, and color_change
-         or another specified thread_change_command"""
+        or another specified thread_change_command"""
         thread_index = 0
         for position, stitch in enumerate(self.stitches):
             data = stitch[2] & COMMAND_MASK
@@ -687,8 +706,14 @@ class EmbPattern:
         while position < ie:
             stitch = self.stitches[position]
             data = stitch[2] & COMMAND_MASK
-            if data == STITCH or data == SEW_TO or data == NEEDLE_AT or \
-                    data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
+            if (
+                data == STITCH
+                or data == SEW_TO
+                or data == NEEDLE_AT
+                or data == COLOR_CHANGE
+                or data == COLOR_BREAK
+                or data == NEEDLE_SET
+            ):
                 if mode == 3:
                     del self.stitches[sequence_start_position:position]
                     position = sequence_start_position
@@ -712,7 +737,9 @@ class EmbPattern:
             position = sequence_start_position
             self.stitches.insert(position, [stop_x, stop_y, FRAME_EJECT])
 
-    def interpolate_trims(self, jumps_to_require_trim=None, distance_to_require_trim=None, clipping=True):
+    def interpolate_trims(
+        self, jumps_to_require_trim=None, distance_to_require_trim=None, clipping=True
+    ):
         """Processes a pattern adding trims according to the given criteria."""
         i = -1
         ie = len(self.stitches) - 1
@@ -750,19 +777,23 @@ class EmbPattern:
                 jump_dx += dx
                 jump_dy += dy
                 if not trimmed:
-                    if jump_count == jumps_to_require_trim or \
-                            distance_to_require_trim is not None and \
-                            (
-                                    abs(jump_dy) > distance_to_require_trim or \
-                                    abs(jump_dx) > distance_to_require_trim
-                            ):
+                    if (
+                        jump_count == jumps_to_require_trim
+                        or distance_to_require_trim is not None
+                        and (
+                            abs(jump_dy) > distance_to_require_trim
+                            or abs(jump_dx) > distance_to_require_trim
+                        )
+                    ):
                         self.trim(position=jump_start)
                         jump_start += 1  # We inserted a position, start jump has moved.
                         i += 1
                         ie += 1
                         trimmed = True
-                if clipping and jump_dx == 0 and jump_dy == 0:  # jump displacement is 0, clip trim command.
-                    del self.stitches[jump_start:i + 1]
+                if (
+                    clipping and jump_dx == 0 and jump_dy == 0
+                ):  # jump displacement is 0, clip trim command.
+                    del self.stitches[jump_start : i + 1]
                     i = jump_start - 1
                     ie = len(self.stitches) - 1
 
@@ -785,9 +816,7 @@ class EmbPattern:
             elif command == COLOR_CHANGE or command == NEEDLE_SET or command == TRIM:
                 trimmed = True
             if trimmed or stitch[2] != JUMP:
-                new_pattern.add_stitch_absolute(stitch[2],
-                                                stitch[0],
-                                                stitch[1])
+                new_pattern.add_stitch_absolute(stitch[2], stitch[0], stitch[1])
                 continue
             while i < ie and command == JUMP:
                 i += 1
@@ -800,9 +829,7 @@ class EmbPattern:
             if count >= jumps_to_require_trim:
                 new_pattern.trim()
             count = 0
-            new_pattern.add_stitch_absolute(stitch[2],
-                                            stitch[0],
-                                            stitch[1])
+            new_pattern.add_stitch_absolute(stitch[2], stitch[0], stitch[1])
         new_pattern.threadlist.extend(self.threadlist)
         new_pattern.extras.update(self.extras)
         return new_pattern
@@ -823,9 +850,7 @@ class EmbPattern:
                 new_pattern.add_command(STITCH_BREAK)
                 stitch_break = True
                 continue
-            new_pattern.add_stitch_absolute(stitch[2],
-                                            stitch[0],
-                                            stitch[1])
+            new_pattern.add_stitch_absolute(stitch[2], stitch[0], stitch[1])
         new_pattern.threadlist.extend(self.threadlist)
         new_pattern.extras.update(self.extras)
         return new_pattern
@@ -871,351 +896,427 @@ class EmbPattern:
         #     "reader": ArtReader,
         #     "metadata": ("name")
         # })
-        yield ({
-            "description": "Brother Embroidery Format",
-            "extension": "pec",
-            "extensions": ("pec",),
-            "mimetype": "application/x-pec",
-            "category": "embroidery",
-            "reader": PecReader,
-            "writer": PecWriter,
-            "metadata": ("name")
-        })
-        yield ({
-            "description": "Brother Embroidery Format",
-            "extension": "pes",
-            "extensions": ("pes",),
-            "mimetype": "application/x-pes",
-            "category": "embroidery",
-            "reader": PesReader,
-            "writer": PesWriter,
-            "versions": ("1", "6", "1t", "6t"),
-            "metadata": ("name", "author", "category", "keywords", "comments")
-        })
-        yield ({
-            "description": "Melco Embroidery Format",
-            "extension": "exp",
-            "extensions": ("exp",),
-            "mimetype": "application/x-exp",
-            "category": "embroidery",
-            "reader": ExpReader,
-            "writer": ExpWriter,
-        })
-        yield ({
-            "description": "Tajima Embroidery Format",
-            "extension": "dst",
-            "extensions": ("dst",),
-            "mimetype": "application/x-dst",
-            "category": "embroidery",
-            "reader": DstReader,
-            "writer": DstWriter,
-            "read_options": {
-                "trim_distance": (None, 3.0, 50.0),
-                "trim_at": (2, 3, 4, 5, 6, 7, 8),
-                "clipping": (True, False)
-            },
-            "write_options": {
-                "trim_at": (2, 3, 4, 5, 6, 7, 8)
-            },
-            "versions": ("default", "extended"),
-            "metadata": ("name", "author", "copyright")
-        })
-        yield ({
-            "description": "Janome Embroidery Format",
-            "extension": "jef",
-            "extensions": ("jef",),
-            "mimetype": "application/x-jef",
-            "category": "embroidery",
-            "reader": JefReader,
-            "writer": JefWriter,
-            "read_options": {
-                "trim_distance": (None, 3.0, 50.0),
-                "trims": (True, False),
-                "trim_at": (2, 3, 4, 5, 6, 7, 8),
-                "clipping": (True, False)
-            },
-            "write_options": {
-                "trims": (True, False),
-                "trim_at": (2, 3, 4, 5, 6, 7, 8),
-            },
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "vp3",
-            "extensions": ("vp3",),
-            "mimetype": "application/x-vp3",
-            "category": "embroidery",
-            "reader": Vp3Reader,
-            "writer": Vp3Writer,
-        })
-        yield ({
-            "description": "Scalable Vector Graphics",
-            "extension": "svg",
-            "extensions": ("svg", "svgz"),
-            "mimetype": "image/svg+xml",
-            "category": "vector",
-            "writer": SvgWriter,
-        })
-        yield ({
-            "description": "Comma-separated values",
-            "extension": "csv",
-            "extensions": ("csv",),
-            "mimetype": "text/csv",
-            "category": "debug",
-            "reader": CsvReader,
-            "writer": CsvWriter,
-            "versions": ("default", "delta", "full")
-        })
-        yield ({
-            "description": "Singer Embroidery Format",
-            "extension": "xxx",
-            "extensions": ("xxx",),
-            "mimetype": "application/x-xxx",
-            "category": "embroidery",
-            "reader": XxxReader,
-            "writer": XxxWriter
-        })
-        yield ({
-            "description": "Janome Embroidery Format",
-            "extension": "sew",
-            "extensions": ("sew",),
-            "mimetype": "application/x-sew",
-            "category": "embroidery",
-            "reader": SewReader
-        })
-        yield ({
-            "description": "Barudan Embroidery Format",
-            "extension": "u01",
-            "extensions": ("u00", "u01", "u02"),
-            "mimetype": "application/x-u01",
-            "category": "embroidery",
-            "reader": U01Reader,
-            "writer": U01Writer
-        })
-        yield ({
-            "description": "Husqvarna Viking Embroidery Format",
-            "extension": "shv",
-            "extensions": ("shv",),
-            "mimetype": "application/x-shv",
-            "category": "embroidery",
-            "reader": ShvReader
-        })
-        yield ({
-            "description": "Toyota Embroidery Format",
-            "extension": "10o",
-            "extensions": ("10o",),
-            "mimetype": "application/x-10o",
-            "category": "embroidery",
-            "reader": A10oReader
-        })
-        yield ({
-            "description": "Toyota Embroidery Format",
-            "extension": "100",
-            "extensions": ("100",),
-            "mimetype": "application/x-100",
-            "category": "embroidery",
-            "reader": A100Reader
-        })
-        yield ({
-            "description": "Bits & Volts Embroidery Format",
-            "extension": "bro",
-            "extensions": ("bro",),
-            "mimetype": "application/x-Bro",
-            "category": "embroidery",
-            "reader": BroReader
-        })
-        yield ({
-            "description": "Sunstar or Barudan Embroidery Format",
-            "extension": "dat",
-            "extensions": ("dat",),
-            "mimetype": "application/x-dat",
-            "category": "embroidery",
-            "reader": DatReader
-        })
-        yield ({
-            "description": "Tajima(Barudan) Embroidery Format",
-            "extension": "dsb",
-            "extensions": ("dsb",),
-            "mimetype": "application/x-dsb",
-            "category": "embroidery",
-            "reader": DsbReader
-        })
-        yield ({
-            "description": "ZSK USA Embroidery Format",
-            "extension": "dsz",
-            "extensions": ("dsz",),
-            "mimetype": "application/x-dsz",
-            "category": "embroidery",
-            "reader": DszReader
-        })
-        yield ({
-            "description": "Elna Embroidery Format",
-            "extension": "emd",
-            "extensions": ("emd",),
-            "mimetype": "application/x-emd",
-            "category": "embroidery",
-            "reader": EmdReader
-        })
-        yield ({
-            "description": "Eltac Embroidery Format",
-            "extension": "exy",  # e??, e01
-            "extensions": ("e00", "e01", "e02"),
-            "mimetype": "application/x-exy",
-            "category": "embroidery",
-            "reader": ExyReader
-        })
-        yield ({
-            "description": "Fortron Embroidery Format",
-            "extension": "fxy",  # f??, f01
-            "extensions": ("f00", "f01", "f02"),
-            "mimetype": "application/x-fxy",
-            "category": "embroidery",
-            "reader": FxyReader
-        })
-        yield ({
-            "description": "Gold Thread Embroidery Format",
-            "extension": "gt",
-            "extensions": ("gt",),
-            "mimetype": "application/x-exy",
-            "category": "embroidery",
-            "reader": GtReader
-        })
-        yield ({
-            "description": "Inbro Embroidery Format",
-            "extension": "inb",
-            "extensions": ("inb",),
-            "mimetype": "application/x-inb",
-            "category": "embroidery",
-            "reader": InbReader
-        })
-        yield ({
-            "description": "Tajima Embroidery Format",
-            "extension": "tbf",
-            "extensions": ("tbf",),
-            "mimetype": "application/x-tbf",
-            "category": "embroidery",
-            "reader": TbfReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "ksm",
-            "extensions": ("ksm",),
-            "mimetype": "application/x-ksm",
-            "category": "embroidery",
-            "reader": KsmReader
-        })
-        yield ({
-            "description": "Happy Embroidery Format",
-            "extension": "tap",
-            "extensions": ("tap",),
-            "mimetype": "application/x-tap",
-            "category": "embroidery",
-            "reader": TapReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "spx",
-            "extensions": ("spx"),
-            "mimetype": "application/x-spx",
-            "category": "embroidery",
-            "reader": SpxReader
-        })
-        yield ({
-            "description": "Data Stitch Embroidery Format",
-            "extension": "stx",
-            "extensions": ("stx",),
-            "mimetype": "application/x-stx",
-            "category": "embroidery",
-            "reader": StxReader
-        })
-        yield ({
-            "description": "Brother Embroidery Format",
-            "extension": "phb",
-            "extensions": ("phb",),
-            "mimetype": "application/x-phb",
-            "category": "embroidery",
-            "reader": PhbReader
-        })
-        yield ({
-            "description": "Brother Embroidery Format",
-            "extension": "phc",
-            "extensions": ("phc",),
-            "mimetype": "application/x-phc",
-            "category": "embroidery",
-            "reader": PhcReader
-        })
-        yield ({
-            "description": "Ameco Embroidery Format",
-            "extension": "new",
-            "extensions": ("new",),
-            "mimetype": "application/x-new",
-            "category": "embroidery",
-            "reader": NewReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "max",
-            "extensions": ("max",),
-            "mimetype": "application/x-max",
-            "category": "embroidery",
-            "reader": MaxReader
-        })
-        yield ({
-            "description": "Mitsubishi Embroidery Format",
-            "extension": "mit",
-            "extensions": ("mit",),
-            "mimetype": "application/x-mit",
-            "category": "embroidery",
-            "reader": MitReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "pcd",
-            "extensions": ("pcd",),
-            "mimetype": "application/x-pcd",
-            "category": "embroidery",
-            "reader": PcdReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "pcq",
-            "extensions": ("pcq",),
-            "mimetype": "application/x-pcq",
-            "category": "embroidery",
-            "reader": PcqReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "pcm",
-            "extensions": ("pcm",),
-            "mimetype": "application/x-pcm",
-            "category": "embroidery",
-            "reader": PcmReader
-        })
-        yield ({
-            "description": "Pfaff Embroidery Format",
-            "extension": "pcs",
-            "extensions": ("pcs",),
-            "mimetype": "application/x-pcs",
-            "category": "embroidery",
-            "reader": PcsReader
-        })
-        yield ({
-            "description": "Janome Embroidery Format",
-            "extension": "jpx",
-            "extensions": ("jpx",),
-            "mimetype": "application/x-jpx",
-            "category": "embroidery",
-            "reader": JpxReader
-        })
-        yield ({
-            "description": "Gunold Embroidery Format",
-            "extension": "stc",
-            "extensions": ("stc",),
-            "mimetype": "application/x-stc",
-            "category": "embroidery",
-            "reader": StcReader
-        })
+        yield (
+            {
+                "description": "Brother Embroidery Format",
+                "extension": "pec",
+                "extensions": ("pec",),
+                "mimetype": "application/x-pec",
+                "category": "embroidery",
+                "reader": PecReader,
+                "writer": PecWriter,
+                "metadata": ("name"),
+            }
+        )
+        yield (
+            {
+                "description": "Brother Embroidery Format",
+                "extension": "pes",
+                "extensions": ("pes",),
+                "mimetype": "application/x-pes",
+                "category": "embroidery",
+                "reader": PesReader,
+                "writer": PesWriter,
+                "versions": ("1", "6", "1t", "6t"),
+                "metadata": ("name", "author", "category", "keywords", "comments"),
+            }
+        )
+        yield (
+            {
+                "description": "Melco Embroidery Format",
+                "extension": "exp",
+                "extensions": ("exp",),
+                "mimetype": "application/x-exp",
+                "category": "embroidery",
+                "reader": ExpReader,
+                "writer": ExpWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Tajima Embroidery Format",
+                "extension": "dst",
+                "extensions": ("dst",),
+                "mimetype": "application/x-dst",
+                "category": "embroidery",
+                "reader": DstReader,
+                "writer": DstWriter,
+                "read_options": {
+                    "trim_distance": (None, 3.0, 50.0),
+                    "trim_at": (2, 3, 4, 5, 6, 7, 8),
+                    "clipping": (True, False),
+                },
+                "write_options": {"trim_at": (2, 3, 4, 5, 6, 7, 8)},
+                "versions": ("default", "extended"),
+                "metadata": ("name", "author", "copyright"),
+            }
+        )
+        yield (
+            {
+                "description": "Janome Embroidery Format",
+                "extension": "jef",
+                "extensions": ("jef",),
+                "mimetype": "application/x-jef",
+                "category": "embroidery",
+                "reader": JefReader,
+                "writer": JefWriter,
+                "read_options": {
+                    "trim_distance": (None, 3.0, 50.0),
+                    "trims": (True, False),
+                    "trim_at": (2, 3, 4, 5, 6, 7, 8),
+                    "clipping": (True, False),
+                },
+                "write_options": {
+                    "trims": (True, False),
+                    "trim_at": (2, 3, 4, 5, 6, 7, 8),
+                },
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "vp3",
+                "extensions": ("vp3",),
+                "mimetype": "application/x-vp3",
+                "category": "embroidery",
+                "reader": Vp3Reader,
+                "writer": Vp3Writer,
+            }
+        )
+        yield (
+            {
+                "description": "Scalable Vector Graphics",
+                "extension": "svg",
+                "extensions": ("svg", "svgz"),
+                "mimetype": "image/svg+xml",
+                "category": "vector",
+                "writer": SvgWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Comma-separated values",
+                "extension": "csv",
+                "extensions": ("csv",),
+                "mimetype": "text/csv",
+                "category": "debug",
+                "reader": CsvReader,
+                "writer": CsvWriter,
+                "versions": ("default", "delta", "full"),
+            }
+        )
+        yield (
+            {
+                "description": "Singer Embroidery Format",
+                "extension": "xxx",
+                "extensions": ("xxx",),
+                "mimetype": "application/x-xxx",
+                "category": "embroidery",
+                "reader": XxxReader,
+                "writer": XxxWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Janome Embroidery Format",
+                "extension": "sew",
+                "extensions": ("sew",),
+                "mimetype": "application/x-sew",
+                "category": "embroidery",
+                "reader": SewReader,
+            }
+        )
+        yield (
+            {
+                "description": "Barudan Embroidery Format",
+                "extension": "u01",
+                "extensions": ("u00", "u01", "u02"),
+                "mimetype": "application/x-u01",
+                "category": "embroidery",
+                "reader": U01Reader,
+                "writer": U01Writer,
+            }
+        )
+        yield (
+            {
+                "description": "Husqvarna Viking Embroidery Format",
+                "extension": "shv",
+                "extensions": ("shv",),
+                "mimetype": "application/x-shv",
+                "category": "embroidery",
+                "reader": ShvReader,
+            }
+        )
+        yield (
+            {
+                "description": "Toyota Embroidery Format",
+                "extension": "10o",
+                "extensions": ("10o",),
+                "mimetype": "application/x-10o",
+                "category": "embroidery",
+                "reader": A10oReader,
+            }
+        )
+        yield (
+            {
+                "description": "Toyota Embroidery Format",
+                "extension": "100",
+                "extensions": ("100",),
+                "mimetype": "application/x-100",
+                "category": "embroidery",
+                "reader": A100Reader,
+            }
+        )
+        yield (
+            {
+                "description": "Bits & Volts Embroidery Format",
+                "extension": "bro",
+                "extensions": ("bro",),
+                "mimetype": "application/x-Bro",
+                "category": "embroidery",
+                "reader": BroReader,
+            }
+        )
+        yield (
+            {
+                "description": "Sunstar or Barudan Embroidery Format",
+                "extension": "dat",
+                "extensions": ("dat",),
+                "mimetype": "application/x-dat",
+                "category": "embroidery",
+                "reader": DatReader,
+            }
+        )
+        yield (
+            {
+                "description": "Tajima(Barudan) Embroidery Format",
+                "extension": "dsb",
+                "extensions": ("dsb",),
+                "mimetype": "application/x-dsb",
+                "category": "embroidery",
+                "reader": DsbReader,
+            }
+        )
+        yield (
+            {
+                "description": "ZSK USA Embroidery Format",
+                "extension": "dsz",
+                "extensions": ("dsz",),
+                "mimetype": "application/x-dsz",
+                "category": "embroidery",
+                "reader": DszReader,
+            }
+        )
+        yield (
+            {
+                "description": "Elna Embroidery Format",
+                "extension": "emd",
+                "extensions": ("emd",),
+                "mimetype": "application/x-emd",
+                "category": "embroidery",
+                "reader": EmdReader,
+            }
+        )
+        yield (
+            {
+                "description": "Eltac Embroidery Format",
+                "extension": "exy",  # e??, e01
+                "extensions": ("e00", "e01", "e02"),
+                "mimetype": "application/x-exy",
+                "category": "embroidery",
+                "reader": ExyReader,
+            }
+        )
+        yield (
+            {
+                "description": "Fortron Embroidery Format",
+                "extension": "fxy",  # f??, f01
+                "extensions": ("f00", "f01", "f02"),
+                "mimetype": "application/x-fxy",
+                "category": "embroidery",
+                "reader": FxyReader,
+            }
+        )
+        yield (
+            {
+                "description": "Gold Thread Embroidery Format",
+                "extension": "gt",
+                "extensions": ("gt",),
+                "mimetype": "application/x-exy",
+                "category": "embroidery",
+                "reader": GtReader,
+            }
+        )
+        yield (
+            {
+                "description": "Inbro Embroidery Format",
+                "extension": "inb",
+                "extensions": ("inb",),
+                "mimetype": "application/x-inb",
+                "category": "embroidery",
+                "reader": InbReader,
+            }
+        )
+        yield (
+            {
+                "description": "Tajima Embroidery Format",
+                "extension": "tbf",
+                "extensions": ("tbf",),
+                "mimetype": "application/x-tbf",
+                "category": "embroidery",
+                "reader": TbfReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "ksm",
+                "extensions": ("ksm",),
+                "mimetype": "application/x-ksm",
+                "category": "embroidery",
+                "reader": KsmReader,
+            }
+        )
+        yield (
+            {
+                "description": "Happy Embroidery Format",
+                "extension": "tap",
+                "extensions": ("tap",),
+                "mimetype": "application/x-tap",
+                "category": "embroidery",
+                "reader": TapReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "spx",
+                "extensions": ("spx"),
+                "mimetype": "application/x-spx",
+                "category": "embroidery",
+                "reader": SpxReader,
+            }
+        )
+        yield (
+            {
+                "description": "Data Stitch Embroidery Format",
+                "extension": "stx",
+                "extensions": ("stx",),
+                "mimetype": "application/x-stx",
+                "category": "embroidery",
+                "reader": StxReader,
+            }
+        )
+        yield (
+            {
+                "description": "Brother Embroidery Format",
+                "extension": "phb",
+                "extensions": ("phb",),
+                "mimetype": "application/x-phb",
+                "category": "embroidery",
+                "reader": PhbReader,
+            }
+        )
+        yield (
+            {
+                "description": "Brother Embroidery Format",
+                "extension": "phc",
+                "extensions": ("phc",),
+                "mimetype": "application/x-phc",
+                "category": "embroidery",
+                "reader": PhcReader,
+            }
+        )
+        yield (
+            {
+                "description": "Ameco Embroidery Format",
+                "extension": "new",
+                "extensions": ("new",),
+                "mimetype": "application/x-new",
+                "category": "embroidery",
+                "reader": NewReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "max",
+                "extensions": ("max",),
+                "mimetype": "application/x-max",
+                "category": "embroidery",
+                "reader": MaxReader,
+            }
+        )
+        yield (
+            {
+                "description": "Mitsubishi Embroidery Format",
+                "extension": "mit",
+                "extensions": ("mit",),
+                "mimetype": "application/x-mit",
+                "category": "embroidery",
+                "reader": MitReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "pcd",
+                "extensions": ("pcd",),
+                "mimetype": "application/x-pcd",
+                "category": "embroidery",
+                "reader": PcdReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "pcq",
+                "extensions": ("pcq",),
+                "mimetype": "application/x-pcq",
+                "category": "embroidery",
+                "reader": PcqReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "pcm",
+                "extensions": ("pcm",),
+                "mimetype": "application/x-pcm",
+                "category": "embroidery",
+                "reader": PcmReader,
+            }
+        )
+        yield (
+            {
+                "description": "Pfaff Embroidery Format",
+                "extension": "pcs",
+                "extensions": ("pcs",),
+                "mimetype": "application/x-pcs",
+                "category": "embroidery",
+                "reader": PcsReader,
+            }
+        )
+        yield (
+            {
+                "description": "Janome Embroidery Format",
+                "extension": "jpx",
+                "extensions": ("jpx",),
+                "mimetype": "application/x-jpx",
+                "category": "embroidery",
+                "reader": JpxReader,
+            }
+        )
+        yield (
+            {
+                "description": "Gunold Embroidery Format",
+                "extension": "stc",
+                "extensions": ("stc",),
+                "mimetype": "application/x-stc",
+                "category": "embroidery",
+                "reader": StcReader,
+            }
+        )
         # yield ({
         #     "description": "Zeng Hsing Embroidery Format",
         #     "extension": "zhs",
@@ -1223,100 +1324,120 @@ class EmbPattern:
         #     "category": "embroidery",
         #     "reader": ZhsReader
         # })
-        yield ({
-            "description": "ZSK TC Embroidery Format",
-            "extension": "zxy",
-            "extensions": ("z00", "z01", "z02"),
-            "mimetype": "application/x-zxy",
-            "category": "embroidery",
-            "reader": ZxyReader
-        })
-        yield ({
-            "description": "Brother Stitch Format",
-            "extension": "pmv",
-            "extensions": ("pmv",),
-            "mimetype": "application/x-pmv",
-            "category": "stitch",
-            "reader": PmvReader,
-            "writer": PmvWriter
-        })
-        yield ({
-            "description": "PNG Format, Portable Network Graphics",
-            "extension": "png",
-            "extensions": ("png",),
-            "mimetype": "image/png",
-            "category": "image",
-            "writer": PngWriter,
-            "write_options": {
-                "background": (0x000000, 0xFFFFFF),
-                "linewidth": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-            },
-        })
-        yield ({
-            "description": "txt Format, Text File",
-            "extension": "txt",
-            "extensions": ("txt",),
-            "mimetype": "text/plain",
-            "category": "debug",
-            "writer": TxtWriter,
-            "versions": ("default", "embroidermodder")
-        })
-        yield ({
-            "description": "gcode Format, Text File",
-            "extension": "gcode",
-            "extensions": ("gcode", "g-code", "ngc", "nc", ".g"),
-            "mimetype": "text/plain",
-            "category": "embroidery",
-            "reader": GcodeReader,
-            "writer": GcodeWriter,
-            "write_options": {
-                "stitch_z_travel": (5.0, 10.0),
-            },
-        })
-        yield ({
-            "description": "Husqvarna Embroidery Format",
-            "extension": "hus",
-            "extensions": ("hus",),
-            "mimetype": "application/x-hus",
-            "category": "embroidery",
-            "reader": HusReader
-        })
-        yield ({
-            "description": "Edr Color Format",
-            "extension": "edr",
-            "extensions": ("edr",),
-            "mimetype": "application/x-edr",
-            "category": "color",
-            "reader": EdrReader,
-            "writer": EdrWriter
-        })
-        yield ({
-            "description": "Col Color Format",
-            "extension": "col",
-            "extensions": ("col",),
-            "mimetype": "application/x-col",
-            "category": "color",
-            "reader": ColReader,
-            "writer": ColWriter
-        })
-        yield ({
-            "description": "Inf Color Format",
-            "extension": "inf",
-            "extensions": ("inf",),
-            "mimetype": "application/x-inf",
-            "category": "color",
-            "reader": InfReader,
-            "writer": InfWriter
-        })
-        yield ({
-            "description": "Json Export",
-            "extension": "json",
-            "extensions": ("json",),
-            "mimetype": "application/json",
-            "category": "debug",
-            "reader": JsonReader,
-            "writer": JsonWriter
-        })
+        yield (
+            {
+                "description": "ZSK TC Embroidery Format",
+                "extension": "zxy",
+                "extensions": ("z00", "z01", "z02"),
+                "mimetype": "application/x-zxy",
+                "category": "embroidery",
+                "reader": ZxyReader,
+            }
+        )
+        yield (
+            {
+                "description": "Brother Stitch Format",
+                "extension": "pmv",
+                "extensions": ("pmv",),
+                "mimetype": "application/x-pmv",
+                "category": "stitch",
+                "reader": PmvReader,
+                "writer": PmvWriter,
+            }
+        )
+        yield (
+            {
+                "description": "PNG Format, Portable Network Graphics",
+                "extension": "png",
+                "extensions": ("png",),
+                "mimetype": "image/png",
+                "category": "image",
+                "writer": PngWriter,
+                "write_options": {
+                    "background": (0x000000, 0xFFFFFF),
+                    "linewidth": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+                },
+            }
+        )
+        yield (
+            {
+                "description": "txt Format, Text File",
+                "extension": "txt",
+                "extensions": ("txt",),
+                "mimetype": "text/plain",
+                "category": "debug",
+                "writer": TxtWriter,
+                "versions": ("default", "embroidermodder"),
+            }
+        )
+        yield (
+            {
+                "description": "gcode Format, Text File",
+                "extension": "gcode",
+                "extensions": ("gcode", "g-code", "ngc", "nc", ".g"),
+                "mimetype": "text/plain",
+                "category": "embroidery",
+                "reader": GcodeReader,
+                "writer": GcodeWriter,
+                "write_options": {
+                    "stitch_z_travel": (5.0, 10.0),
+                },
+            }
+        )
+        yield (
+            {
+                "description": "Husqvarna Embroidery Format",
+                "extension": "hus",
+                "extensions": ("hus",),
+                "mimetype": "application/x-hus",
+                "category": "embroidery",
+                "reader": HusReader,
+            }
+        )
+        yield (
+            {
+                "description": "Edr Color Format",
+                "extension": "edr",
+                "extensions": ("edr",),
+                "mimetype": "application/x-edr",
+                "category": "color",
+                "reader": EdrReader,
+                "writer": EdrWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Col Color Format",
+                "extension": "col",
+                "extensions": ("col",),
+                "mimetype": "application/x-col",
+                "category": "color",
+                "reader": ColReader,
+                "writer": ColWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Inf Color Format",
+                "extension": "inf",
+                "extensions": ("inf",),
+                "mimetype": "application/x-inf",
+                "category": "color",
+                "reader": InfReader,
+                "writer": InfWriter,
+            }
+        )
+        yield (
+            {
+                "description": "Json Export",
+                "extension": "json",
+                "extensions": ("json",),
+                "mimetype": "application/json",
+                "category": "debug",
+                "reader": JsonReader,
+                "writer": JsonWriter,
+            }
+        )
 
     @staticmethod
     def convert(filename_from, filename_to, settings=None):
@@ -1418,7 +1539,7 @@ class EmbPattern:
         extension = EmbPattern.get_extension_by_filename(filename)
         extension = extension.lower()
         for file_type in EmbPattern.supported_formats():
-            if file_type['extension'] != extension:
+            if file_type["extension"] != extension:
                 continue
             reader = file_type.get("reader", None)
             return EmbPattern.read_embroidery(reader, filename, settings, pattern)
@@ -1583,7 +1704,7 @@ class EmbPattern:
         extension = extension.lower()
 
         for file_type in EmbPattern.supported_formats():
-            if file_type['extension'] != extension:
+            if file_type["extension"] != extension:
                 continue
             writer = file_type.get("writer", None)
             if writer is None:

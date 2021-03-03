@@ -36,4 +36,4 @@ def read(f, out, settings=None):
         out.add_thread(threads[index])
 
     f.seek(0x1D78, 0)
-    read_sew_stitches(f, out);
+    read_sew_stitches(f, out)

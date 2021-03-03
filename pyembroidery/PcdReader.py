@@ -1,5 +1,11 @@
 from .EmbThread import EmbThread
-from .ReadHelper import read_int_8, read_int_24be, read_int_24le, read_int_16le, signed24
+from .ReadHelper import (
+    read_int_8,
+    read_int_16le,
+    read_int_24be,
+    read_int_24le,
+    signed24,
+)
 
 PC_SIZE_CONVERSION_RATIO = 5.0 / 3.0
 

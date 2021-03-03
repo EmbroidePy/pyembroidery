@@ -2,8 +2,8 @@ from .EmbFunctions import *
 from .EmbThread import EmbThread
 
 
-def decoded_command(command_dict,name):
-    split = name.split(' ')
+def decoded_command(command_dict, name):
+    split = name.split(" ")
     command = command_dict[split[0]]
     for sp in split[1:]:
         if sp[0] == "n":
@@ -20,11 +20,12 @@ def decoded_command(command_dict,name):
 
 def read(f, out, settings=None):
     import json
+
     json_object = json.load(f)
     command_dict = get_command_dictionary()
-    stitches = json_object['stitches']
-    extras = json_object['extras']
-    threadlist = json_object['threadlist']
+    stitches = json_object["stitches"]
+    extras = json_object["extras"]
+    threadlist = json_object["threadlist"]
     for t in threadlist:
         color = t["color"]
         thread = EmbThread(color)
@@ -36,11 +37,5 @@ def read(f, out, settings=None):
         thread.weight = t["weight"]
         out.add_thread(thread)
     for s in stitches:
-        out.stitches.append(
-            [
-                s[0],
-                s[1],
-                decoded_command(command_dict, s[2])
-            ]
-        )
+        out.stitches.append([s[0], s[1], decoded_command(command_dict, s[2])])
     out.extras.update(extras)

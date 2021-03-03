@@ -27,16 +27,16 @@ def write(pattern, f, settings=None):
         elif data == JUMP:
             delta_x = dx & 0xFF
             delta_y = -dy & 0xFF
-            f.write(b'\x80\x04')
+            f.write(b"\x80\x04")
             f.write(bytes(bytearray([delta_x, delta_y])))
         elif data == TRIM:
-            f.write(b'\x80\x80\x07\x00')
+            f.write(b"\x80\x80\x07\x00")
             continue
         elif data == COLOR_CHANGE:
-            f.write(b'\x80\x01\x00\x00')
+            f.write(b"\x80\x01\x00\x00")
             continue
         elif data == STOP:
-            f.write(b'\x80\x01\x00\x00')
+            f.write(b"\x80\x01\x00\x00")
             continue
         elif data == END:
             pass

@@ -1,4 +1,4 @@
-from .ReadHelper import read_int_8, read_int_24be, signed24, read_int_16be
+from .ReadHelper import read_int_8, read_int_16be, read_int_24be, signed24
 
 PC_SIZE_CONVERSION_RATIO = 5.0 / 3.0
 

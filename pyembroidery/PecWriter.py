@@ -1,9 +1,14 @@
-from .EmbThread import build_unique_palette
 from .EmbConstant import *
+from .EmbThread import build_unique_palette
 from .EmbThreadPec import get_thread_set
-from .PecGraphics import get_blank, draw_scaled
-from .WriteHelper import write_int_8, write_int_16le, write_int_16be, \
-    write_int_24le, write_string_utf8
+from .PecGraphics import draw_scaled, get_blank
+from .WriteHelper import (
+    write_int_8,
+    write_int_16be,
+    write_int_16le,
+    write_int_24le,
+    write_string_utf8,
+)
 
 SEQUIN_CONTINGENCY = CONTINGENCY_SEQUIN_JUMP
 FULL_JUMP = True
@@ -22,7 +27,7 @@ PEC_ICON_HEIGHT = 38
 def write(pattern, f, settings=None):
     pattern.fix_color_count()
     pattern.interpolate_stop_as_duplicate_color()
-    f.write(bytes("#PEC0001".encode('utf8')))
+    f.write(bytes("#PEC0001".encode("utf8")))
     write_pec(pattern, f)
 
 
@@ -40,7 +45,7 @@ def write_pec(pattern, f, threadlist=None):
 def write_pec_header(pattern, f, threadlist):
     name = pattern.get_metadata("name", "Untitled")
     write_string_utf8(f, "LA:%-16s\r" % name[:8])
-    f.write(b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\xFF\x00')
+    f.write(b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\xFF\x00")
     write_int_8(f, int(PEC_ICON_WIDTH / 8))  # PEC BYTE STRIDE
     write_int_8(f, int(PEC_ICON_HEIGHT))  # PEC ICON HEIGHT
 
@@ -52,15 +57,15 @@ def write_pec_header(pattern, f, threadlist):
 
     current_thread_count = len(color_index_list)
     if current_thread_count != 0:
-        f.write(b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20')
+        f.write(b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20")
         add_value = current_thread_count - 1
         color_index_list.insert(0, add_value)
         f.write(bytes(bytearray(color_index_list)))
     else:
-        f.write(b'\x20\x20\x20\x20\x64\x20\x00\x20\x00\x20\x20\x20\xFF')
+        f.write(b"\x20\x20\x20\x20\x64\x20\x00\x20\x00\x20\x20\x20\xFF")
 
     for i in range(current_thread_count, 463):
-        f.write(b'\x20')  # 520
+        f.write(b"\x20")  # 520
     return color_index_list, rgb_list
 
 
@@ -69,9 +74,9 @@ def write_pec_block(pattern, f, extends):
     height = extends[3] - extends[1]
 
     stitch_block_start_position = f.tell()
-    f.write(b'\x00\x00')
+    f.write(b"\x00\x00")
     write_int_24le(f, 0)  # Space holder.
-    f.write(b'\x31\xff\xf0')
+    f.write(b"\x31\xff\xf0")
     write_int_16le(f, int(round(width)))
     write_int_16le(f, int(round(height)))
     write_int_16le(f, 0x1E0)
@@ -135,18 +140,14 @@ def pec_encode(pattern, f):
         if data == STITCH:
             if jumping:
                 if dx != 0 and dy != 0:
-                    f.write(b'\x00\x00')
+                    f.write(b"\x00\x00")
                 jumping = False
             if -64 < dx < 63 and -64 < dy < 63:
                 f.write(bytes(bytearray([dx & MASK_07_BIT, dy & MASK_07_BIT])))
             else:
                 dx = encode_long_form(dx)
                 dy = encode_long_form(dy)
-                data = [
-                    (dx >> 8) & 0xFF,
-                    dx & 0xFF,
-                    (dy >> 8) & 0xFF,
-                    dy & 0xFF]
+                data = [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
                 f.write(bytes(bytearray(data)))
             continue
         elif data == JUMP:
@@ -155,22 +156,23 @@ def pec_encode(pattern, f):
             dx = flag_trim(dx)
             dy = encode_long_form(dy)
             dy = flag_trim(dy)
-            f.write(bytes(bytearray([
-                (dx >> 8) & 0xFF,
-                dx & 0xFF,
-                (dy >> 8) & 0xFF,
-                dy & 0xFF
-            ])))
+            f.write(
+                bytes(
+                    bytearray(
+                        [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
+                    )
+                )
+            )
             continue
         elif data == COLOR_CHANGE:
             if jumping:
-                f.write(b'\x00\x00')
+                f.write(b"\x00\x00")
                 jumping = False
-            f.write(b'\xfe\xb0')
+            f.write(b"\xfe\xb0")
             if color_two:
-                f.write(b'\x02')
+                f.write(b"\x02")
             else:
-                f.write(b'\x01')
+                f.write(b"\x01")
             color_two = not color_two
             continue
         elif data == STOP:
@@ -178,5 +180,5 @@ def pec_encode(pattern, f):
         elif data == TRIM:
             continue
         elif data == END:
-            f.write(b'\xff')
+            f.write(b"\xff")
             break

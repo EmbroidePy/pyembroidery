@@ -1,6 +1,6 @@
 from .EmbCompress import expand
 from .EmbThreadHus import get_thread_set
-from .ReadHelper import signed8, signed16, read_int_32le, read_int_16le, read_string_8
+from .ReadHelper import read_int_16le, read_int_32le, read_string_8, signed8, signed16
 
 
 def read(f, out, settings=None):
@@ -36,7 +36,9 @@ def read(f, out, settings=None):
     x_decompressed = expand(x_compressed, number_of_stitches)
     y_decompressed = expand(y_compressed, number_of_stitches)
 
-    stitch_count = min(len(command_decompressed), len(x_decompressed), len(y_decompressed))
+    stitch_count = min(
+        len(command_decompressed), len(x_decompressed), len(y_decompressed)
+    )
 
     for i in range(0, stitch_count):
         cmd = command_decompressed[i]

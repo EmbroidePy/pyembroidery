@@ -1,6 +1,13 @@
 from .EmbThread import EmbThread
-from .ReadHelper import read_int_16be, read_int_8, read_int_32be, read_int_24be, read_signed, read_string_8, \
-    read_string_16
+from .ReadHelper import (
+    read_int_8,
+    read_int_16be,
+    read_int_24be,
+    read_int_32be,
+    read_signed,
+    read_string_8,
+    read_string_16,
+)
 
 
 def read_vp3_string_16(stream):
@@ -24,7 +31,7 @@ def skip_vp3_string(stream):
 def signed32(b):
     b &= 0xFFFFFFFF
     if b > 0x7FFFFFFF:
-        return - 0x100000000 + b
+        return -0x100000000 + b
     else:
         return b
 
@@ -34,7 +41,7 @@ def signed16(b0, b1):
     b1 &= 0xFF
     b = (b0 << 8) | b1
     if b > 0x7FFF:
-        return - 0x10000 + b
+        return -0x10000 + b
     else:
         return b
 
@@ -46,7 +53,7 @@ def read(f, out, settings=None):
     f.seek(7, 1)
     skip_vp3_string(f)  # "" comments and note string.
     f.seek(32, 1)
-    center_x = (signed32(read_int_32be(f)) / 100)
+    center_x = signed32(read_int_32be(f)) / 100
     center_y = -(signed32(read_int_32be(f)) / 100)
     f.seek(27, 1)
     skip_vp3_string(f)  # ""
@@ -65,7 +72,7 @@ def vp3_read_colorblock(f, out, center_x, center_y):
     distance_to_next_block_050 = read_int_32be(f)
     block_end_position = distance_to_next_block_050 + f.tell()
 
-    start_position_x = (signed32(read_int_32be(f)) / 100)
+    start_position_x = signed32(read_int_32be(f)) / 100
     start_position_y = -(signed32(read_int_32be(f)) / 100)
     abs_x = start_position_x + center_x
     abs_y = start_position_y + center_y

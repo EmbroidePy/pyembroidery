@@ -1,5 +1,5 @@
 from .EmbThreadPec import get_thread_set
-from .ReadHelper import read_string_8, read_int_8, read_int_24le
+from .ReadHelper import read_int_8, read_int_24le, read_string_8
 
 JUMP_CODE = 0x10
 TRIM_CODE = 0x20
@@ -38,13 +38,9 @@ def read_pec(f, out, pes_chart=None):
 
     byte_size = pec_graphic_byte_stride * pec_graphic_icon_height
 
-    read_pec_graphics(f,
-                      out,
-                      byte_size,
-                      pec_graphic_byte_stride,
-                      count_colors + 1,
-                      threads
-                      )
+    read_pec_graphics(
+        f, out, byte_size, pec_graphic_byte_stride, count_colors + 1, threads
+    )
 
 
 def read_pec_graphics(f, out, size, stride, count, values):
@@ -102,14 +98,14 @@ def map_pec_colors(colorbytes, out, chart, values):
 def signed12(b):
     b &= 0xFFF
     if b > 0x7FF:
-        return - 0x1000 + b
+        return -0x1000 + b
     else:
         return b
 
 
 def signed7(b):
     if b > 63:
-        return - 128 + b
+        return -128 + b
     else:
         return b
 

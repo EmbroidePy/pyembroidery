@@ -60,7 +60,9 @@ def read_u01_stitches(f, out):
             if dx != 0 or dy != 0:
                 out.move(dx, dy)
             continue
-        if command == 0x08:  # ww, stop file had proper A8 rather than E8 and displacement
+        if (
+            command == 0x08
+        ):  # ww, stop file had proper A8 rather than E8 and displacement
             # C00 Stop
             out.stop()
             if dx != 0 or dy != 0:

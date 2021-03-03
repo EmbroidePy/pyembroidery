@@ -13,7 +13,7 @@ def write(pattern, f, settings=None):
     stitches = pattern.stitches
     stitch_count = len(stitches)
     for i in range(0, 0x80):
-        f.write(b'0')
+        f.write(b"0")
     if stitch_count == 0:
         return
     extends = pattern.bounds()
@@ -28,7 +28,7 @@ def write(pattern, f, settings=None):
     write_int_16le(f, int(last_stitch[0]))
     write_int_16le(f, -int(last_stitch[1]))
     for i in range(f.tell(), 0x100):
-        f.write(b'\x00')
+        f.write(b"\x00")
     xx = 0
     yy = 0
     trigger_fast = False
@@ -87,4 +87,4 @@ def write(pattern, f, settings=None):
             f.write(bytes(bytearray([cmd, delta_y, delta_x])))
         elif data == END:
             break
-    f.write(b'\xF8\x00\x00')
+    f.write(b"\xF8\x00\x00")
