@@ -30,7 +30,7 @@ def write(pattern, f, settings=None):
         date_string = settings.get("date", date_string)
 
     pattern.fix_color_count()
-    color_count = pattern.count_color_changes()
+    color_count = pattern.count_color_changes() + 1
     offsets = 0x74 + (color_count * 8)
     write_int_32le(f, offsets)
     write_int_32le(f, 0x14)
