@@ -1,4 +1,6 @@
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 
 import pyembroidery.A10oReader as A10oReader
 import pyembroidery.A100Reader as A100Reader
@@ -1717,3 +1719,16 @@ class EmbPattern:
             return isinstance(obj, basestring)
         except NameError:
             return isinstance(obj, str)
+    
+    def imshow(self):
+        """show the stitching image"""
+        plt.figure()
+        for stitchblock in self.get_as_stitchblock():
+            stitch_array = np.array(stitchblock[:-1])    #TODO can the color code be directly be read out?
+            plotcolor = str(stitchblock[-1])[-7:]
+            plt.plot(stitch_array[0,:,0]/10, stitch_array[0,:,1]/10,color=plotcolor)
+        plt.gca().invert_yaxis()
+        plt.xlabel('position [mm]')
+        plt.ylabel('position [mm]')
+        plt.show()
+    
