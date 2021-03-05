@@ -1,7 +1,6 @@
 import datetime
 
 from .EmbConstant import *
-from .EmbThread import build_nonrepeat_palette
 from .EmbThreadJef import get_thread_set
 from .WriteHelper import write_int_8, write_int_32le, write_string_utf8
 

@@ -60,7 +60,7 @@ def write_pec_header(pattern, f, threadlist):
         f.write(b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20")
         add_value = current_thread_count - 1
         color_index_list.insert(0, add_value)
-        assert color_index_list[0]<255, 'to many color changes, ({0}) out of bounds (0, 255)'.format(len(color_index_list))
+        assert color_index_list[0] < 255, 'too many color changes, ({0}) out of bounds (0, 255)'.format(len(color_index_list))
         f.write(bytes(bytearray(color_index_list)))
     else:
         f.write(b"\x20\x20\x20\x20\x64\x20\x00\x20\x00\x20\x20\x20\xFF")

@@ -110,4 +110,4 @@ class TestEmbpattern(unittest.TestCase):
         from pyembroidery.EmbEncoder import Transcoder
         encoder = Transcoder()
         encoder.transcode(pattern, pattern)
-        self.assertNotEquals(len(pattern.stitches), 0)
+        self.assertNotEqual(len(pattern.stitches), 0)
