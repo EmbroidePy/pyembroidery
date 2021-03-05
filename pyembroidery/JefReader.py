@@ -3,6 +3,7 @@ from .ReadHelper import read_int_32le, signed8
 
 
 def read_jef_stitches(f, out, settings=None):
+    color_index = 1
     while True:
         b = bytearray(f.read(2))
         if len(b) != 2:
@@ -22,7 +23,13 @@ def read_jef_stitches(f, out, settings=None):
             out.move(x, y)
             continue
         if ctrl == 0x01:
-            out.color_change(0, 0)
+            # PATCH: None means stop since it was color #0
+            if out.threadlist[color_index] is None:
+                out.stop(0, 0)
+                del out.threadlist[color_index]
+            else:
+                out.color_change(0, 0)
+                color_index += 1
             continue
         if ctrl == 0x10:
             break
@@ -54,7 +61,11 @@ def read(f, out, settings=None):
 
     for i in range(0, count_colors):
         index = abs(read_int_32le(f))
-        out.add_thread(jef_threads[index % len(jef_threads)])
+        if index == 0:
+            # Patch: If we have color 0. Go ahead and set that to None.
+            out.threadlist.append(None)
+        else:
+            out.add_thread(jef_threads[index % len(jef_threads)])
 
     f.seek(stitch_offset, 0)
     read_jef_stitches(f, out, settings)
