@@ -61,8 +61,9 @@ def read(f, out, settings=None):
     for i in range(0, count_colors):
         index = abs(read_int_32le(f))
         if index == 0:
-            out.add_thread(None)
-        out.add_thread(jef_threads[index % len(jef_threads)])
+            out.threadlist.append(None)
+        else:
+            out.add_thread(jef_threads[index % len(jef_threads)])
 
     print(out.threadlist)
     f.seek(stitch_offset, 0)

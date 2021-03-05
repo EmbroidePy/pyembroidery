@@ -170,27 +170,32 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
-    def test_jef_stop_write(self):
-        file2 = "stop2.jef"
-        write_jef(get_simple_stop(), file2)
-        s_pattern = read_jef(file2)
+    def test_jef_stop_write_simple(self):
+        file = "stop.jef"
+        write_jef(get_simple_stop(), file)
+        s_pattern = read_jef(file)
         self.assertEqual(s_pattern.count_stitch_commands(STOP), 1)
         self.assertEqual(s_pattern.count_color_changes(), 0)
+        self.addCleanup(os.remove, file)
 
-        file1 = "stop.jef"
+    def test_jef_stop_write_large(self):
+        file = "stop2.jef"
         pattern = get_shift_stop_pattern()
-        write_jef(pattern, file1)
-        f_pattern = read_jef(file1)
+        n_pattern = pattern.get_normalized_pattern()
+        self.assertEqual(n_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(n_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.assertEqual(n_pattern.count_stitch_commands(STOP), 5)
+
+        write_jef(pattern, file)
+        f_pattern = read_jef(file)
         self.assertIsNotNone(f_pattern)
 
-        with open(file1, "rb") as f:
+        with open(file, "rb") as f:
             f.seek(0x18)
             colors = f.read(1)
             self.assertEqual(ord(colors), f_pattern.count_color_changes() + f_pattern.count_stitch_commands(STOP) + 1)
 
-        self.assertEqual(f_pattern.count_stitch_commands(COLOR_CHANGE), 12)
+        self.assertEqual(f_pattern.count_stitch_commands(COLOR_CHANGE), 15)
         self.assertEqual(f_pattern.count_stitch_commands(STITCH), 16 * 5)
-        self.assertEqual(f_pattern.count_stitch_commands(STOP), 6)
-        self.position_equals(f_pattern.stitches, 0, -1)
-        self.addCleanup(os.remove, file1)
-        self.addCleanup(os.remove, file2)
+        self.assertEqual(f_pattern.count_stitch_commands(STOP), 5)
+        self.addCleanup(os.remove, file)
