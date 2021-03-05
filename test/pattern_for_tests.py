@@ -59,6 +59,7 @@ class Turtle:
         }
         evaluate_lsystem(initial, rules, 3)  # 6
 
+
 def get_big_pattern():
     pattern = EmbPattern()
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
@@ -128,6 +129,78 @@ def get_shift_pattern():
     pattern.add_command(MATRIX_TRANSLATE, 25, 25)
     pattern.add_command(MATRIX_ROTATE, 22.5)
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "lime")
+    return pattern
+
+
+def get_shift_stop_pattern():
+    pattern = EmbPattern()
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_command(STOP)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_command(STOP)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "green")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "ivory")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "ivory")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_command(STOP)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "ivory")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "olive")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "olive")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_command(STOP)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "olive")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "olive")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "violet")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_command(STOP)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "white")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "salmon")
+    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+    pattern.add_command(MATRIX_ROTATE, 22.5)
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "lime")
+    return pattern
+
+
+def get_simple_stop():
+    pattern = EmbPattern()
+    pattern += (0,0)
+    pattern += (0, 100)
+    pattern += (100, 100)
+    pattern += (100, 0)
+    pattern += (0, 0)
+    pattern.stop()
+    pattern += (0, 0)
+    pattern += (0, 100)
+    pattern += (100, 100)
+    pattern += (100, 0)
+    pattern += (0, 0)
     return pattern
 
 
