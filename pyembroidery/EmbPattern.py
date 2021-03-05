@@ -523,7 +523,7 @@ class EmbPattern:
         if position < 0:
             position += len(self.stitches)  # I need positive positions.
         if position == 0:
-            self.stitches.insert(0, [dx, dy, TRIM])  # started (0,0)
+            self.stitches.insert(0, [dx, dy, cmd])  # started (0,0)
         elif (
             position == len(self.stitches) or position is None
         ):  # This is properly just an add.
@@ -532,7 +532,7 @@ class EmbPattern:
             p = self.stitches[position - 1]
             x = p[0] + dx
             y = p[1] + dy
-            self.stitches.insert(position, [x, y, TRIM])
+            self.stitches.insert(position, [x, y, cmd])
 
     def insert(self, position, cmd, x=0, y=0):
         """Insert a stitch or command"""
