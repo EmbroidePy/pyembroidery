@@ -66,7 +66,7 @@ import pyembroidery.Vp3Writer as Vp3Writer
 import pyembroidery.XxxReader as XxxReader
 import pyembroidery.XxxWriter as XxxWriter
 
-# import pyembroidery.ZhsReader as ZhsReader
+import pyembroidery.ZhsReader as ZhsReader
 import pyembroidery.ZxyReader as ZxyReader
 
 from .EmbEncoder import Transcoder as Normalizer
@@ -923,7 +923,7 @@ class EmbPattern:
         )
         yield (
             {
-                "description": "Melco Embroidery Format",
+                "description": "Melco Expanded Embroidery Format",
                 "extension": "exp",
                 "extensions": ("exp",),
                 "mimetype": "application/x-exp",
@@ -1317,13 +1317,13 @@ class EmbPattern:
                 "reader": StcReader,
             }
         )
-        # yield ({
-        #     "description": "Zeng Hsing Embroidery Format",
-        #     "extension": "zhs",
-        #     "mimetype": "application/x-zhs",
-        #     "category": "embroidery",
-        #     "reader": ZhsReader
-        # })
+        yield ({
+            "description": "Zeng Hsing Embroidery Format",
+            "extension": "zhs",
+            "mimetype": "application/x-zhs",
+            "category": "embroidery",
+            "reader": ZhsReader
+        })
         yield (
             {
                 "description": "ZSK TC Embroidery Format",
