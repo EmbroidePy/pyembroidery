@@ -4,6 +4,8 @@ from .ReadHelper import read_int_32le, signed8
 def read_zhs_stitches(f, out):
     count = 0
 
+    xx = 0
+    yy = 0
     while True:
         count += 1
         b = bytearray(f.read(3))
@@ -11,32 +13,35 @@ def read_zhs_stitches(f, out):
             break
         ctrl = b[0]
         if ctrl == 0x10:
+            # Checksum
             continue
-        i = (b[1] << 8) + b[2]
+        # x
         x = 0
-        x |= (i & 0b00000001_00000000) >> 8
-        x |= (i & 0b00000000_00000010) >> 0
-        x |= (i & 0b00000100_00000000) >> 8
-        x |= (i & 0b00000000_00001000) >> 0
-        x |= (i & 0b00010000_00000000) >> 8
-        x |= (i & 0b00000000_00100000) >> 0
-        x |= (i & 0b01000000_00000000) >> 8
-        x |= (i & 0b00000000_10000000) >> 0
+        x += b[1] & 0b00000001
+        x += b[2] & 0b00000010
+        x += b[1] & 0b00000100
+        x += b[2] & 0b00001000
+        x += b[1] & 0b00010000
+        x += b[2] & 0b00100000
+        x += b[1] & 0b01000000
+        x += b[2] & 0b10000000
         if x >= 127:
             x = -256 + x
         if x >= 63:
             x += 1
         if x <= -63:
             x -= 1
+
+        # y
         y = 0
-        y |= (i & 0b00000000_00000001) >> 0
-        y |= (i & 0b00000010_00000000) >> 8
-        y |= (i & 0b00000000_00000100) >> 0
-        y |= (i & 0b00001000_00000000) >> 8
-        y |= (i & 0b00000000_00010000) >> 0
-        y |= (i & 0b00100000_00000000) >> 8
-        y |= (i & 0b00000000_01000000) >> 0
-        y |= (i & 0b10000000_00000000) >> 8
+        y += b[2] & 0b00000001
+        y += b[1] & 0b00000010
+        y += b[2] & 0b00000100
+        y += b[1] & 0b00001000
+        y += b[2] & 0b00010000
+        y += b[1] & 0b00100000
+        y += b[2] & 0b01000000
+        y += b[1] & 0b10000000
 
         if y >= 127:
             y = -256 + y
@@ -44,16 +49,28 @@ def read_zhs_stitches(f, out):
             y += 1
         if y <= -63:
             y -= 1
-        if ctrl == 0x02:
-            out.stitch(x, -y)
+
+        xx += x
+        yy += y
+        if ctrl == 0x41:
+            # Still unmapped.
+            pass
+        elif ctrl == 0x02:
+            out.stitch(xx, -yy)
+            xx = 0
+            yy = 0
             continue
-        if ctrl == 0x01:
-            out.move(x,-y)
+        elif ctrl == 0x01:
+            out.move(xx, -yy)
+            xx = 0
+            yy = 0
             continue
-        if ctrl == 0x04:
+        elif ctrl == 0x04:
+            xx = 0
+            yy = 0
             out.color_change()
             continue
-        if ctrl == 0x80:
+        elif ctrl == 0x80:
             break
     out.end()
 
