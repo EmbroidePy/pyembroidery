@@ -1,4 +1,4 @@
-from .ReadHelper import read_int_32le, signed8
+from .ReadHelper import read_int_32le, read_int_16le, read_int_8, read_int_24be
 
 
 def read_zhs_stitches(f, out):
@@ -75,8 +75,36 @@ def read_zhs_stitches(f, out):
     out.end()
 
 
+def read_zhz_header(f, out):
+    color_count = read_int_8(f)
+    for i in range(color_count):
+        out.add_thread(read_int_24be(f))
+    length = read_int_16le(f)
+    b = bytearray(f.read(length))
+    thread_data = b.decode('utf8')
+    threads = thread_data.split("&$")
+    try:
+        for i, data in enumerate(threads[1:]):
+            thread = out.threadlist[i]
+            parts = data.split("&#")
+            try:
+                if len(parts[0]):
+                    thread.chart = parts[0]
+                if len(parts[1]):
+                    thread.description = parts[1]
+                if len(parts[2]) > 3:
+                    thread.catalog_number = parts[2][:-2]
+            except IndexError:
+                pass
+    except IndexError:
+        pass
+
+
 def read(f, out, settings=None):
     f.seek(0x0F, 0)
     stitch_start_position = read_int_32le(f)
+    header_start_position = read_int_32le(f)
+    f.seek(header_start_position, 0)
+    read_zhz_header(f, out)
     f.seek(stitch_start_position, 0)
     read_zhs_stitches(f, out)
