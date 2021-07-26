@@ -1,4 +1,4 @@
-from .ReadHelper import read_int_32le, read_int_16le, read_int_8, read_int_24be
+from .ReadHelper import read_int_32le, read_int_16le, read_int_8, read_int_24be, signed8
 
 
 def read_zhs_stitches(f, out):
@@ -25,8 +25,7 @@ def read_zhs_stitches(f, out):
         x += b[2] & 0b00100000
         x += b[1] & 0b01000000
         x += b[2] & 0b10000000
-        if x >= 127:
-            x = -256 + x
+        x = signed8(x)
         if x >= 63:
             x += 1
         if x <= -63:
@@ -43,8 +42,7 @@ def read_zhs_stitches(f, out):
         y += b[2] & 0b01000000
         y += b[1] & 0b10000000
 
-        if y >= 127:
-            y = -256 + y
+        y = signed8(y)
         if y >= 63:
             y += 1
         if y <= -63:
@@ -61,6 +59,7 @@ def read_zhs_stitches(f, out):
             yy = 0
             continue
         elif ctrl == 0x01:
+            print(xx,yy,"move")
             out.move(xx, -yy)
             xx = 0
             yy = 0
