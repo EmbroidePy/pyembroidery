@@ -59,7 +59,6 @@ def read_zhs_stitches(f, out):
             yy = 0
             continue
         elif ctrl == 0x01:
-            print(xx,yy,"move")
             out.move(xx, -yy)
             xx = 0
             yy = 0
