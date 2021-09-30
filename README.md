@@ -155,6 +155,7 @@ Pyembroidery will read:
 * .tbf
 * .u01
 * .xxx
+* .zhs
 * .zxy
 * .gcode
 
@@ -599,4 +600,3 @@ Thanks to,
 ---
 
 This software is in no way derived from or based on Jackson Yee's abandoned 2006 "pyembroidery" project. The name was simply taken from libEmbroidery and written in python and thus a portmanteau of those. I was unaware of the project until after the all the principal work on this project was complete. I apologize for any confusion this may cause.
-
