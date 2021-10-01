@@ -155,6 +155,7 @@ Pyembroidery will read:
 * .tbf
 * .u01
 * .xxx
+* .zhs
 * .zxy
 * .gcode
 
