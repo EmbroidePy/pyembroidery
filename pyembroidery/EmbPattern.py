@@ -1330,6 +1330,7 @@ class EmbPattern:
         yield ({
             "description": "Zeng Hsing Embroidery Format",
             "extension": "zhs",
+            "extensions": ("zhs",),
             "mimetype": "application/x-zhs",
             "category": "embroidery",
             "reader": ZhsReader
