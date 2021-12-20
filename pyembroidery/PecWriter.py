@@ -81,7 +81,7 @@ def write_pec_block(pattern, f, extends):
     write_int_16le(f, int(round(height)))
     write_int_16le(f, 0x1E0)
     write_int_16le(f, 0x1B0)
-    write_jump(f, extends[0], extends[1])
+    write_long(f, extends[0], extends[1])
     pec_encode(pattern, f)
 
     stitch_block_length = f.tell() - stitch_block_start_position
@@ -132,6 +132,13 @@ def write_jump(f, dx, dy):
             )
         )
     )
+
+
+def write_long(f, dx, dy):
+    dx = encode_long_form(dx)
+    dy = encode_long_form(dy)
+    data = [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
+    f.write(bytes(bytearray(data)))
 
 
 def pec_encode(pattern, f):
