@@ -169,3 +169,8 @@ class TestConverts(unittest.TestCase):
         print("pes->xxx: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_write_pes_long(self):
+        file1 = "long.pes"
+        write_pes(get_long_jump(), file1)
+        self.addCleanup(os.remove, file1)
