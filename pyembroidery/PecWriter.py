@@ -4,7 +4,6 @@ from .EmbThreadPec import get_thread_set
 from .PecGraphics import draw_scaled, get_blank
 from .WriteHelper import (
     write_int_8,
-    write_int_16be,
     write_int_16le,
     write_int_24le,
     write_string_utf8,
@@ -82,10 +81,7 @@ def write_pec_block(pattern, f, extends):
     write_int_16le(f, int(round(height)))
     write_int_16le(f, 0x1E0)
     write_int_16le(f, 0x1B0)
-
-    write_int_16be(f, 0x9000 | -int(round(extends[0])))
-    write_int_16be(f, 0x9000 | -int(round(extends[1])))
-
+    write_jump(f, extends[0], extends[1])
     pec_encode(pattern, f)
 
     stitch_block_length = f.tell() - stitch_block_start_position
@@ -124,6 +120,20 @@ def flag_trim(long_form):
     return long_form | (TRIM_CODE << 8)
 
 
+def write_jump(f, dx, dy):
+    dx = encode_long_form(dx)
+    dx = flag_trim(dx)
+    dy = encode_long_form(dy)
+    dy = flag_trim(dy)
+    f.write(
+        bytes(
+            bytearray(
+                [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
+            )
+        )
+    )
+
+
 def pec_encode(pattern, f):
     color_two = True
     jumping = False
@@ -153,17 +163,7 @@ def pec_encode(pattern, f):
             continue
         elif data == JUMP:
             jumping = True
-            dx = encode_long_form(dx)
-            dx = flag_trim(dx)
-            dy = encode_long_form(dy)
-            dy = flag_trim(dy)
-            f.write(
-                bytes(
-                    bytearray(
-                        [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
-                    )
-                )
-            )
+            write_jump(f, dx, dy)
             continue
         elif data == COLOR_CHANGE:
             if jumping:
