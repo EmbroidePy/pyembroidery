@@ -932,6 +932,16 @@ class EmbPattern:
                 "writer": ExpWriter,
             }
         )
+        # yield (
+        #     {
+        #         "description": "Melco Condensed Embroidery Format",
+        #         "extension": "cnd",
+        #         "extensions": ("cnd",),
+        #         "mimetype": "application/x-cnd",
+        #         "category": "embroidery",
+        #         "reader": CndReader,
+        #     }
+        # )
         yield (
             {
                 "description": "Tajima Embroidery Format",
