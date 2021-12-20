@@ -22,6 +22,8 @@ FLAG_LONG = 0b10000000
 PEC_ICON_WIDTH = 48
 PEC_ICON_HEIGHT = 38
 
+GROUP_LONG = False
+
 
 def write(pattern, f, settings=None):
     pattern.fix_color_count()
@@ -59,8 +61,12 @@ def write_pec_header(pattern, f, threadlist):
         f.write(b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20")
         add_value = current_thread_count - 1
         color_index_list.insert(0, add_value)
-        assert color_index_list[0] < 255, 'too many color changes, ({0}) out of bounds (0, 255)'.format(len(color_index_list))
-        f.write(bytes(bytearray(color_index_list)))
+        assert (
+            color_index_list[0] < 255
+        ), "too many color changes, ({0}) out of bounds (0, 255)".format(
+            len(color_index_list)
+        )
+        f.write(bytes(color_index_list))
     else:
         f.write(b"\x20\x20\x20\x20\x64\x20\x00\x20\x00\x20\x20\x20\xFF")
 
@@ -81,7 +87,6 @@ def write_pec_block(pattern, f, extends):
     write_int_16le(f, int(round(height)))
     write_int_16le(f, 0x1E0)
     write_int_16le(f, 0x1B0)
-    write_long(f, extends[0], extends[1])
     pec_encode(pattern, f)
 
     stitch_block_length = f.tell() - stitch_block_start_position
@@ -97,53 +102,48 @@ def write_pec_graphics(pattern, f, extends):
     for block in pattern.get_as_stitchblock():
         stitches = block[0]
         draw_scaled(extends, stitches, blank, 6, 4)
-    f.write(bytes(bytearray(blank)))
+    f.write(bytes(blank))
 
     for block in pattern.get_as_colorblocks():
         stitches = [s for s in block[0] if s[2] == STITCH]
         blank = get_blank()  # [ 0 ] * 6 * 38
         draw_scaled(extends, stitches, blank, 6)
-        f.write(bytes(bytearray(blank)))
+        f.write(bytes(blank))
 
 
-def encode_long_form(value):
-    value &= 0b0000111111111111
-    value |= 0b1000000000000000
-    return value
+def write_value(f, value, long=False, flag=0):
+    data = []
+    if not long and -64 < value < 63:
+        data.append(value & MASK_07_BIT)
+    else:
+        value &= 0b0000111111111111
+        value |= 0b1000000000000000
+        value |= flag << 8
+        data.append((value >> 8) & 0xFF)
+        data.append(value & 0xFF)
+    f.write(bytes(data))
 
 
-def flag_jump(long_form):
-    return long_form | (JUMP_CODE << 8)
-
-
-def flag_trim(long_form):
-    return long_form | (TRIM_CODE << 8)
+def write_trimjump(f, dx, dy):
+    write_value(f, dx, long=True, flag=TRIM_CODE)
+    write_value(f, dy, long=True, flag=TRIM_CODE)
 
 
 def write_jump(f, dx, dy):
-    dx = encode_long_form(dx)
-    dx = flag_trim(dx)
-    dy = encode_long_form(dy)
-    dy = flag_trim(dy)
-    f.write(
-        bytes(
-            bytearray(
-                [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
-            )
-        )
-    )
+    write_value(f, dx, long=True, flag=JUMP_CODE)
+    write_value(f, dy, long=True, flag=JUMP_CODE)
 
 
-def write_long(f, dx, dy):
-    dx = encode_long_form(dx)
-    dy = encode_long_form(dy)
-    data = [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
-    f.write(bytes(bytearray(data)))
+def write_stitch(f, dx, dy):
+    long = GROUP_LONG and -64 < dx < 63 and -64 < dy < 63
+    write_value(f, dx, long)
+    write_value(f, dy, long)
 
 
 def pec_encode(pattern, f):
     color_two = True
-    jumping = False
+    jumping = True
+    init = True
     stitches = pattern.stitches
     xx = 0
     yy = 0
@@ -158,23 +158,18 @@ def pec_encode(pattern, f):
         if data == STITCH:
             if jumping:
                 if dx != 0 and dy != 0:
-                    f.write(b"\x00\x00")
+                    write_stitch(f, 0, 0)
                 jumping = False
-            if -64 < dx < 63 and -64 < dy < 63:
-                f.write(bytes(bytearray([dx & MASK_07_BIT, dy & MASK_07_BIT])))
-            else:
-                dx = encode_long_form(dx)
-                dy = encode_long_form(dy)
-                data = [(dx >> 8) & 0xFF, dx & 0xFF, (dy >> 8) & 0xFF, dy & 0xFF]
-                f.write(bytes(bytearray(data)))
-            continue
+            write_stitch(f, dx, dy)
         elif data == JUMP:
             jumping = True
-            write_jump(f, dx, dy)
-            continue
+            if init:
+                write_jump(f, dx, dy)
+            else:
+                write_trimjump(f, dx, dy)
         elif data == COLOR_CHANGE:
             if jumping:
-                f.write(b"\x00\x00")
+                write_stitch(f, 0, 0)
                 jumping = False
             f.write(b"\xfe\xb0")
             if color_two:
@@ -182,11 +177,11 @@ def pec_encode(pattern, f):
             else:
                 f.write(b"\x01")
             color_two = not color_two
-            continue
         elif data == STOP:
-            continue  # These will already be processed into duplicate colors.
+            pass  # These will already be processed into duplicate colors.
         elif data == TRIM:
-            continue
+            pass
         elif data == END:
             f.write(b"\xff")
             break
+        init = False
