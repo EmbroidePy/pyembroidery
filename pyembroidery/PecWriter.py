@@ -66,7 +66,7 @@ def write_pec_header(pattern, f, threadlist):
         ), "too many color changes, ({0}) out of bounds (0, 255)".format(
             len(color_index_list)
         )
-        f.write(bytes(color_index_list))
+        f.write(bytes(bytearray(color_index_list)))
     else:
         f.write(b"\x20\x20\x20\x20\x64\x20\x00\x20\x00\x20\x20\x20\xFF")
 
@@ -102,13 +102,13 @@ def write_pec_graphics(pattern, f, extends):
     for block in pattern.get_as_stitchblock():
         stitches = block[0]
         draw_scaled(extends, stitches, blank, 6, 4)
-    f.write(bytes(blank))
+    f.write(bytes(bytearray(blank)))
 
     for block in pattern.get_as_colorblocks():
         stitches = [s for s in block[0] if s[2] == STITCH]
         blank = get_blank()  # [ 0 ] * 6 * 38
         draw_scaled(extends, stitches, blank, 6)
-        f.write(bytes(blank))
+        f.write(bytes(bytearray(blank)))
 
 
 def write_value(f, value, long=False, flag=0):
@@ -121,7 +121,7 @@ def write_value(f, value, long=False, flag=0):
         value |= flag << 8
         data.append((value >> 8) & 0xFF)
         data.append(value & 0xFF)
-    f.write(bytes(data))
+    f.write(bytes(bytearray(data)))
 
 
 def write_trimjump(f, dx, dy):
