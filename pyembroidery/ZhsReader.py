@@ -73,7 +73,7 @@ def read_zhs_stitches(f, out):
     out.end()
 
 
-def read_zhz_header(f, out):
+def read_zhs_header(f, out):
     color_count = read_int_8(f)
     for i in range(color_count):
         out.add_thread(read_int_24be(f))
@@ -103,6 +103,6 @@ def read(f, out, settings=None):
     stitch_start_position = read_int_32le(f)
     header_start_position = read_int_32le(f)
     f.seek(header_start_position, 0)
-    read_zhz_header(f, out)
+    read_zhs_header(f, out)
     f.seek(stitch_start_position, 0)
     read_zhs_stitches(f, out)

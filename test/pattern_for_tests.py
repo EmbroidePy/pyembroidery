@@ -204,6 +204,14 @@ def get_simple_stop():
     return pattern
 
 
+def get_long_jump():
+    pattern = EmbPattern()
+    pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
+    pattern.add_block([(3000, 3000), (3000, 3100), (3100, 3100), (3100, 3000), (3000, 3000)], "red")
+    return pattern
+
+
+
 def get_simple_pattern():
     pattern = EmbPattern()
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
