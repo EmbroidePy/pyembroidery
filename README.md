@@ -340,13 +340,17 @@ There are many fully qualified methods of manipulating patterns. For example if 
 pattern1 += pattern2
 ```
 
-You can also do pattern3 = pattern1 + pattern2 but that requires making an new pattern. With the `__iadd__()` dunder you can also perform actions like adding a colorchange.
+You can also do pattern3 = pattern1 + pattern2 but that requires making a new pattern. With the `__iadd__()` dunder you can also perform actions like adding a colorchange.
 
 `pattern1 += "red"` will add a color change (if correct to do so), and a red thread to the threadlist.
 
 Other elements like `pattern += ((0,0), (20,20), (0,0))` will also work to append stitches.
 
 You can get a particular stitch of the pattern using `pattern[0]`. You can set string metadata elements `pattern['name'] = "My Design"`
+
+### Thread Manipulation
+
+If you wish to merely edit the thread colors these are located in the `.threadlist` attribute and you can call set a new `.color` or `.set_hex_color("#RRGGBB")`. You may also modify the various thread related metadata. This will be used for those embroidery types which preserve this thread information.
 
 ## Conversion
 
