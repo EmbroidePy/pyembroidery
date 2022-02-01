@@ -117,33 +117,33 @@ class GenericWriter:
         if self.block_opening:
             self.block_opening = False
             if self.block_join is not None and self.block_index != 0:
-                write_string_utf8(self.f, self.block_join.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.block_join.format_map(self.format_dictionary))
             if self.block_start is not None:
-                write_string_utf8(self.f, self.block_start.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.block_start.format_map(self.format_dictionary))
         if self.color_opening:
             self.color_opening = False
             if self.color_join is not None and self.color_index != 0:
-                write_string_utf8(self.f, self.color_join.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.color_join.format_map(self.format_dictionary))
             if self.color_start is not None:
-                write_string_utf8(self.f, self.color_start.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.color_start.format_map(self.format_dictionary))
         if self.document_opening:
             self.document_opening = False
             if self.document_start is not None:
-                write_string_utf8(self.f, self.document_start.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.document_start.format_map(self.format_dictionary))
 
     def write_closes(self):
         if self.document_closing:
             self.document_closing = False
             if self.document_end is not None:
-                write_string_utf8(self.f, self.document_end.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.document_end.format_map(self.format_dictionary))
         if self.color_closing:
             self.color_closing = False
             if self.color_end is not None:
-                write_string_utf8(self.f, self.color_end.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.color_end.format_map(self.format_dictionary))
         if self.block_closing:
             self.block_closing = False
             if self.block_end is not None:
-                write_string_utf8(self.f, self.block_end.format(**self.format_dictionary))
+                write_string_utf8(self.f, self.block_end.format_map(self.format_dictionary))
 
     def get_write_segment(self, cmd):
         # SEQUIN_MODE
@@ -283,7 +283,7 @@ class GenericWriter:
             self.pattern_established = True
             if self.pattern_start is not None:
                 write_string_utf8(
-                    self.f, self.pattern_start.format(**self.format_dictionary)
+                    self.f, self.pattern_start.format_map(self.format_dictionary)
                 )
 
     def open_document(self):
@@ -346,24 +346,24 @@ class GenericWriter:
     def write_segment(self, segment):
         # SEGMENT
         if self.segment_start is not None:
-            write_string_utf8(self.f, self.segment_start.format(**self.format_dictionary))
+            write_string_utf8(self.f, self.segment_start.format_map(self.format_dictionary))
 
-        write_string_utf8(self.f, segment.format(**self.format_dictionary))
+        write_string_utf8(self.f, segment.format_map(self.format_dictionary))
 
         # SEGMENT JOIN
         if self.segment_join is not None:
-            write_string_utf8(self.f, self.segment_join.format(**self.format_dictionary))
+            write_string_utf8(self.f, self.segment_join.format_map(self.format_dictionary))
 
         # SEGMENT_END
         if self.segment_end is not None:
-            write_string_utf8(self.f, self.segment_end.format(**self.format_dictionary))
+            write_string_utf8(self.f, self.segment_end.format_map(self.format_dictionary))
 
     def close_pattern(self):
         if self.pattern_established:
             self.pattern_established = False
             if self.pattern_end is not None:
                 write_string_utf8(
-                    self.f, self.pattern_end.format(**self.format_dictionary)
+                    self.f, self.pattern_end.format_map(self.format_dictionary)
                 )
 
     def close_document(self):
