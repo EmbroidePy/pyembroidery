@@ -5,6 +5,7 @@ import pyembroidery.A100Reader as A100Reader
 
 # import pyembroidery.ArtReader as ArtReader
 import pyembroidery.BroReader as BroReader
+import pyembroidery.CndReader as CndReader
 import pyembroidery.ColReader as ColReader
 import pyembroidery.ColWriter as ColWriter
 import pyembroidery.CsvReader as CsvReader
@@ -932,16 +933,16 @@ class EmbPattern:
                 "writer": ExpWriter,
             }
         )
-        # yield (
-        #     {
-        #         "description": "Melco Condensed Embroidery Format",
-        #         "extension": "cnd",
-        #         "extensions": ("cnd",),
-        #         "mimetype": "application/x-cnd",
-        #         "category": "embroidery",
-        #         "reader": CndReader,
-        #     }
-        # )
+        yield (
+            {
+                "description": "Melco Condensed Embroidery Format",
+                "extension": "cnd",
+                "extensions": ("cnd",),
+                "mimetype": "application/x-cnd",
+                "category": "embroidery",
+                "reader": CndReader,
+            }
+        )
         yield (
             {
                 "description": "Tajima Embroidery Format",
