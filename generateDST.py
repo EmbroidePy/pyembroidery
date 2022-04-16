@@ -1,3 +1,5 @@
+
+import pyembroidery
 from generateDST_utils import *
 import argparse
 import time
@@ -49,6 +51,7 @@ print()
 # Start an embroidery pattern.
 # x_pos_all and y_pos_all will represent the points that are added to the pattern.
 pattern = pyembroidery.EmbPattern()
+pattern.metadata('name', os.path.splitext(os.path.basename(args.input_path))[0])
 x_stitch_all = [[] for p in range(num_paths)]
 y_stitch_all = [[] for p in range(num_paths)]
 

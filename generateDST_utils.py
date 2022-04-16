@@ -338,5 +338,11 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, print_debug=False):
             x_stitch.append(x_all[path_index][point_index+1])
             y_stitch.append(y_all[path_index][point_index+1])
     
+    # Stitch it!
+    for stitch_index in range(len(x_stitch)):
+        pattern.add_stitch_absolute(pyembroidery.STITCH,
+                                    x_stitch[stitch_index],
+                                    y_stitch[stitch_index])
+    
     return  x_stitch, y_stitch
 
