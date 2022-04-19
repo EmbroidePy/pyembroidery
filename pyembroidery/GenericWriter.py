@@ -51,6 +51,8 @@ class GenericWriter:
         self.pattern = pattern
         self.f = f
         self.settings = settings
+        self.metadata_entry = settings.get("metadata", None)
+        self.thread_entry = settings.get("metadata", None)
         self.pattern_start = settings.get("pattern_start", None)
         self.pattern_end = settings.get("pattern_end", None)
         self.document_start = settings.get("document_start", None)
@@ -398,6 +400,34 @@ class GenericWriter:
         self.set_document_statistics()
 
         self.open_pattern()
+        if self.metadata_entry is not None:
+            for key in pattern.metadata:
+                value = pattern.metadata[key]
+                self.format_dictionary.update({
+                    "key": str(key),
+                    "value": str(value),
+                })
+                write_string_utf8(
+                    self.f, self.metadata_entry.format_map(self.format_dictionary)
+                )
+
+        if self.thread_entry is not None:
+            for thread in pattern.threadlist:
+                self.format_dictionary.update({
+                    "thread_color": thread.hex_color(),
+                    "thread_description": thread.description,
+                    "thread_brand": thread.brand,
+                    "thread_catalog_number": thread.catalog_number,
+                    "thread_chart": thread.chart,
+                    "thread_details": thread.details,
+                    "thread_weight": thread.weight,
+                    "thread_red": thread.get_red(),
+                    "thread_green": thread.get_green(),
+                    "thread_blue": thread.get_blue(),
+                })
+                write_string_utf8(
+                    self.f, self.thread_entry.format_map(self.format_dictionary)
+                )
         for self.command_index in range(0, len(pattern.stitches)):
             self.update_command()
             write_segment = self.get_write_segment(self.cmd)
