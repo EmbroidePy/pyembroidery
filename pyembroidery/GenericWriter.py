@@ -80,6 +80,7 @@ class GenericWriter:
         self.slow = settings.get("slow", None)
         self.fast = settings.get("fast", None)
         self.end = settings.get("end", None)
+
         self.format_dictionary = {}
         self.pattern_established = False
         self.document_established = False
@@ -204,12 +205,23 @@ class GenericWriter:
         bounds = [float(e) / 10.0 for e in pattern.bounds()]  # convert to mm.
         width = bounds[2] - bounds[0]
         height = bounds[3] - bounds[1]
-        count_stitches = pattern.count_stitches()
-        count_threads = pattern.count_color_changes()
+
+        stitch_counts = {}
+        for s in pattern.stitches:
+            command = s[2] & COMMAND_MASK
+            if command in stitch_counts:
+                stitch_counts[command] += 1
+            else:
+                stitch_counts[command] = 1
+
+        names = get_common_name_dictionary()
+        for name in names:
+            value = names[name].lower()
+            self.format_dictionary[value + "_count"] = stitch_counts.get(name,0)
         self.format_dictionary.update(
             {
-                "stitch_count": count_stitches,
-                "thread_count": count_threads,
+                "stitch_total": pattern.count_stitches(),
+                "thread_total": pattern.count_threads(),
                 "extents_left": bounds[0],
                 "extends_top": bounds[1],
                 "extends_right": bounds[2],
