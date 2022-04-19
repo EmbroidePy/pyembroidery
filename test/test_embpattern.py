@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 
-from pattern_for_tests import *
+from test.pattern_for_tests import *
 
 
 class TestEmbpattern(unittest.TestCase):
