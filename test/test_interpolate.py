@@ -3,7 +3,7 @@ from __future__ import print_function
 import unittest
 
 from pyembroidery import *
-from pattern_for_tests import *
+from .pattern_for_tests import *
 
 
 class TestInterpolate(unittest.TestCase):

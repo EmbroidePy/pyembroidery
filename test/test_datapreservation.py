@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import unittest
-from pattern_for_tests import *
+from .pattern_for_tests import *
 
 
 class TestDataPreservation(unittest.TestCase):
