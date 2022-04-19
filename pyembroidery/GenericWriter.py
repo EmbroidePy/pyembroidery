@@ -51,8 +51,8 @@ class GenericWriter:
         self.pattern = pattern
         self.f = f
         self.settings = settings
-        self.metadata_entry = settings.get("metadata", None)
-        self.thread_entry = settings.get("metadata", None)
+        self.metadata_entry = settings.get("metadata_entry", None)
+        self.thread_entry = settings.get("thread_entry", None)
         self.pattern_start = settings.get("pattern_start", None)
         self.pattern_end = settings.get("pattern_end", None)
         self.document_start = settings.get("document_start", None)
@@ -98,6 +98,8 @@ class GenericWriter:
         self.yy = 0
         self.last_x = 0
         self.last_y = 0
+        self.z = 0.0
+        self.z_increment = settings.get("stitch_z_travel", 10.0)
         self.command_index = 0
 
         self.current_stitch = None
@@ -202,7 +204,7 @@ class GenericWriter:
         pattern = self.pattern
         self.format_dictionary.update(pattern.extras)
 
-        bounds = [float(e) / 10.0 for e in pattern.bounds()]  # convert to mm.
+        bounds = pattern.bounds()  # convert to mm.
         width = bounds[2] - bounds[0]
         height = bounds[3] - bounds[1]
 
@@ -228,10 +230,16 @@ class GenericWriter:
                 "extends_bottom": bounds[3],
                 "extends_width": width,
                 "extends_height": height,
+                "extents_left_mm": bounds[0] / 10.0,
+                "extends_top_mm": bounds[1] / 10.0,
+                "extends_right_mm": bounds[2] / 10.0,
+                "extends_bottom_mm": bounds[3] / 10.0,
+                "extends_width_mm": width / 10.0,
+                "extends_height_mm": height / 10.0,
             }
         )
 
-    def update_positions(self, x, y):
+    def update_positions(self, x, y, cmd):
         self.dx = x - self.last_x
         self.dy = y - self.last_y
         idx = int(round(x - self.xx))
@@ -242,6 +250,7 @@ class GenericWriter:
             {
                 "x": x,
                 "y": y,
+                "z": self.z,
                 "_x": -x,
                 "_y": -y,
                 "dx": self.dx,
@@ -260,6 +269,8 @@ class GenericWriter:
                 "_last_y": -self.last_y,
             }
         )
+        if cmd == STITCH:
+            self.z += self.z_increment
         self.last_x = x
         self.last_y = y
 
@@ -413,19 +424,21 @@ class GenericWriter:
 
         self.open_pattern()
         if self.metadata_entry is not None:
-            for key in pattern.metadata:
-                value = pattern.metadata[key]
+            for i, key in enumerate(pattern.extras):
+                value = pattern.extras[key]
                 self.format_dictionary.update({
-                    "key": str(key),
-                    "value": str(value),
+                    "metadata_index": i,
+                    "metadata_key": str(key),
+                    "metadata_value": str(value),
                 })
                 write_string_utf8(
                     self.f, self.metadata_entry.format_map(self.format_dictionary)
                 )
 
         if self.thread_entry is not None:
-            for thread in pattern.threadlist:
+            for i, thread in enumerate(pattern.threadlist):
                 self.format_dictionary.update({
+                    "thread_index": i,
                     "thread_color": thread.hex_color(),
                     "thread_description": thread.description,
                     "thread_brand": thread.brand,
@@ -446,7 +459,7 @@ class GenericWriter:
 
             # MAIN CODE, there is something to write.
             if write_segment is not None:
-                self.update_positions(self.x, self.y)
+                self.update_positions(self.x, self.y, self.cmd)
                 if self.cmd == SEQUIN_MODE:
                     self.open_document()
                     self.open_color()
