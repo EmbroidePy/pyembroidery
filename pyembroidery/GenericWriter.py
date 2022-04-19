@@ -13,6 +13,8 @@ from pyembroidery import (
     SLOW,
     FAST,
     END,
+    get_common_name_dictionary,
+    COMMAND_MASK,
 )
 from pyembroidery.WriteHelper import write_string_utf8
 
@@ -114,36 +116,36 @@ class GenericWriter:
         self.document_opening = False
 
     def write_opens(self):
-        if self.block_opening:
-            self.block_opening = False
-            if self.block_join is not None and self.block_index != 0:
-                write_string_utf8(self.f, self.block_join.format_map(self.format_dictionary))
-            if self.block_start is not None:
-                write_string_utf8(self.f, self.block_start.format_map(self.format_dictionary))
+        if self.document_opening:
+            self.document_opening = False
+            if self.document_start is not None:
+                write_string_utf8(self.f, self.document_start.format_map(self.format_dictionary))
         if self.color_opening:
             self.color_opening = False
             if self.color_join is not None and self.color_index != 0:
                 write_string_utf8(self.f, self.color_join.format_map(self.format_dictionary))
             if self.color_start is not None:
                 write_string_utf8(self.f, self.color_start.format_map(self.format_dictionary))
-        if self.document_opening:
-            self.document_opening = False
-            if self.document_start is not None:
-                write_string_utf8(self.f, self.document_start.format_map(self.format_dictionary))
+        if self.block_opening:
+            self.block_opening = False
+            if self.block_join is not None and self.block_index != 0:
+                write_string_utf8(self.f, self.block_join.format_map(self.format_dictionary))
+            if self.block_start is not None:
+                write_string_utf8(self.f, self.block_start.format_map(self.format_dictionary))
 
     def write_closes(self):
-        if self.document_closing:
-            self.document_closing = False
-            if self.document_end is not None:
-                write_string_utf8(self.f, self.document_end.format_map(self.format_dictionary))
-        if self.color_closing:
-            self.color_closing = False
-            if self.color_end is not None:
-                write_string_utf8(self.f, self.color_end.format_map(self.format_dictionary))
         if self.block_closing:
             self.block_closing = False
             if self.block_end is not None:
                 write_string_utf8(self.f, self.block_end.format_map(self.format_dictionary))
+        if self.color_closing:
+            self.color_closing = False
+            if self.color_end is not None:
+                write_string_utf8(self.f, self.color_end.format_map(self.format_dictionary))
+        if self.document_closing:
+            self.document_closing = False
+            if self.document_end is not None:
+                write_string_utf8(self.f, self.document_end.format_map(self.format_dictionary))
 
     def get_write_segment(self, cmd):
         # SEQUIN_MODE
