@@ -459,6 +459,10 @@ class GenericWriter:
 
             # MAIN CODE, there is something to write.
             if write_segment is not None:
+                if isinstance(write_segment, dict):
+                    key, default = write_segment[None]
+                    key = key.format_map(self.format_dictionary)
+                    write_segment = write_segment.get(key,default)
                 self.update_positions(self.x, self.y, self.cmd)
                 if self.cmd == SEQUIN_MODE:
                     self.open_document()
