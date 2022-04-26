@@ -412,20 +412,13 @@ class GenericWriter:
             self.block_closing = True
 
     def write(self):
-        pattern = self.pattern
-        f = self.f
-        settings = self.settings
-
-        if settings is None:
-            return
-
         # DOCUMENT STATISTICS
         self.set_document_statistics()
 
         self.open_pattern()
         if self.metadata_entry is not None:
-            for i, key in enumerate(pattern.extras):
-                value = pattern.extras[key]
+            for i, key in enumerate(self.pattern.extras):
+                value = self.pattern.extras[key]
                 self.format_dictionary.update({
                     "metadata_index": i,
                     "metadata_key": str(key),
@@ -436,7 +429,7 @@ class GenericWriter:
                 )
 
         if self.thread_entry is not None:
-            for i, thread in enumerate(pattern.threadlist):
+            for i, thread in enumerate(self.pattern.threadlist):
                 self.format_dictionary.update({
                     "thread_index": i,
                     "thread_color": thread.hex_color(),
@@ -453,7 +446,7 @@ class GenericWriter:
                 write_string_utf8(
                     self.f, self.thread_entry.format_map(self.format_dictionary)
                 )
-        for self.command_index in range(0, len(pattern.stitches)):
+        for self.command_index in range(0, len(self.pattern.stitches)):
             self.update_command()
             write_segment = self.get_write_segment(self.cmd)
 
@@ -462,7 +455,7 @@ class GenericWriter:
                 if isinstance(write_segment, dict):
                     key, default = write_segment[None]
                     key = key.format_map(self.format_dictionary)
-                    write_segment = write_segment.get(key,default)
+                    write_segment = write_segment.get(key, default)
                 self.update_positions(self.x, self.y, self.cmd)
                 if self.cmd == SEQUIN_MODE:
                     self.open_document()
