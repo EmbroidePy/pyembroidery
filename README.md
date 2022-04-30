@@ -52,7 +52,7 @@ Other reasonable elements:
 ## Overview
 Readers are sent a fileobject/stream, an EmbPattern and sometimes a settings dict. The reader parses the file, adding in metadata, threads, and stitches with as much valid information as the file contains.
 
-EmbPattern objects contain all relevant data. You can iterate stitch blocks .get_as_stitchblocks() or access the raw-stitches, threads, or metadata.
+EmbPattern objects contain all relevant data. You can iterate stitch blocks .get_as_stitchblock() or access the raw-stitches, threads, or metadata.
 
 Writers are called to save a pattern to disk. The writers save raw-stitch data to disk. This data may, however, not be formatted in a way the writer can utilize effectively. For this reason, writers (except lossless csv) utilize the encoder to ensure whatever the data is in the pattern will be presented to the writer in a manner coherent to the writer.
 
@@ -533,7 +533,7 @@ The encoder will by default ignore any COLOR_BREAK that occurs before any stitch
 
 You can expressly add any of the core commands to the patterns. These are generalized and try to play nice with other commands. When the patterns are written to disk, they call pattern.get_normalized_pattern() and save the normalized pattern. Saving to any format does not modify the pattern, ever. It writes the modified pattern out. It adds the max_jump and max_stitch to the encoding when it normalizes this to save. So each format can compile to a different set of stitches due to the max_jump etc. This is expressly an attempt to maintain as much data integrity as possible.
 
-After a load, the pattern will be filled with raw basic stitch data, it's perfectly reasonable call .get_stable_pattern() on this which will make it into a series of stitches, color_breaks, sequence_breaks or get_pattern_interpolate_trim() which will allow you to introduce trim commands after a series of JUMP commands as specified and merge the untrimmed jumps. Or to iterate through the data with .get_as_stitchblocks() which is a generator that will produce stitch blocks from the raw loaded data. The stabilized pattern simply makes a new pattern, iterates through the current pattern by the stitchblocks and feeds that into add_stitch_block(). This results in a pattern without any jumps, trims, etc.
+After a load, the pattern will be filled with raw basic stitch data, it's perfectly reasonable call .get_stable_pattern() on this which will make it into a series of stitches, color_breaks, sequence_breaks or get_pattern_interpolate_trim() which will allow you to introduce trim commands after a series of JUMP commands as specified and merge the untrimmed jumps. Or to iterate through the data with .get_as_stitchblock() which is a generator that will produce stitch blocks from the raw loaded data. The stabilized pattern simply makes a new pattern, iterates through the current pattern by the stitchblocks and feeds that into add_stitch_block(). This results in a pattern without any jumps, trims, etc.
 
 STITCH_BREAK
 
