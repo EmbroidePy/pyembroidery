@@ -41,7 +41,7 @@ def process_header_info(out, prefix, value):
         out.metadata("copyright", value)
     elif prefix == "TC":
         values = [x.strip() for x in value.split(",")]
-        out.add_thread({"hex": values[0], "description": value[1], "catalog": value[2]})
+        out.add_thread({"hex": values[0], "description": values[1], "catalog": values[2]})
     else:
         out.metadata(prefix, value)
 
