@@ -226,6 +226,23 @@ class PngBuffer:
         self.blue = 0
         self.alpha = 0
         self.line_width = 3
+        self.fancy = True
+        self.fancy_stops = (0, 0.05, 0.5, 0.95, 0)
+        self.values = (-120, 0, -120, 0, -120)
+
+    def set_color(self, r, g, b):
+        self.red = r
+        self.green = g
+        self.blue = b
+
+    def gradient(self, v):
+        if v <= 0.05:
+            return ((v - 0) * (1/0.05)) * (1.0 - 0.5) + 0.5
+        if v <= 0.5:
+            return ((v - 0.05) * (1/0.45)) * (0.5 - 1.0) + 1.0
+        if v <= 0.9:
+            return ((v - 0.5) * (1 / 0.40)) * (1.0 - 0.5) + 0.5
+        return ((v - .9) * (1 / 0.1)) * (0.5 - 1.0) + 1.0
 
     def background(self, red, green, blue, alpha):
         for i in range(0, len(self.buf), 4):
@@ -234,15 +251,22 @@ class PngBuffer:
             self.buf[i + 2] = blue
             self.buf[i + 3] = alpha
 
-    def plot(self, x, y):
+    def plot(self, x, y, v=None):
         try:
             x += 1
             y += 1
             pos = (self.width * y) + x
             idx = pos * 4
-            self.buf[idx] = self.red
-            self.buf[idx + 1] = self.green
-            self.buf[idx + 2] = self.blue
+            r = self.red
+            g = self.green
+            b = self.blue
+            if v is not None:
+                r = int(r * v)
+                g = int(g * v)
+                b = int(b * v)
+            self.buf[idx] = r
+            self.buf[idx + 1] = g
+            self.buf[idx + 2] = b
             self.buf[idx + 3] = self.alpha
         except IndexError:
             pass
@@ -255,16 +279,20 @@ class PngBuffer:
             step_y = -1
         else:
             step_y = 1
+        odx = abs(dx)
+        ody = abs(dy)
         if dx < 0:
             dx = -dx
             step_x = -1
         else:
             step_x = 1
+        i = 0
         if dx > dy:
             dy <<= 1  # dy is now 2*dy
             dx <<= 1
             fraction = dy - (dx >> 1)  # same as 2*dy - dx
-            self.line_for_point(x0, y0, False)
+            self.line_for_point(x0, y0, False, odx, i)
+            i += 1
 
             while x0 != x1:
                 if fraction >= 0:
@@ -272,30 +300,34 @@ class PngBuffer:
                     fraction -= dx  # same as fraction -= 2*dx
                 x0 += step_x
                 fraction += dy  # same as fraction += 2*dy
-                self.line_for_point(x0, y0, False)
+                self.line_for_point(x0, y0, False, odx, i)
+                i += 1
         else:
             dy <<= 1  # dy is now 2*dy
             dx <<= 1  # dx is now 2*dx
             fraction = dx - (dy >> 1)
-            self.line_for_point(x0, y0, True)
+            self.line_for_point(x0, y0, True, ody, i)
+            i += 1
             while y0 != y1:
                 if fraction >= 0:
                     x0 += step_x
                     fraction -= dy
                 y0 += step_y
                 fraction += dx
-                self.line_for_point(x0, y0, True)
+                self.line_for_point(x0, y0, True, ody, i)
 
-    def line_for_point(self, x, y, dy):
+    def line_for_point(self, x, y, dy, max_pos, index):
         w = self.line_width
         left = w >> 1
         right = w - left
+        v = self.gradient(max_pos / index)
+
         if dy:
             for pos in range(-left, right):
-                self.plot(x + pos, y)
+                self.plot(x + pos, y, v)
         else:
             for pos in range(-left, right):
-                self.plot(x, y + pos)
+                self.plot(x, y + pos, v)
 
     def draw_text(self, x, y, string, rotate=False):
         for c in string:
