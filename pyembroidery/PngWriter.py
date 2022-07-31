@@ -320,7 +320,7 @@ class PngBuffer:
         w = self.line_width
         left = w >> 1
         right = w - left
-        v = self.gradient(max_pos / index)
+        v = self.gradient(index/max_pos)
 
         if dy:
             for pos in range(-left, right):
