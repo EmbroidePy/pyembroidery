@@ -1,8 +1,8 @@
 import pyembroidery
 import numpy as np
 import matplotlib.pyplot as plt
-import svgpathtools
-from svgpathtools import svg2paths
+from svgelements import * # will use this package to extract path points and colors
+import svgpathtools       # will use this package to determine SVG width/height for path scaling
 from scipy import spatial
 import math
 import cv2
@@ -146,26 +146,33 @@ def _parse_svg_size_string(size_str, target_units='mm'):
 # @return (x_all, y_all) where x_all and y_all are lists.
 #   Each entry represents a path in the SVG, and contains a list of coordinates.
 #   So point i of path p is at (x_all[p][i], y_all[p][i]).
-def extract_pt_from_svg(file, scale, viz, target_units=None, remove_duplicates=True):
+def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_duplicates=True):
     # Read paths from the SVG file.
-    paths, attributes = svg2paths(file)
+    paths = list(SVG.parse(filepath))
     # Convert the paths into lists of coordinates.
     x_all = []
     y_all = []
-    for i in range(len(paths)):
-        x = []
-        y = []
-        for j in range(len(paths[i])):
-            for k in [0, -1]:
-                # print (paths[i][j][k])
-                x.append(paths[i][j][k].real)
-                y.append(-paths[i][j][k].imag)
+    rgb_all = []
+    for (i, path) in enumerate(paths):
         # Ignore empty paths.
-        if len(x) == 0:
+        if len(path) <= 1:
             continue
+        x = [point.x for point in path]
+        y = [-point.y for point in path]
+        # Get the path color.
+        try:
+            rgb_int = path.stroke.rgb
+            rgb = [
+                (rgb_int >> 16) & 255,
+                (rgb_int >> 8) & 255,
+                rgb_int & 255,
+                ]
+        except:
+            rgb = None
         # Append the new path.
         x_all.append(x)
         y_all.append(y)
+        rgb_all.append(rgb)
         # Visualize the control points if desired.
         if viz:
             plt.scatter(x,y, s=10, c='red')
@@ -174,7 +181,7 @@ def extract_pt_from_svg(file, scale, viz, target_units=None, remove_duplicates=T
     
     # Scale to specified units if desired.
     if target_units is not None:
-        doc = svgpathtools.Document(file)
+        doc = svgpathtools.Document(filepath)
         svg_attributes = doc.root.attrib
         if 'width' not in svg_attributes or 'height' not in svg_attributes:
             print('Size information was not found in the SVG. Using raw point coordinates.')
@@ -232,7 +239,7 @@ def extract_pt_from_svg(file, scale, viz, target_units=None, remove_duplicates=T
         y_all = y_all_unique
     
     # Return the control points!
-    return x_all, y_all
+    return x_all, y_all, rgb_all
 
 # Create a sequence of stitches for the specified path of the provided SVG control points.
 # For each line segment, will compute the intersections with all other SVG paths.
