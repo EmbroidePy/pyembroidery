@@ -147,13 +147,29 @@ def _parse_svg_size_string(size_str, target_units='mm'):
 #   Each entry represents a path in the SVG, and contains a list of coordinates.
 #   So point i of path p is at (x_all[p][i], y_all[p][i]).
 def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_duplicates=True):
+    print('Parsing the SVG file %s' % filepath)
     # Read paths from the SVG file.
-    paths = list(SVG.parse(filepath))
+    # Lines may be contained within groups in the SVG,
+    #  so will recursively dive through groups to find Polyline instances.
+    svg_path_elements = list(SVG.parse(filepath))
+    def extract_paths_from_groups(element):
+        if isinstance(element, Polyline):
+            return [element]
+        elif isinstance(element, Group):
+            paths = []
+            for subgroup in element:
+                paths.extend(extract_paths_from_groups(subgroup))
+            return paths
+        else:
+            return []
+    svg_paths = []
+    for svg_path_element in svg_path_elements:
+        svg_paths.extend(extract_paths_from_groups(svg_path_element))
     # Convert the paths into lists of coordinates.
     x_all = []
     y_all = []
     rgb_all = []
-    for (i, path) in enumerate(paths):
+    for (i, path) in enumerate(svg_paths):
         # Ignore empty paths.
         if len(path) <= 1:
             continue
@@ -178,34 +194,50 @@ def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_dupli
             plt.scatter(x,y, s=10, c='red')
             plt.gca().set_aspect('equal')
             plt.show()
+    print(' Found %d total paths and %d non-empty paths' % (len(svg_paths), len(x_all)))
     
     # Scale to specified units if desired.
     if target_units is not None:
         doc = svgpathtools.Document(filepath)
         svg_attributes = doc.root.attrib
         if 'width' not in svg_attributes or 'height' not in svg_attributes:
-            print('Size information was not found in the SVG. Using raw point coordinates.')
+            print(' Size information was not found in the SVG. Using raw point coordinates.')
         else:
             # Define a helper to scale all arrays of points.
             # For example, point_arrays can be x_all or y_all.
-            def scale_point_arrays(point_arrays, target_range, name):
+            # Can specify a scale factor to use, OR a target range for computing a scale factor.
+            def scale_point_arrays(point_arrays, name, scale_factor=None, target_range=None):
+                # Compute a scale factor if needed.
+                if scale_factor is None:
+                    scale_factor = get_scale_factor(point_arrays, target_range, name)
+                # Scale it!
+                print('  Scaling %s by a factor of %g' % (name, scale_factor))
+                for (i, points) in enumerate(point_arrays):
+                    point_arrays[i] = [point*scale_factor for point in points]
+                return point_arrays
+            # Define a helper to scale all arrays of points.
+            # For example, point_arrays can be x_all or y_all.
+            def get_scale_factor(point_arrays, target_range, name):
                 # Get the min and max of points across all arrays.
                 points_min = min([min(points) for points in point_arrays])
                 points_max = max([max(points) for points in point_arrays])
                 # Compute the scale factor.
                 points_range = abs(points_max - points_min)
                 scale_factor = target_range / points_range
-                # Scale it!
-                print('Scaling %s by a factor of %g' % (name, scale_factor))
-                for (i, points) in enumerate(point_arrays):
-                    point_arrays[i] = [point*scale_factor for point in points]
-                return point_arrays
+                print('  Computed scale factor for %s: %g' % (name, scale_factor))
+                return scale_factor
+            
             # Get the actual size in physical units.
             svg_width = _parse_svg_size_string(svg_attributes['width'], target_units=target_units)
             svg_height = _parse_svg_size_string(svg_attributes['height'], target_units=target_units)
+            print(' Scaling SVG to width %f %s and height %f %s' % (svg_width, target_units, svg_height, target_units))
             # Scale so the points match the target range.
-            x_all = scale_point_arrays(x_all, svg_width, 'x')
-            y_all = scale_point_arrays(y_all, svg_height, 'y')
+            # Use the same scale factor for both X and Y (they're usually very similar but slightly different).
+            scale_factor_x = get_scale_factor(x_all, svg_width, 'X')
+            scale_factor_y = get_scale_factor(y_all, svg_height, 'Y')
+            scale_factor = np.mean([scale_factor_x, scale_factor_y])
+            x_all = scale_point_arrays(x_all, name='x', scale_factor=scale_factor)
+            y_all = scale_point_arrays(y_all, name='y', scale_factor=scale_factor)
             # plt.figure()
             # plt.plot(x_all[0], y_all[0])
             # plt.show()
@@ -247,7 +279,7 @@ def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_dupli
 #   according to the specified pitch (avoiding the intersections themselves).
 #  Will place stitches for each segment according to the directionality of the original SVG path.
 #  Will also ensure that stitches are placed at the SVG control points.
-def stitch_path(pattern, x_all, y_all, path_index, pitch, print_debug=False):
+def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_segment=1, print_debug=False):
     x_stitch = []
     y_stitch = []
     num_paths = len(x_all)
@@ -321,7 +353,7 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, print_debug=False):
             #  than the number of stitches since there will also be the start/end stitch.
             num_stitches = np.floor(distance/pitch).astype(int)-1
             # Put at least one stitch between each intersection pair.
-            num_stitches = max(1, num_stitches)
+            num_stitches = max(min_num_stitches_per_segment, num_stitches)
             # Then compute the ratio along the segment that each stitch will be.
             stitch_position_ratios = np.arange(0, 1, 1/(num_stitches+1))[1:]
             # Finally, compute the actual stitch positions.
