@@ -164,6 +164,7 @@ def _parse_svg_size_string(size_str, target_units='mm'):
 
 def path2polyline(path):
     """Convert data structure of a superpath described in `Path` to `polyline`.
+    CAUTION: The input superpath is assume to be only composed of `Lines` and `Move`, curves are not applicable.
 
     :param path: A superpath to be converted.
     :type path: svgelements.Path
@@ -175,6 +176,7 @@ def path2polyline(path):
         print('Not a path object.')
         return
 
+    # Stacks stitch point coordinates into a list
     values = []
     for element in path:
         if isinstance(element, Line):
@@ -239,6 +241,7 @@ def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_dupli
     :return: (x_all, y_all) where x_all and y_all are lists.
         Each entry represents a path in the SVG, and contains a list of coordinates.
         So point i of path p is at (x_all[p][i], y_all[p][i]).
+    :rtype: tuple[list[list[float]], list[list[float]]]
     """
     print('Parsing the SVG file %s' % filepath)
     # Read paths from the SVG file.
@@ -387,7 +390,7 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_s
     :type min_num_stitches_per_segment: int, optional
     
     :param print_debug: Verbose mode. (Default: False)
-    :type print_debug: ool, optional
+    :type print_debug: bool, optional
     
     :return: Stitch plan of a specific superpath, described in lists of x coordinates and y coordinates of stitches.
     :rtype: tuple[list[float], list[float]]
