@@ -10,7 +10,8 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 # design_dir = '.'
 design_dir = os.path.join(script_dir, 'SVG')
 
-svg_filename = 'Manus_Glove_V4_fingers.svg'
+svg_filename = '16x16_test-superpath.svg'
+# svg_filename = 'Asset 1finger.svg'
 # svg_filename = 'embroidery_sensor_matrix.svg'
 # svg_filename = 'test_pattern_1path.svg'
 # svg_filename = 'test_pattern_2paths.svg'
@@ -156,6 +157,3 @@ if args.viz_dst:
     plt.ylabel('Y [%s*%s]' % (args.target_units, args.scale))
     # Show the plot and wait for the user to close the window.
     plt.show()
-
-
-

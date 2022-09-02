@@ -8,15 +8,29 @@ import math
 import cv2
 import re
 
-# Compute the intersection between two line segments.
-# @param endpoints_1 and endpoints_2 are each 2x2 numpy arrays of the form [[x1, y1], [x2, y2]]
-# @return The intersection point as a 2-element numpy array.
-#         If the two segments are colinear and overlapping, will return the midpoint of the intersection area.
-#         Returns None if the segments do not overlap.
-#         If return_scenario_info is True, returns a tuple (intersection_point, info)
-#           where info is a dict with keys 'parallel' and 'colinear'
-# The code is based on https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+
 def get_segments_intersection(endpoints_1, endpoints_2, return_scenario_info=False, debug=False):
+    """Compute the intersection between two line segments.
+    The code is based on https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+
+    :param endpoints_1: 2x2 numpy arrays of the form [[x1, y1], [x2, y2]].
+    :type endpoints_1: NDArray[(2, 2), float]
+
+    :param endpoints_2: 2x2 numpy arrays of the form [[x1, y1], [x2, y2]].
+    :type endpoints_2: NDArray[(2, 2), float]
+
+    :param return_scenario_info: Display scenario information. The scenario_info is a `dict` object with `str` type key indicating scenario and `bool` type value indicating whether the scenario happened.
+    :type return_scenario_info: bool, optional
+
+    :param debug: Verbose mode. (Default: False)
+    :type debug: bool, optional
+
+    :return: The intersection point as a 2-element numpy array.
+        If the two segments are colinear and overlapping, will return the midpoint of the intersection area.
+        Returns None if the segments do not overlap.
+        If return_scenario_info is True, returns a tuple (intersection_point, info) where info is a dict with keys 'parallel' and 'colinear'
+    :rtype: NDArray[(2,), float] or None or tuple[DArray[(2,), float], dict]
+    """
     if isinstance(endpoints_1, (list, tuple)):
         endpoints_1 = np.array(endpoints_1)
     if isinstance(endpoints_2, (list, tuple)):
@@ -92,9 +106,20 @@ def get_segments_intersection(endpoints_1, endpoints_2, return_scenario_info=Fal
     else:
         return intersection_point
 
-# Parse a size string such as "10mm" into its value, and convert it to the target units.
-# Adapted from https://github.com/SebKuzminsky/svg2gcode/blob/94f28c1877c721c66cd90a38750f78d8031ac85a/gcoder.py#L238
+
 def _parse_svg_size_string(size_str, target_units='mm'):
+    """Parse a size string such as "10mm" into its value, and convert it to the target units.
+        Adapted from https://github.com/SebKuzminsky/svg2gcode/blob/94f28c1877c721c66cd90a38750f78d8031ac85a/gcoder.py#L238
+
+    :param size_str: Size string, a string contains a number and unit of measurement. e.g. '10mm'
+    :type size_str: str
+
+    :param target_units: Target units. (Default: 'mm')
+    :type target_units: str, optional
+
+    :return: Converted value in target units.
+    :rtype: float
+    """
     # Get the original value and units.
     m = re.match('^([0-9.]+)([a-zA-Z]*)$', size_str)
     if m == None or len(m.groups()) != 2:
@@ -136,35 +161,97 @@ def _parse_svg_size_string(size_str, target_units='mm'):
     
     return val*scale
 
-# Extract points stored in an SVG file.
-# @param target_units If provided, will look for scale informaion in the SVG metadata
-#   and, if found, will scale the points to be in the target units.
-# @param scale A scale factor to apply to the design after converting to target units.
-# @param remove_duplicates Whether to remove successive duplicate points.
-#   Otherwise, it seems the SVG can have back-to-back duplicates
-#    (that may or may not start at the first point).
-# @return (x_all, y_all) where x_all and y_all are lists.
-#   Each entry represents a path in the SVG, and contains a list of coordinates.
-#   So point i of path p is at (x_all[p][i], y_all[p][i]).
+
+def path2polyline(path):
+    """Convert data structure of a superpath described in `Path` to `polyline`.
+
+    :param path: A superpath to be converted.
+    :type path: svgelements.Path
+    
+    :return: A returning `Polyline` object wrapped with a list.
+    :rtype: svgelements.Polyline
+    """
+    if not isinstance(path, Path):
+        print('Not a path object.')
+        return
+
+    values = []
+    for element in path:
+        if isinstance(element, Line):
+            values.append(element.start.x)
+            values.append(element.start.y)
+            values.append(element.end.x)
+            values.append(element.end.y)
+
+    return [svgelements.Polyline(*values)]
+
+
+def extract_paths_from_groups(element):
+    """Extract paths from groups.
+
+    :param element: A single element of SVG file.
+    :type element: svgelements.Polyline or svgelements.Group or svgelements.Path
+    
+    :return: Returns `Polyline` object wrapped with a list.
+        Returns empty list if the element is not recognized.
+    :rtype: list[svgelements.Polyline] or list[]
+    """
+    if isinstance(element, Polyline):
+        return [element]
+
+    elif isinstance(element, Group):
+        paths = []
+        for subgroup in element:
+            paths.extend(extract_paths_from_groups(subgroup))
+        return paths
+
+    elif isinstance(element, Path):
+        paths = []
+        for subgroup in element:
+            paths.extend(path2polyline(element))
+            return paths
+
+    else:
+        return []
+
+
 def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_duplicates=True):
+    """Extract points stored in an SVG file.
+    
+    :param filepath: SVG file path.
+    :type filepath: str
+
+    :param scale: A scale factor to apply to the design after converting to target units.
+    :type scale: float
+
+    :param viz: Visualize stitch points by scatter plot.
+    :type viz: bool
+
+    :param target_units: If provided, will look for scale informaion in the SVG metadata
+        and, if found, will scale the points to be in the target units. (Default: None)
+    :type target_units: str, optional
+
+    :param remove_duplicates: Whether to remove successive duplicate points.
+        Otherwise, it seems the SVG can have back-to-back duplicates
+        (that may or may not start at the first point). (Default: True)
+    :type remove_duplicates: bool, optional
+    
+    :return: (x_all, y_all) where x_all and y_all are lists.
+        Each entry represents a path in the SVG, and contains a list of coordinates.
+        So point i of path p is at (x_all[p][i], y_all[p][i]).
+    """
     print('Parsing the SVG file %s' % filepath)
     # Read paths from the SVG file.
     # Lines may be contained within groups in the SVG,
     #  so will recursively dive through groups to find Polyline instances.
     svg_path_elements = list(SVG.parse(filepath))
-    def extract_paths_from_groups(element):
-        if isinstance(element, Polyline):
-            return [element]
-        elif isinstance(element, Group):
-            paths = []
-            for subgroup in element:
-                paths.extend(extract_paths_from_groups(subgroup))
-            return paths
-        else:
-            return []
+
     svg_paths = []
     for svg_path_element in svg_path_elements:
-        svg_paths.extend(extract_paths_from_groups(svg_path_element))
+        ph = extract_paths_from_groups(svg_path_element)
+        print(ph)
+        svg_paths.extend(ph)
+
     # Convert the paths into lists of coordinates.
     x_all = []
     y_all = []
@@ -273,13 +360,38 @@ def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_dupli
     # Return the control points!
     return x_all, y_all, rgb_all
 
-# Create a sequence of stitches for the specified path of the provided SVG control points.
-# For each line segment, will compute the intersections with all other SVG paths.
-#  Then for each inter-intersection section of the segment, will add stitches
-#   according to the specified pitch (avoiding the intersections themselves).
-#  Will place stitches for each segment according to the directionality of the original SVG path.
-#  Will also ensure that stitches are placed at the SVG control points.
+
 def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_segment=1, print_debug=False):
+    """Create a sequence of stitches for the specified path of the provided SVG control points.
+        For each line segment, will compute the intersections with all other SVG paths.
+        Then for each inter-intersection section of the segment, will add stitches according to the specified pitch (avoiding the intersections themselves).
+        Will place stitches for each segment according to the directionality of the original SVG path.
+        Will also ensure that stitches are placed at the SVG control points.
+
+    :param pattern: Embroidery pattern loaded from SVG file.
+    :type pattern: pyembroidery.EmbPattern.EmbPattern
+
+    :param x_all: A list contains 2~3 sublists, each sublist contains X coordinates of all stitch points of a single superpath.
+    :type x_all: list[list[float]]
+
+    :param y_all: A list contains 2~3 sublists, each sublist contains Y coordinates of all stitch points of a single superpath.
+    :type y_all: list[list[float]]
+
+    :param path_index: Index of paths. It is uesd to index x_all and y_all.
+    :type path_index: int
+
+    :param pitch: Legnth between stitch points.
+    :type pitch: float
+    
+    :param min_num_stitches_per_segment: Minmum number of stitch points between two intersections. (Default: 1)
+    :type min_num_stitches_per_segment: int, optional
+    
+    :param print_debug: Verbose mode. (Default: False)
+    :type print_debug: ool, optional
+    
+    :return: Stitch plan of a specific superpath, described in lists of x coordinates and y coordinates of stitches.
+    :rtype: tuple[list[float], list[float]]
+    """
     x_stitch = []
     y_stitch = []
     num_paths = len(x_all)
@@ -289,7 +401,7 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_s
         # Will create a list of notable points that define the line segment starting at the current point.
         segment_points_x = np.array([])
         segment_points_y = np.array([])
-        
+
         # Add the current control point as the starting point.
         segment_points_x = np.append(segment_points_x, x_all[path_index][point_index])
         segment_points_y = np.append(segment_points_y, y_all[path_index][point_index])
@@ -384,4 +496,3 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_s
                                     y_stitch[stitch_index])
     
     return  x_stitch, y_stitch
-
