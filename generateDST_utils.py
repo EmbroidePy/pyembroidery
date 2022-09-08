@@ -8,6 +8,7 @@ from scipy import spatial
 import math
 import cv2
 import re
+from PIL import ImageColor
 
 
 def viz_dst_sim(x_all, y_all, rgb_all, x_stitch_all, y_stitch_all, plt_title, target_units, scale):
@@ -355,7 +356,7 @@ def color_integer_encode(rgb_int):
     :param rgb_int: RGB integer.
     :type rgb_int: int
     
-    :return: A list of integers representing RGB values.
+    :return: A list of integers representing RGB values. It must be a sequence of size 3.
     :rtype: Annotated[list[int], 3]
     """
     return [(rgb_int >> 16) & 255,
@@ -468,7 +469,7 @@ def get_coords_from_paths(svg_paths, viz=False):
             plt.scatter(xs, ys, s=10, c='red')
             plt.gca().set_aspect('equal')
             plt.show()
-
+    print('colors: ', rgb_all)
     return x_all, y_all, rgb_all
 
 
@@ -567,7 +568,54 @@ def extract_paths_from_svg(filepath, scale, viz, target_units=None, remove_dupli
     return x_all, y_all, rgb_all
 
 
-def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_segment=1, print_debug=False):
+def get_ignore_thread_indices(rgb_all, ignore_thread_colors):
+    """Get ignorance thread indices.
+    
+    :param rgb_all: Colors of all superpaths.
+    :type rgb_all: list[list[int]]
+
+    :param conduct_thread_colors: Conductive thread color.
+    :type ignore_thread_colors: list[int, ...]
+
+    :return: Indices of conductive threads. Returns None if ignore_thread_colors is not list type.
+    :rtype: list[int, ...] or None
+    """
+    if not isinstance(ignore_thread_colors, list):
+        return None
+    ret = []
+    for ignore_color in ignore_thread_colors:
+        ignore_color = ImageColor.getcolor(ignore_color, 'RGB')  # returns a trinary tuple
+        for i, color in enumerate(rgb_all):
+            if list(color)==list(ignore_color):
+                ret.append(i)
+    return ret
+
+
+def get_conduct_thread_indices(rgb_all, conduct_thread_colors):
+    """Get conductive thread indices. There must be only 2 conductive threads in an tactile sensor embroidery pattern.
+
+    :param rgb_all: Colors of all superpaths.
+    :type rgb_all: list[list[int]]
+
+    :param conduct_thread_colors: Conductive thread color. Size of this sequence is not more than 2.
+    :type conduct_thread_color: Annotated[list[int], 1] or Annotated[list[int], 2]
+
+    :return: Indices of conductive threads. It must be a sequence of size 2.
+    :rtype: Annotated[list[int], 2]
+
+    :raise AssertionError:
+    """
+    ret = []
+    for conduct_color in conduct_thread_colors:
+        conduct_color = ImageColor.getcolor(conduct_color, 'RGB')  # returns a trinary tuple
+        for i, color in enumerate(rgb_all):
+            if list(color)==list(conduct_color):
+                ret.append(i)
+    assert len(ret)==2, 'Only 2 conductive threads allowed in an tactile sensor embroidery pattern.'
+    return ret
+
+
+def stitch_path(pattern, x_all, y_all, path_index, pitch, conduct_thread_indices, min_num_stitches_per_segment=1, print_debug=False):
     """Create a sequence of stitches for the specified path of the provided SVG control points.
     For each line segment, will compute the intersections with all other SVG paths.
     Then for each inter-intersection section of the segment, will add stitches according to the specified pitch (avoiding the intersections themselves).
@@ -582,6 +630,9 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_s
 
     :param y_all: A list contains 2~3 sublists, each sublist contains Y coordinates of all stitch points of a single superpath.
     :type y_all: list[list[float]]
+
+    :param conduct_thread_indices: Specify indices of conductive threads. It must be a sequence of size 2.
+    :type conduct_thread_indices: Annotated[list[int], 2]
 
     :param path_index: Index of paths. It is uesd to index x_all and y_all.
     :type path_index: int
@@ -616,12 +667,13 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, min_num_stitches_per_s
         #  and any segment of any other paths in the SVG.
         for other_path_index in range(num_paths):
 
+            # Find intersections only if both paths are conductive threads, the conductive thread would be specified by its color.
             if other_path_index == path_index:
                 continue
 
-            # Find intersections with other paths
-            # if not ((path_index==1 and other_path_index==0) or (path_index==0 and other_path_index==1)):
-                # continue
+            if not ((path_index==conduct_thread_indices[0] and other_path_index==conduct_thread_indices[1]) or
+                (path_index==conduct_thread_indices[1] and other_path_index==conduct_thread_indices[0])):
+                continue
 
             num_other_points = len(x_all[other_path_index])
             for other_point_index in range(num_other_points-1):

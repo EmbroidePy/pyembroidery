@@ -2,6 +2,7 @@
 import pyembroidery
 #from generateDST_utils import *
 from generateDST_utils import (extract_paths_from_svg, stitch_path,
+    get_ignore_thread_indices, get_conduct_thread_indices,
     viz_dst_sim, viz_dst)
 import argparse
 import time
@@ -13,7 +14,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 # design_dir = '.'
 design_dir = os.path.join(script_dir, 'SVG')
 
-svg_filename = '16x16_test_v2-1-superpath.svg'
+svg_filename = '16x16_test_v2-superpath.svg'
 # svg_filename = 'Asset 1finger.svg'
 # svg_filename = 'embroidery_sensor_matrix.svg'
 # svg_filename = 'test_pattern_1path.svg'
@@ -51,10 +52,18 @@ def main(args):
     x_stitch_all = [None]*num_paths
     y_stitch_all = [None]*num_paths
 
+    # Get ignorance thread indices
+    ignore_thread_indices = get_ignore_thread_indices(rgb_all, args.path_color_to_not_stitch)
+
+    # Get conductive thread indices
+    conduct_thread_indices = get_conduct_thread_indices(rgb_all, args.conduct_thread_color)
+    print('Paths: {} with color: {} are considered to be conductive threads.'.format(conduct_thread_indices, args.conduct_thread_color))
+
     # Add points to represent each path in the SVG file.
     num_paths_stitched = 0
     for path_index in range(num_paths):
-        if args.path_color_to_not_stitch is not None and (list(args.path_color_to_not_stitch) == list(rgb_all[path_index])):
+        # if args.path_color_to_not_stitch is not None and (list(args.path_color_to_not_stitch) == list(rgb_all[path_index])):
+        if args.path_color_to_not_stitch is not None and path_index in ignore_thread_indices:
             print('NOT stitching path %d/%d since its color is %s\n' % (
                 path_index+1, num_paths, args.path_color_to_not_stitch))
             continue
@@ -70,6 +79,7 @@ def main(args):
         xs, ys = stitch_path(pattern, x_all, y_all,
                            path_index=path_index,
                            pitch=args.pitch,
+                           conduct_thread_indices=conduct_thread_indices,
                            min_num_stitches_per_segment=args.min_interSegment_stitches)
         x_stitch_all[path_index] = xs
         y_stitch_all[path_index] = ys
@@ -95,6 +105,17 @@ def main(args):
 
         # Plot the design, with a single color per path.
         viz_dst(x_all, y_all, rgb_all, x_stitch_all, y_stitch_all, **plot_info)
+
+
+def str2list(in_str):
+    """Parse comma seperated color strings to a list.
+    e.g. '#00FF00,#0000FF' -> ['#00FF00', '#0000FF']
+         '#00FF00, #0000FF' -> ['#00FF00', '#0000FF']
+         '#00FF00' -> ['#00FF00']
+    """
+    list1 = in_str.split(',')
+    ret = [e.strip() for e in list1]
+    return ret
 
 
 def parse_args():
@@ -127,7 +148,10 @@ def parse_args():
     # Specify a line color to not stitch if desired.
     #  Those paths will still be used for computing intersections with other paths for stitch placement purposes.
     #  Can be a three-element RGB list (scaled out of 255) or None.
-    parser.add_argument('--path_color_to_not_stitch', type=list, default=None, help='path-color-to-ignore') # A 3-element RGB list, or None to not ignore any paths
+    parser.add_argument('--path_color_to_not_stitch', type=str2list, default=None, help='Path color to be ignored. (Usage: --path_color_to_not_stitch "#00FF00,#0000FF")') # A 3-element RGB list, or None to not ignore any paths
+
+    # Specify conductive thread color
+    parser.add_argument('--conduct_thread_color', type=str2list, default=['#00FF00', '#0000FF'], help='Conductive thread color. (Usage: --conduct_thread_color "#00FF00,#0000FF")')
 
     # Visualization.
     parser.add_argument('--viz_svg', type=bool, default=False, help='Visualize input .svg file.')
