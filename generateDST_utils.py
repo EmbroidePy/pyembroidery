@@ -605,6 +605,8 @@ def get_conduct_thread_indices(rgb_all, conduct_thread_colors):
 
     :raise AssertionError:
     """
+    if not isinstance(conduct_thread_colors, list):
+        return None
     ret = []
     for conduct_color in conduct_thread_colors:
         conduct_color = ImageColor.getcolor(conduct_color, 'RGB')  # returns a trinary tuple
@@ -631,8 +633,8 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, conduct_thread_indices
     :param y_all: A list contains 2~3 sublists, each sublist contains Y coordinates of all stitch points of a single superpath.
     :type y_all: list[list[float]]
 
-    :param conduct_thread_indices: Specify indices of conductive threads. It must be a sequence of size 2.
-    :type conduct_thread_indices: Annotated[list[int], 2]
+    :param conduct_thread_indices: Specify indices of conductive threads, it must be a sequence of size 2. Input `None` to disable this feature.
+    :type conduct_thread_indices: Annotated[list[int], 2] or None
 
     :param path_index: Index of paths. It is uesd to index x_all and y_all.
     :type path_index: int
@@ -671,9 +673,9 @@ def stitch_path(pattern, x_all, y_all, path_index, pitch, conduct_thread_indices
             if other_path_index == path_index:
                 continue
 
-            if not ((path_index==conduct_thread_indices[0] and other_path_index==conduct_thread_indices[1]) or
-                (path_index==conduct_thread_indices[1] and other_path_index==conduct_thread_indices[0])):
-                continue
+            if conduct_thread_indices:
+                if not ((path_index==conduct_thread_indices[0] and other_path_index==conduct_thread_indices[1]) or (path_index==conduct_thread_indices[1] and other_path_index==conduct_thread_indices[0])):
+                    continue
 
             num_other_points = len(x_all[other_path_index])
             for other_point_index in range(num_other_points-1):

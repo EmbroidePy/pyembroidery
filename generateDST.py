@@ -14,7 +14,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 # design_dir = '.'
 design_dir = os.path.join(script_dir, 'SVG')
 
-svg_filename = '16x16_test_v2-superpath.svg'
+svg_filename = 'intersection_test.svg'
 # svg_filename = 'Asset 1finger.svg'
 # svg_filename = 'embroidery_sensor_matrix.svg'
 # svg_filename = 'test_pattern_1path.svg'
@@ -57,7 +57,8 @@ def main(args):
 
     # Get conductive thread indices
     conduct_thread_indices = get_conduct_thread_indices(rgb_all, args.conduct_thread_color)
-    print('Paths: {} with color: {} are considered to be conductive threads.'.format(conduct_thread_indices, args.conduct_thread_color))
+    if conduct_thread_indices:
+        print('Paths: {} with color: {} are considered to be conductive threads.'.format(conduct_thread_indices, args.conduct_thread_color))
 
     # Add points to represent each path in the SVG file.
     num_paths_stitched = 0
@@ -151,7 +152,7 @@ def parse_args():
     parser.add_argument('--path_color_to_not_stitch', type=str2list, default=None, help='Path color to be ignored. (Usage: --path_color_to_not_stitch "#00FF00,#0000FF")') # A 3-element RGB list, or None to not ignore any paths
 
     # Specify conductive thread color
-    parser.add_argument('--conduct_thread_color', type=str2list, default=['#00FF00', '#0000FF'], help='Conductive thread color. (Usage: --conduct_thread_color "#00FF00,#0000FF")')
+    parser.add_argument('--conduct_thread_color', type=str2list, default=None, help='Conductive thread color. (Usage: --conduct_thread_color "#00FF00,#0000FF")')
 
     # Visualization.
     parser.add_argument('--viz_svg', type=bool, default=False, help='Visualize input .svg file.')
