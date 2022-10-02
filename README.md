@@ -29,7 +29,7 @@ Pyembroidery fully meets and exceeds all of these requirements.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
 
-Though previously mandated support for Python 2.7, this support was dropped at the end of life for that version. It is highly recommended that you upgrade. A `python27` branch is availible but that branch was merely forked from when the version was supported.
+Though previously mandated support for Python 2.7, this support was dropped at the end of life for that version. It is highly recommended that you upgrade. A `python27` branch is available but that branch was merely forked from when the version was supported.
 
 
 ## Philosophy
@@ -202,7 +202,7 @@ Prints out a workable CSV file with the given data. Starting in 1.3 the csv patt
 
 
 #### Reading/Writing to JSON:
-Saves the pattern as a JSON object. This is intended to be useful as an interchange format since JSON is the most common data interchange format availible currently. 
+Saves the pattern as a JSON object. This is intended to be useful as an interchange format since JSON is the most common data interchange format available currently. 
 
 
 #### Writing to PNG:
@@ -566,7 +566,7 @@ While there's only NONE, and THREE_SMALL for contingencies currently, both the t
 
 * The core units are 1/10th mm. This is what 1 refers to within most formats, and internally within pyembroidery itself. You are entirely permitted to use floating point numbers. When writing to a format, fractional values will be lost, but this shall happen in such a way to avoid the propagation of error. Relative stitches from position ( 0.0,  0.31 ) of (+5.4, +5.4), (+5.4, +5,4), (+5.4, +5,4) should encode as changes of 5,6 6,5 5,6. Taking the relative distance in the format as the integer change from the last integer position to the new one, maintaining a position as close to the absolute position as possible. All fractional values are considered significant. 
 
-In some read formats the formats themselves have a slightly different unit systems such as .PCD or .MIT these alternative units will be presented seemlessly as 1/10th mm units.
+In some read formats the formats themselves have a slightly different unit systems such as .PCD or .MIT these alternative units will be presented seamlessly as 1/10th mm units.
 
 ### Core Command Ordering
 
