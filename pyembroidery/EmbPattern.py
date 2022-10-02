@@ -670,7 +670,7 @@ class EmbPattern:
                             self.stitches[last_change][2] = STOP
                         else:
                             thread_index += 1
-                    except IndexError:  # Non-existant threads cannot double
+                    except IndexError:  # Non-existent threads cannot double
                         return
                     init_color = False
             elif data == COLOR_CHANGE or data == COLOR_BREAK or data == NEEDLE_SET:
