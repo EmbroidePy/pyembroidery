@@ -16,6 +16,21 @@ class TestWrites(unittest.TestCase):
         write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5})
         self.addCleanup(os.remove, file1)
 
+    def test_write_fancy_png(self):
+        file1 = "file-fancy.png"
+        write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "fancy": True})
+        self.addCleanup(os.remove, file1)
+
+    def test_write_guides_png(self):
+        file1 = "file-guides.png"
+        write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "guides": True})
+        self.addCleanup(os.remove, file1)
+
+    def test_write_fancy_guides_png(self):
+        file1 = "file-fancy-guides.png"
+        write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "fancy": True,  "guides": True})
+        self.addCleanup(os.remove, file1)
+
     def test_write_dst_read_dst(self):
         file1 = "file.dst"
         write_dst(get_big_pattern(), file1)
