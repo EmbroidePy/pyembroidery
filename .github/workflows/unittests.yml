@@ -1,0 +1,73 @@
+name: Unittest
+
+on:
+  push:
+    branches: [master, dev]
+    paths:
+      - '**.py'
+      - '.github/workflows/unittests.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - '**.py'
+      - '.github/workflows/unittests.yml'
+
+concurrency:
+  group: unittests-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  unittests:
+
+    name: ${{ matrix.os }}+py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-2019, macos-11]
+        python-version: [3.11]
+
+    steps:
+
+    - name: Checkout ${{ github.ref }}
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Identify precise Python version
+      id: full-python-version
+      shell: bash
+      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+    - name: Cache Python env for ${{ matrix.os }}-py${{ steps.full-python-version.outputs.version }}
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.pythonLocation }}
+        key: new-${{ matrix.os }}-py${{ steps.full-python-version.outputs.version }}-${{ hashFiles('requirements.txt') }}
+
+    - name: List environment
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+        JOB_CONTEXT: ${{ toJSON(job) }}
+        STEPS_CONTEXT: ${{ toJSON(steps) }}
+        RUNNER_CONTEXT: ${{ toJSON(runner) }}
+        STRATEGY_CONTEXT: ${{ toJSON(strategy) }}
+        MATRIX_CONTEXT: ${{ toJSON(matrix) }}
+      run: |
+        pip list
+        env
+
+    - name: Run Unittests
+      run: |
+        python -m unittest discover test -v
+        if ${{ matrix.experimental }} == true; then
+            exit 0
+        fi
