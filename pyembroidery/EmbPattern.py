@@ -1533,6 +1533,11 @@ class EmbPattern:
     def read_csv(f, settings=None, pattern=None):
         """Reads fileobject as CSV file"""
         return EmbPattern.read_embroidery(CsvReader, f, settings, pattern)
+    
+    @staticmethod
+    def read_json(f, settings=None, pattern=None):
+        """Reads fileobject as JSON file"""
+        return EmbPattern.read_embroidery(JsonReader, f, settings, pattern)
 
     @staticmethod
     def read_gcode(f, settings=None, pattern=None):
@@ -1682,6 +1687,11 @@ class EmbPattern:
     def write_csv(pattern, stream, settings=None):
         """Writes fileobject as CSV file"""
         EmbPattern.write_embroidery(CsvWriter, pattern, stream, settings)
+
+    @staticmethod
+    def write_json(pattern, stream, settings=None):
+        """Writes fileobject as JSON file"""
+        EmbPattern.write_embroidery(JsonWriter, pattern, stream, settings)
 
     @staticmethod
     def write_txt(pattern, stream, settings=None):
