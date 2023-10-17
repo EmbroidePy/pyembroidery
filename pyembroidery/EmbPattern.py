@@ -1723,14 +1723,19 @@ class EmbPattern:
         """Writes file, assuming type by extension"""
         extension = EmbPattern.get_extension_by_filename(filename)
         extension = extension.lower()
+        supported_extensions = [file_type["extension"] for file_type in EmbPattern.supported_formats()]
 
-        for file_type in EmbPattern.supported_formats():
-            if file_type["extension"] != extension:
-                continue
-            writer = file_type.get("writer", None)
-            if writer is None:
-                continue
+        if extension not in supported_extensions:
+            raise Exception(f"Conversion to file type '{extension}' is not supported")
+
+        ext_to_file_type_lookup = {file_type["extension"]: file_type for file_type in EmbPattern.supported_formats()}
+        writer = ext_to_file_type_lookup[extension].get("writer")
+
+        if writer:
             EmbPattern.write_embroidery(writer, pattern, filename, settings)
+        else:
+            # TODO: I don't think we should pass silently!
+            pass
 
     @staticmethod
     def is_str(obj):
