@@ -151,6 +151,7 @@ def get_shift_pattern_needles():
         pattern.add_command(MATRIX_ROTATE, 22.5)
     return pattern
 
+
 def get_small_shift_pattern_needles():
     pattern = EmbPattern()
     pattern.metadata("name", "pyem-test")
