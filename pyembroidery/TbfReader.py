@@ -1,8 +1,13 @@
 from .EmbThread import EmbThread
-from .ReadHelper import read_int_8, read_int_24be, signed8
+from .ReadHelper import read_int_8, read_int_24be, signed8, read_string_8
 
 
 def read(f, out, settings=None):
+    f.seek(0x83, 0)
+    name = read_string_8(f, 0x10).strip()
+    out.metadata("name", name)
+    f.seek(0x10A, 0)
+    thread_order = list(f.read(0x100))
     f.seek(0x20E, 0)
     while True:
         if read_int_8(f) == 0x45:
@@ -14,9 +19,8 @@ def read(f, out, settings=None):
             break
     f.seek(0x600, 0)
 
-    count = 0
+    needle = 0
     while True:
-        count += 1
         byte = bytearray(f.read(3))
         if len(byte) != 3:
             break
@@ -27,8 +31,14 @@ def read(f, out, settings=None):
             out.stitch(signed8(x), -signed8(y))
             continue
         elif ctrl == 0x81:
-            if count > 1:  # This might rather be a needle change.
-                out.color_change()
+            needle_value = thread_order[needle]
+            needle += 1
+            if needle_value == 0:
+                # Needle value 0, shouldn't typically exist, but if it does its considered stop.
+                out.stop()
+            else:
+                out.needle_change(needle=needle_value)
+            continue
         elif ctrl == 0x90:
             if x == 0 and y == 0:
                 out.trim()
