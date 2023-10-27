@@ -19,7 +19,7 @@ def write(pattern, f, settings=None):
         f.write(b"\x20")  # space
     write_string_utf8(f, "LA:%-16s\r" % name)
     write_string_utf8(f, "ST:%7d\r" % pattern.count_stitches())
-    write_string_utf8(f, "CO:%3d\r" % pattern.count_color_changes())
+    write_string_utf8(f, "CO:%3d\r" % pattern.count_needle_sets())
 
     write_string_utf8(f, "+X:%5d\r" % abs(bounds[2]))
     write_string_utf8(f, "-X:%5d\r" % abs(bounds[0]))
