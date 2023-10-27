@@ -6,6 +6,7 @@ FULL_JUMP = False
 ROUND = True
 MAX_JUMP_DISTANCE = 127
 MAX_STITCH_DISTANCE = 127
+THREAD_CHANGE_COMMAND = NEEDLE_SET
 
 
 def write(pattern, f, settings=None):
@@ -52,9 +53,8 @@ def write(pattern, f, settings=None):
     index = 0
     for stitch in pattern.stitches:
         data = stitch[2] & COMMAND_MASK
-        if data == COLOR_CHANGE:
-            decoded = decode_embroidery_command(stitch[2])
-            needle = decoded[2] + 1
+        if data == NEEDLE_SET:
+            flag, thread, needle, order = decode_embroidery_command(stitch[2])
             thread_order[index] = needle
             index += 1
     for n in thread_order:
@@ -107,7 +107,7 @@ def write(pattern, f, settings=None):
         elif data == TRIM:
             cmd = 0x86
             f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
-        elif data == COLOR_CHANGE:
+        elif data == NEEDLE_SET:
             cmd = 0x81
             f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
         elif data == END:
