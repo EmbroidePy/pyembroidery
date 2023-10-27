@@ -1612,6 +1612,11 @@ class EmbPattern:
                     settings["thread_change_command"] = writer.THREAD_CHANGE_COMMAND
                 except AttributeError:
                     pass
+            if not ("explicit_trim" in settings):
+                try:
+                    settings["explicit_trim"] = writer.EXPLICIT_TRIM
+                except AttributeError:
+                    pass
             if not ("translate" in settings):
                 try:
                     settings["translate"] = writer.TRANSLATE
