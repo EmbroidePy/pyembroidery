@@ -56,6 +56,7 @@ def write(pattern, f, settings=None):
             decoded = decode_embroidery_command(stitch[2])
             needle = decoded[2] + 1
             thread_order[index] = needle
+            index += 1
     for n in thread_order:
         write_int_8(f, n)
     write_string_utf8(f, "\r")
