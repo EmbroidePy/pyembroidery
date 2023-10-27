@@ -64,11 +64,11 @@ def write(pattern, f, settings=None):
     write_string_utf8(f, "DA:")
     if len(pattern.threadlist) > 0:
         for thread in pattern.threadlist:
-            write_int_8(0x45)
-            write_int_8(thread.red)
-            write_int_8(thread.green)
-            write_int_8(thread.blue)
-            write_int_8(0x20)
+            write_int_8(f, 0x45)
+            write_int_8(f, thread.get_red())
+            write_int_8(f, thread.get_green())
+            write_int_8(f, thread.get_blue())
+            write_int_8(f, 0x20)
 
     # Padding to 501
     for i in range(f.tell(), 0x501):
@@ -91,31 +91,27 @@ def write(pattern, f, settings=None):
         data = stitch[2] & COMMAND_MASK
         dx = int(round(x - xx))
         dy = int(round(y - yy))
-
         xx += dx
         yy += dy
 
-        delta_x = abs(dx)
-        delta_y = abs(dy)
         if data == STITCH:
             cmd = 0x80
-            f.write(bytes(bytearray([delta_x, delta_y, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
         elif data == JUMP:
             cmd = 0x90
-            f.write(bytes(bytearray([delta_x, delta_y, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
         elif data == STOP:
             cmd = 0x40
-            f.write(bytes(bytearray([delta_x, delta_y, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
         elif data == TRIM:
             cmd = 0x86
-            f.write(bytes(bytearray([delta_x, delta_y, cmd])))
-        elif data == NEEDLE_SET:
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+        elif data == COLOR_CHANGE:
             cmd = 0x81
-            f.write(bytes(bytearray([cmd, delta_y, delta_x])))
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
         elif data == END:
             cmd = 0x8F
-            f.write(bytes(bytearray([cmd, delta_y, delta_x])))
+            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
             break
-
     # Terminal character.
     f.write(b"\x1a")
