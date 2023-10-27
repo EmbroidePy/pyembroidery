@@ -58,6 +58,7 @@ import pyembroidery.StxReader as StxReader
 import pyembroidery.SvgWriter as SvgWriter
 import pyembroidery.TapReader as TapReader
 import pyembroidery.TbfReader as TbfReader
+import pyembroidery.TbfWriter as TbfWriter
 import pyembroidery.TxtWriter as TxtWriter
 import pyembroidery.U01Reader as U01Reader
 import pyembroidery.U01Writer as U01Writer
@@ -1175,6 +1176,7 @@ class EmbPattern:
                 "mimetype": "application/x-tbf",
                 "category": "embroidery",
                 "reader": TbfReader,
+                "writer": TbfWriter,
             }
         )
         yield (
