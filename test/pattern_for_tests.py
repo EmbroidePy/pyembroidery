@@ -144,7 +144,7 @@ def get_shift_pattern_needles():
     pattern += "oldlace"
 
     for i in range(16):
-        needle = (15 - i) % 8
+        needle = ((15 - i) % 8) + 1
         pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=needle))
         pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
         pattern.add_command(MATRIX_TRANSLATE, 25, 25)
