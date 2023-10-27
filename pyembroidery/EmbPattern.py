@@ -1547,6 +1547,11 @@ class EmbPattern:
         return EmbPattern.read_embroidery(XxxReader, f, settings, pattern)
 
     @staticmethod
+    def read_tbf(f, settings=None, pattern=None):
+        """Reads fileobject as TBF file"""
+        return EmbPattern.read_embroidery(TbfReader, f, settings, pattern)
+
+    @staticmethod
     def static_read(filename, settings=None, pattern=None):
         """Reads file, assuming type by extension"""
         extension = EmbPattern.get_extension_by_filename(filename)
@@ -1699,6 +1704,11 @@ class EmbPattern:
     def write_xxx(pattern, stream, settings=None):
         """Writes fileobject as XXX file"""
         EmbPattern.write_embroidery(XxxWriter, pattern, stream, settings)
+
+    @staticmethod
+    def write_tbf(pattern, stream, settings=None):
+        """Writes fileobject as TBF file"""
+        EmbPattern.write_embroidery(TbfWriter, pattern, stream, settings)
 
     @staticmethod
     def write_svg(pattern, stream, settings=None):

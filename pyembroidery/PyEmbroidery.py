@@ -17,6 +17,7 @@ read_u01 = EmbPattern.read_u01
 read_csv = EmbPattern.read_csv
 read_gcode = EmbPattern.read_gcode
 read_xxx = EmbPattern.read_xxx
+read_tbf = EmbPattern.read_tbf
 read = EmbPattern.static_read
 
 write_embroidery = EmbPattern.write_embroidery
@@ -31,6 +32,7 @@ write_csv = EmbPattern.write_csv
 write_txt = EmbPattern.write_txt
 write_gcode = EmbPattern.write_gcode
 write_xxx = EmbPattern.write_xxx
+write_tbf = EmbPattern.write_tbf
 write_svg = EmbPattern.write_svg
 write_png = EmbPattern.write_png
 write = EmbPattern.static_write
