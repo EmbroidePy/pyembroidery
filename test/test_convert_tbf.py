@@ -212,10 +212,14 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
+    def test_load_save(self):
+        f_pattern = read_tbf("needle_change.tbf")
+        write_tbf(f_pattern, "needle_change2.tbf")
+
     def test_needle_tbf_range(self):
-        file1 = "test_range5.tbf"
+        file1 = "test_range7.tbf"
         pattern = EmbPattern()
-        pattern.metadata("name", "colorswitch5")
+        pattern.metadata("name", "colorswitch7")
         pattern += "red"
         pattern += "blue"
         pattern += "green"
@@ -225,17 +229,17 @@ class TestConverts(unittest.TestCase):
         pattern += "khaki"
         pattern += "oldlace"
 
-        pattern.needle_change(needle=1)
-        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
-
-        pattern.needle_change(needle=2)
-        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
-
         pattern.needle_change(needle=3)
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
+
+        pattern.needle_change(needle=4)
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
+
+        pattern.needle_change(needle=5)
         pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
 
         write_tbf(pattern, file1)
