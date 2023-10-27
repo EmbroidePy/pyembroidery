@@ -211,3 +211,24 @@ class TestConverts(unittest.TestCase):
         print("tbf->u01: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_needle_tbf_range(self):
+        file1 = "test_range.tbf"
+        pattern = EmbPattern()
+        pattern += "red"
+        pattern += "blue"
+        pattern += "green"
+        pattern += "grey"
+        pattern += "gold"
+        pattern += "ivory"
+        pattern += "khaki"
+        pattern += "oldlace"
+
+        pattern.needle_change(needle=7)
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        write_tbf(pattern, file1)
+        f_pattern = read_tbf(file1)
+
+        self.assertNotEqual(len(f_pattern.threadlist), 1)
+        self.assertEqual(f_pattern.count_stitch_commands(STITCH), 5)
+        self.addCleanup(os.remove, file1)
