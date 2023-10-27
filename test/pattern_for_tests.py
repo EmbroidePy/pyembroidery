@@ -131,6 +131,7 @@ def get_shift_pattern():
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "lime")
     return pattern
 
+
 def get_shift_pattern_needles():
     pattern = EmbPattern()
     pattern += "red"
@@ -142,38 +143,12 @@ def get_shift_pattern_needles():
     pattern += "khaki"
     pattern += "oldlace"
 
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=7))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=6))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=5))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=4))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=3))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=2))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=1))
-    pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-    pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-    pattern.add_command(MATRIX_ROTATE, 22.5)
-    pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=0))
+    for i in range(16):
+        needle = (15 - i) % 8
+        pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=needle))
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 22.5)
     return pattern
 
 
