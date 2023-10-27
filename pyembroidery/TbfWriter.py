@@ -7,6 +7,7 @@ ROUND = True
 MAX_JUMP_DISTANCE = 127
 MAX_STITCH_DISTANCE = 127
 THREAD_CHANGE_COMMAND = NEEDLE_SET
+EXPLICIT_TRIM = True
 
 
 def write(pattern, f, settings=None):
