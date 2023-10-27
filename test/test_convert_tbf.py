@@ -186,27 +186,28 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
-    def test_convert_tbf_to_u01_needles(self):
+    def test_needles_convert_tbf_to_u01(self):
         file1 = "convert_u01.tbf"
         file2 = "converted_tbf.u01"
         write_tbf(get_shift_pattern_needles(), file1)
         f_pattern = read_tbf(file1)
 
-        t = 7
+        t = 8
         for x, y, cmd in f_pattern.stitches:
-            if cmd & COMMAND_MASK == COLOR_CHANGE:
+            if cmd & COMMAND_MASK == NEEDLE_SET:
                 flag, thread, needle, order = decode_embroidery_command(cmd)
                 self.assertEqual(needle, t)
                 t -= 1
+                if t <= 0:
+                    t = 8
 
         write_u01(f_pattern, file2)
         t_pattern = read_u01(file2)
 
         self.assertIsNotNone(t_pattern)
-        self.assertEqual(f_pattern.count_stitch_commands(NEEDLE_SET), 15)
-        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 15)
-        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 8 * 5)
-        self.position_equals(t_pattern.stitches, 0, -1)
+        self.assertEqual(f_pattern.count_stitch_commands(NEEDLE_SET), 16)
+        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 16)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         print("tbf->u01: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
