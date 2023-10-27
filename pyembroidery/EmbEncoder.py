@@ -105,9 +105,7 @@ class Transcoder:
         source = self.source_pattern.stitches
         current_index = 0
         for stitch in source:
-            change = decode_embroidery_command(stitch[2])
-            command = change[0]
-            flags = command & COMMAND_MASK
+            flags, thread, needle, order = decode_embroidery_command(stitch[2])
             if current_index == 0:
                 if (
                     flags == STITCH
@@ -117,15 +115,8 @@ class Transcoder:
                 ):
                     current_index = 1
             if flags == SET_CHANGE_SEQUENCE:
-                thread = change[1]
-                needle = change[2]
-                order = change[3]
                 yield flags, thread, needle, order, None
             elif flags == NEEDLE_SET or flags == COLOR_CHANGE or flags == COLOR_BREAK:
-                change = decode_embroidery_command(command)
-                thread = change[1]
-                needle = change[2]
-                order = change[3]
                 yield flags, thread, needle, order, current_index
                 current_index += 1
 
