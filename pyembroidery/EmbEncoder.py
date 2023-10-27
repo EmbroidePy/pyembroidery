@@ -194,6 +194,8 @@ class Transcoder:
         self.position = 0
         self.order_index = -1
         self.change_sequence = self.build_thread_change_sequence()
+        if self.thread_change_command == NEEDLE_SET:
+            self.destination_pattern.threadlist.extend(self.source_pattern.threadlist)
 
         flags = NO_COMMAND
         for self.position, self.stitch in enumerate(source):
@@ -584,13 +586,15 @@ class Transcoder:
         self.order_index += 1
         change = self.change_sequence[self.order_index]
         threadlist = self.destination_pattern.threadlist
-        threadlist.append(change[3])
         if self.thread_change_command == COLOR_CHANGE:
+            threadlist.append(change[3])
             if self.order_index != 0:
                 self.add_thread_change(COLOR_CHANGE, change[1], change[2])
         elif self.thread_change_command == NEEDLE_SET:
+            # We do not append the thread, we already have all threads
             self.add_thread_change(NEEDLE_SET, change[1], change[2])
         elif self.thread_change_command == STOP:
+            threadlist.append(change[3])
             self.add_thread_change(STOP, change[1], change[2])
         self.state_trimmed = True
 
