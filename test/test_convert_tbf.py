@@ -213,9 +213,10 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file2)
 
     def test_needle_tbf_range(self):
-        file1 = "test_range7.tbf"
+        file1 = "test_range8.tbf"
+        file2 = "test_range8.ct0"
         pattern = EmbPattern()
-        pattern.metadata("name", "colorswitch7")
+        pattern.metadata("name", "colorswitch8")
         pattern += "red"
         pattern += "blue"
         pattern += "green"
@@ -225,11 +226,6 @@ class TestConverts(unittest.TestCase):
         pattern += "khaki"
         pattern += "oldlace"
 
-        pattern.needle_change(needle=3)
-        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
-        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
-        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
-
         pattern.needle_change(needle=4)
         pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
         pattern.add_command(MATRIX_TRANSLATE, 25, 25)
@@ -237,10 +233,17 @@ class TestConverts(unittest.TestCase):
 
         pattern.needle_change(needle=5)
         pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
 
-        write_tbf(pattern, file1)
+        pattern.needle_change(needle=6)
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+
+        write_tbf(pattern, file1, settings={"ct0": file2})
         f_pattern = read_tbf(file1)
 
         self.assertNotEqual(len(f_pattern.threadlist), 1)
         self.assertEqual(f_pattern.count_stitch_commands(STITCH), 3 * 5)
+
         self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
