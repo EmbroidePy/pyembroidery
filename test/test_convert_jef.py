@@ -179,7 +179,7 @@ class TestConverts(unittest.TestCase):
         t_pattern = read_tbf(file2)
 
         self.assertIsNotNone(t_pattern)
-        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 16)
         self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
         self.position_equals(t_pattern.stitches, 0, -1)
         print("jef->tbf: ", t_pattern.stitches)
