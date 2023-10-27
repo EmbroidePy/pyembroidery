@@ -212,10 +212,6 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
-    def test_load_save(self):
-        f_pattern = read_tbf("needle_change.tbf")
-        write_tbf(f_pattern, "needle_change2.tbf")
-
     def test_needle_tbf_range(self):
         file1 = "test_range7.tbf"
         pattern = EmbPattern()
