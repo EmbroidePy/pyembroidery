@@ -11,6 +11,9 @@ EXPLICIT_TRIM = True
 
 
 def write(pattern, f, settings=None):
+    if settings is not None and "ct0" in settings:
+        ct0 = settings.get("ct0")
+        write_ct0(pattern, ct0)
     bounds = pattern.bounds()
 
     name = pattern.get_metadata("name", "Untitled")
@@ -117,3 +120,44 @@ def write(pattern, f, settings=None):
             break
     # Terminal character.
     f.write(b"\x1a")
+
+
+def write_ct0(pattern, filename, settings=None):
+    with open(filename, "wb") as f:
+        _write_ct0(pattern, f, settings=settings)
+
+
+def _write_ct0(pattern, f, settings=None):
+    write_string_utf8(f, "TAJ-DGML-PULSE  1-1A 2060(550.0")
+    write_int_8(f, 0x81)
+    write_string_utf8(f, "~400.0)S         2.00")
+    for i in range(f.tell(), 0x60):
+        f.write(b"\x20")
+    write_string_utf8(f, "DC1:100\rDC2:100\rDC3:  0\rDC4:N\rDC5:S\r")
+    for i in range(f.tell(), 0x108):
+        f.write(b"\x20")
+    write_string_utf8(f, "NS1:11")
+    index = 0
+    for stitch in pattern.stitches:
+        data = stitch[2] & COMMAND_MASK
+        if data == NEEDLE_SET:
+            flag, thread, needle, order = decode_embroidery_command(stitch[2])
+            write_int_8(f, needle + 0x30)
+            write_int_8(f, 0x31)
+            index += 1
+    for i in range(f.tell(), 0x30D):
+        f.write(b"\x20")
+    write_string_utf8(f, "\rRP0:N\rRP1:  \rRP2:  \rRP3:      \rRP4:      \rRP5: \rRP6: \rRP7: \rST1:")
+    for i in range(f.tell(), 0x434):
+        f.write(b"\x20")
+    write_string_utf8(f, "ST0:0\rAO1:0\rAO2:0\rAO3:0\rOF1:            \rOF2:            \rOF3:            \rNS2:")
+    for i in range(index):
+        write_int_8(f, 0x30)
+    for i in range(f.tell(), 0x583):
+        f.write(b"\x20")
+    write_string_utf8(f, "\rNS3:")
+    for i in range(f.tell(), 0x778):
+        f.write(b"\x20")
+    write_string_utf8(f, "\r\x1A")
+    for i in range(f.tell(), 0x790):
+        f.write(b"\x20")
