@@ -73,7 +73,7 @@ def write(pattern, f, settings=None):
             write_int_8(f, 0x20)
 
     # Padding to 501
-    for i in range(f.tell(), 0x501):
+    for i in range(f.tell(), 0x376):
         f.write(b"\x20")  # space
 
     # Seen in only some files.
