@@ -170,6 +170,22 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
+    def test_convert_jef_to_tbf(self):
+        file1 = "convert_tbf.jef"
+        file2 = "converted_jef.tbf"
+        write_jef(get_big_pattern(), file1)
+        f_pattern = read_jef(file1)
+        write_tbf(f_pattern, file2)
+        t_pattern = read_tbf(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(COLOR_CHANGE), 15)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("jef->tbf: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+
     def test_jef_stop_write_simple(self):
         file = "stop.jef"
         write_jef(get_simple_stop(), file)
