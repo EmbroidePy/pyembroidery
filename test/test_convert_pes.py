@@ -170,6 +170,22 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
+    def test_convert_pes_to_tbf(self):
+        file1 = "convert_tbf.pes"
+        file2 = "converted_pes.tbf"
+        write_pes(get_big_pattern(), file1)
+        f_pattern = read_pes(file1)
+        write_tbf(f_pattern, file2)
+        t_pattern = read_tbf(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 16)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("pes->tbf: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+
     def test_write_pes_long(self):
         file1 = "long.pes"
         write_pes(get_long_jump(), file1)

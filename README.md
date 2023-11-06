@@ -24,7 +24,7 @@ pyembroidery must to be small enough to be finished in short order and big enoug
 * pyembroidery must fully support commands: STITCH, JUMP, TRIM, STOP, END, COLOR_CHANGE, NEEDLE_SET, SEQUIN_MODE and SEQUIN_EJECT.
 
 Pyembroidery fully meets and exceeds all of these requirements.
-* It writes 9 embroidery formats including the mandated ones. 19 different format in total.
+* It writes 10 embroidery formats including the mandated ones. 20 different format in total.
 * It reads 40 embroidery formats including the mandated ones. 46 different formats in total.
 * It supports all the core commands where that format can use said command as well as FAST and SLOW for .u01.
 * SEQUINS work in all supported formats (.dst) that are known to support sequins. Further it supports SEQUIN to JUMP operations on the other formats.
@@ -115,6 +115,7 @@ Pyembroidery will write:
 * .u01
 * .pec
 * .xxx
+* .tbf
 * .gcode
 
 Pyembroidery will read:
@@ -288,6 +289,7 @@ pyembroidery.write_u01(pattern, file)
 pyembroidery.write_svg(pattern, file)
 pyembroidery.write_csv(pattern, file)
 pyembroidery.write_xxx(pattern, file)
+pyembroidery.write_tbf(pattern, file)
 pyembroidery.write_png(pattern, file)
 pyembroidery.write_txt(pattern, file)
 pyemboridery.write_gcode(pattern,file)

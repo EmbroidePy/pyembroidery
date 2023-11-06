@@ -58,6 +58,7 @@ import pyembroidery.StxReader as StxReader
 import pyembroidery.SvgWriter as SvgWriter
 import pyembroidery.TapReader as TapReader
 import pyembroidery.TbfReader as TbfReader
+import pyembroidery.TbfWriter as TbfWriter
 import pyembroidery.TxtWriter as TxtWriter
 import pyembroidery.U01Reader as U01Reader
 import pyembroidery.U01Writer as U01Writer
@@ -476,8 +477,8 @@ class EmbPattern:
 
     def move_center_to_origin(self):
         extends = self.bounds()
-        cx = round((extends[2] - extends[0]) / 2.0)
-        cy = round((extends[3] - extends[1]) / 2.0)
+        cx = round((extends[2] + extends[0]) / 2.0)
+        cy = round((extends[3] + extends[1]) / 2.0)
         self.translate(-cx, -cy)
 
     def translate(self, dx, dy):
@@ -1175,6 +1176,7 @@ class EmbPattern:
                 "mimetype": "application/x-tbf",
                 "category": "embroidery",
                 "reader": TbfReader,
+                "writer": TbfWriter,
             }
         )
         yield (
@@ -1550,6 +1552,11 @@ class EmbPattern:
         return EmbPattern.read_embroidery(XxxReader, f, settings, pattern)
 
     @staticmethod
+    def read_tbf(f, settings=None, pattern=None):
+        """Reads fileobject as TBF file"""
+        return EmbPattern.read_embroidery(TbfReader, f, settings, pattern)
+
+    @staticmethod
     def static_read(filename, settings=None, pattern=None):
         """Reads file, assuming type by extension"""
         extension = EmbPattern.get_extension_by_filename(filename)
@@ -1608,6 +1615,11 @@ class EmbPattern:
             if not ("thread_change_command" in settings):
                 try:
                     settings["thread_change_command"] = writer.THREAD_CHANGE_COMMAND
+                except AttributeError:
+                    pass
+            if not ("explicit_trim" in settings):
+                try:
+                    settings["explicit_trim"] = writer.EXPLICIT_TRIM
                 except AttributeError:
                     pass
             if not ("translate" in settings):
@@ -1707,6 +1719,11 @@ class EmbPattern:
     def write_xxx(pattern, stream, settings=None):
         """Writes fileobject as XXX file"""
         EmbPattern.write_embroidery(XxxWriter, pattern, stream, settings)
+
+    @staticmethod
+    def write_tbf(pattern, stream, settings=None):
+        """Writes fileobject as TBF file"""
+        EmbPattern.write_embroidery(TbfWriter, pattern, stream, settings)
 
     @staticmethod
     def write_svg(pattern, stream, settings=None):

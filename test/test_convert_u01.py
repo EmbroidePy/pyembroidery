@@ -168,3 +168,19 @@ class TestConverts(unittest.TestCase):
         print("u01->xxx: ", t_pattern.stitches)
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
+
+    def test_convert_u01_to_tbf(self):
+        file1 = "convert_tbf.u01"
+        file2 = "converted_u01.tbf"
+        write_u01(get_big_pattern(), file1)
+        f_pattern = read_u01(file1)
+        write_tbf(f_pattern, file2)
+        t_pattern = read_tbf(file2)
+
+        self.assertIsNotNone(t_pattern)
+        self.assertEqual(t_pattern.count_stitch_commands(NEEDLE_SET), 16)
+        self.assertEqual(t_pattern.count_stitch_commands(STITCH), 16 * 5)
+        self.position_equals(t_pattern.stitches, 0, -1)
+        print("u01->tbf: ", t_pattern.stitches)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)

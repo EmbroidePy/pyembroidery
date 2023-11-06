@@ -132,6 +132,46 @@ def get_shift_pattern():
     return pattern
 
 
+def get_shift_pattern_needles():
+    pattern = EmbPattern()
+    pattern += "red"
+    pattern += "blue"
+    pattern += "green"
+    pattern += "grey"
+    pattern += "gold"
+    pattern += "ivory"
+    pattern += "khaki"
+    pattern += "oldlace"
+
+    for i in range(16):
+        needle = ((15 - i) % 8) + 1
+        pattern.add_command(encode_thread_change(COLOR_CHANGE, needle=needle))
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 22.5)
+    return pattern
+
+
+def get_small_shift_pattern_needles():
+    pattern = EmbPattern()
+    pattern.metadata("name", "pyem-test")
+    pattern += "red"
+    pattern += "blue"
+    pattern += "green"
+    pattern += "grey"
+    pattern += "gold"
+    pattern += "ivory"
+    pattern += "khaki"
+    pattern += "oldlace"
+
+    for needle in (3,2,1):
+        pattern.needle_change(needle=needle)
+        pattern += (0, 0), (0, 100), (100, 100), (100, 0), (0, 0)
+        pattern.add_command(MATRIX_TRANSLATE, 25, 25)
+        pattern.add_command(MATRIX_ROTATE, 360.0 / 3)
+    return pattern
+
+
 def get_shift_stop_pattern():
     pattern = EmbPattern()
     pattern.add_block([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)], "red")
