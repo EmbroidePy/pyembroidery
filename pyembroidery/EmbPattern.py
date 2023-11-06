@@ -477,8 +477,8 @@ class EmbPattern:
 
     def move_center_to_origin(self):
         extends = self.bounds()
-        cx = round((extends[2] - extends[0]) / 2.0)
-        cy = round((extends[3] - extends[1]) / 2.0)
+        cx = round((extends[2] + extends[0]) / 2.0)
+        cy = round((extends[3] + extends[1]) / 2.0)
         self.translate(-cx, -cy)
 
     def translate(self, dx, dy):
