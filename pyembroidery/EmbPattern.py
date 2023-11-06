@@ -1743,7 +1743,7 @@ class EmbPattern:
         supported_extensions = [file_type["extension"] for file_type in EmbPattern.supported_formats()]
 
         if extension not in supported_extensions:
-            raise Exception(f"Conversion to file type '{extension}' is not supported")
+            raise IOError("Conversion to file type '{extension}' is not supported".format(extension=extension))
 
         ext_to_file_type_lookup = {file_type["extension"]: file_type for file_type in EmbPattern.supported_formats()}
         writer = ext_to_file_type_lookup[extension].get("writer")
@@ -1751,8 +1751,7 @@ class EmbPattern:
         if writer:
             EmbPattern.write_embroidery(writer, pattern, filename, settings)
         else:
-            # TODO: I don't think we should pass silently!
-            pass
+            raise IOError("No supported writer found.")
 
     @staticmethod
     def is_str(obj):
