@@ -1479,19 +1479,11 @@ class EmbPattern:
             except AttributeError:
                 pass
             if text_mode:
-                try:
-                    with open(f, "r") as stream:
-                        reader.read(stream, pattern, settings)
-                        stream.close()
-                except IOError:
-                    pass
+                with open(f, "r") as stream:
+                    reader.read(stream, pattern, settings)
             else:
-                try:
-                    with open(f, "rb") as stream:
-                        reader.read(stream, pattern, settings)
-                        stream.close()
-                except IOError:
-                    pass
+                with open(f, "rb") as stream:
+                    reader.read(stream, pattern, settings)
         else:
             reader.read(f, pattern, settings)
         return pattern
@@ -1646,17 +1638,11 @@ class EmbPattern:
             except AttributeError:
                 pass
             if text_mode:
-                try:
-                    with open(stream, "w") as stream:
-                        writer.write(pattern, stream, settings)
-                except IOError:
-                    pass
+                with open(stream, "w") as stream:
+                    writer.write(pattern, stream, settings)
             else:
-                try:
-                    with open(stream, "wb") as stream:
-                        writer.write(pattern, stream, settings)
-                except IOError:
-                    pass
+                with open(stream, "wb") as stream:
+                    writer.write(pattern, stream, settings)
         else:
             writer.write(pattern, stream, settings)
 
@@ -1743,7 +1729,7 @@ class EmbPattern:
         supported_extensions = [file_type["extension"] for file_type in EmbPattern.supported_formats()]
 
         if extension not in supported_extensions:
-            raise Exception(f"Conversion to file type '{extension}' is not supported")
+            raise IOError("Conversion to file type '{extension}' is not supported".format(extension=extension))
 
         ext_to_file_type_lookup = {file_type["extension"]: file_type for file_type in EmbPattern.supported_formats()}
         writer = ext_to_file_type_lookup[extension].get("writer")
@@ -1751,8 +1737,7 @@ class EmbPattern:
         if writer:
             EmbPattern.write_embroidery(writer, pattern, filename, settings)
         else:
-            # TODO: I don't think we should pass silently!
-            pass
+            raise IOError("No supported writer found.")
 
     @staticmethod
     def is_str(obj):
