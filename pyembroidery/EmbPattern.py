@@ -1479,19 +1479,11 @@ class EmbPattern:
             except AttributeError:
                 pass
             if text_mode:
-                try:
-                    with open(f, "r") as stream:
-                        reader.read(stream, pattern, settings)
-                        stream.close()
-                except IOError:
-                    pass
+                with open(f, "r") as stream:
+                    reader.read(stream, pattern, settings)
             else:
-                try:
-                    with open(f, "rb") as stream:
-                        reader.read(stream, pattern, settings)
-                        stream.close()
-                except IOError:
-                    pass
+                with open(f, "rb") as stream:
+                    reader.read(stream, pattern, settings)
         else:
             reader.read(f, pattern, settings)
         return pattern
