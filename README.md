@@ -221,6 +221,8 @@ The Gcode is intended for a number of hobbyist projects that use a gcode control
 #### Reading from HUS:
 The HUS format requires an obscure and defunct form of compression. The EmbCompress performs this decompression. It is written from the ground up in pure python. It does not require any compiled element or dll file. It has no obfuscation and is intended to be easily understood.
 
+### IO
+Starting in version 1.5.0, we no longer silently pass errors. Explicit IOErrors are raised if the writer is not supported, does not exist, or reading a file that does not exist.
 
 ### Reading
 
