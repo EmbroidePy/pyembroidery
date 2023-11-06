@@ -1646,17 +1646,11 @@ class EmbPattern:
             except AttributeError:
                 pass
             if text_mode:
-                try:
-                    with open(stream, "w") as stream:
-                        writer.write(pattern, stream, settings)
-                except IOError:
-                    pass
+                with open(stream, "w") as stream:
+                    writer.write(pattern, stream, settings)
             else:
-                try:
-                    with open(stream, "wb") as stream:
-                        writer.write(pattern, stream, settings)
-                except IOError:
-                    pass
+                with open(stream, "wb") as stream:
+                    writer.write(pattern, stream, settings)
         else:
             writer.write(pattern, stream, settings)
 
