@@ -212,6 +212,23 @@ class TestConverts(unittest.TestCase):
         self.addCleanup(os.remove, file1)
         self.addCleanup(os.remove, file2)
 
+    def test_tbf_flipped(self):
+        """
+        Test whether tbf is flipped on subsequent loads. This creates a pattern. Saves/loads, then save/loads.
+        These patterns should be the same but a bug in 1.5.0 was flipping TBF patterns on write.
+        """
+        pattern = get_fractal_pattern()
+        file1 = "fractal1.tbf"
+        file2 = "fractal2.tbf"
+        pattern.write(file1)
+        f1 = read_tbf(file1)
+        f1.write(file2)
+        f2 = read_tbf(file2)
+        for i in range(len(f1.stitches)):
+            self.assertEqual(f1.stitches[i], f2.stitches[i])
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+
     def test_needle_tbf_range(self):
         file1 = "test_range8.tbf"
         file2 = "test_range8.ct0"
