@@ -69,6 +69,7 @@ import pyembroidery.XxxWriter as XxxWriter
 
 import pyembroidery.ZhsReader as ZhsReader
 import pyembroidery.ZxyReader as ZxyReader
+from . import QliReader, QliWriter
 
 from .EmbEncoder import Transcoder as Normalizer
 from .EmbFunctions import *
@@ -1395,6 +1396,17 @@ class EmbPattern:
                 "write_options": {
                     "stitch_z_travel": (5.0, 10.0),
                 },
+            }
+        )
+        yield (
+            {
+                "description": "Statler Stitcher",
+                "extension": "qli",
+                "extensions": ("qli",),
+                "mimetype": "text/plain",
+                "category": "quilting",
+                "reader": QliReader,
+                "writer": QliWriter,
             }
         )
         yield (
