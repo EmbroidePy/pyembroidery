@@ -101,22 +101,22 @@ def write(pattern, f, settings=None):
 
         if data == STITCH:
             cmd = 0x80
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
         elif data == JUMP:
             cmd = 0x90
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
         elif data == STOP:
             cmd = 0x40
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
         elif data == TRIM:
             cmd = 0x86
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
         elif data == NEEDLE_SET:
             cmd = 0x81
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
         elif data == END:
             cmd = 0x8F
-            f.write(bytes(bytearray([dx & 0xFF, dy & 0xFF, cmd])))
+            f.write(bytes(bytearray([dx & 0xFF, -dy & 0xFF, cmd])))
             break
     # Terminal character.
     f.write(b"\x1a")
