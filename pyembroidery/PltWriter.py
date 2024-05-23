@@ -14,8 +14,8 @@ from .EmbFunctions import *
 
 
 def write(pattern, f, settings=None):
-    write_string_utf8(f, "IN;")
-    write_string_utf8(f, "IP;")
+    write_string_utf8(f, "IN;\n")
+    write_string_utf8(f, "IP;\n")
 
     trimmed = True
 
@@ -24,7 +24,7 @@ def write(pattern, f, settings=None):
     yy = 0
 
     pen_id = 1
-    write_string_utf8(f, "SP%d;" % pen_id)
+    write_string_utf8(f, "SP%d;\n" % pen_id)
 
     for stitch in stitches:
         # 4 to convert 1/10mm to 1/40mm.
@@ -36,21 +36,24 @@ def write(pattern, f, settings=None):
         xx += dx
         yy += dy
         if data == STITCH:
-            write_string_utf8(f, "PD %d, %d;" % (int(xx), int(yy)))
+            if trimmed:
+                write_string_utf8(f, "PU %d, %d;\n" % (int(xx), int(yy)))
+            else:
+                write_string_utf8(f, "PD %d, %d;\n" % (int(xx), int(yy)))
             trimmed = False
         elif data == JUMP:
             if trimmed:
-                write_string_utf8(f, "PU %d, %d;" % (int(xx), int(yy)))
+                write_string_utf8(f, "PU %d, %d;\n" % (int(xx), int(yy)))
             else:
-                write_string_utf8(f, "PD %d, %d;" % (int(xx), int(yy)))
+                write_string_utf8(f, "PD %d, %d;\n" % (int(xx), int(yy)))
         elif data == COLOR_CHANGE:
             pen_id += 1
-            write_string_utf8(f, "SP%d;" % pen_id)
+            write_string_utf8(f, "SP%d;\n" % pen_id)
             trimmed = True
         elif data == STOP:
             trimmed = True
         elif data == TRIM:
             trimmed = True
         elif data == END:
-            write_string_utf8(f, "EN;")
+            write_string_utf8(f, "EN;\n")
             break
