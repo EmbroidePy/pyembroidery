@@ -50,6 +50,10 @@ import pyembroidery.PhcReader as PhcReader
 import pyembroidery.PmvReader as PmvReader
 import pyembroidery.PmvWriter as PmvWriter
 import pyembroidery.PngWriter as PngWriter
+import pyembroidery.PltReader as PltReader
+import pyembroidery.PltWriter as PltWriter
+import pyembroidery.QliReader as QliReader
+import pyembroidery.QliWriter as QliWriter
 import pyembroidery.SewReader as SewReader
 import pyembroidery.ShvReader as ShvReader
 import pyembroidery.SpxReader as SpxReader
@@ -69,6 +73,7 @@ import pyembroidery.XxxWriter as XxxWriter
 
 import pyembroidery.ZhsReader as ZhsReader
 import pyembroidery.ZxyReader as ZxyReader
+
 
 from .EmbEncoder import Transcoder as Normalizer
 from .EmbFunctions import *
@@ -1395,6 +1400,28 @@ class EmbPattern:
                 "write_options": {
                     "stitch_z_travel": (5.0, 10.0),
                 },
+            }
+        )
+        yield (
+            {
+                "description": "Statler Stitcher",
+                "extension": "qli",
+                "extensions": ("qli",),
+                "mimetype": "text/plain",
+                "category": "quilting",
+                "reader": QliReader,
+                "writer": QliWriter,
+            }
+        )
+        yield (
+            {
+                "description": "HPGL2",
+                "extension": "plt",
+                "extensions": ("plt",),
+                "mimetype": "text/plain",
+                "category": "quilting",
+                "reader": PltReader,
+                "writer": PltWriter,
             }
         )
         yield (
