@@ -230,7 +230,7 @@ Starting in version 1.5.0, we no longer silently pass errors. Explicit IOErrors 
 import pyembroidery
 ```
 
-To load a pattern from disk:
+To read a pattern from a file:
 
 ```python
 pattern = pyembroidery.read("myembroidery.exp")
@@ -272,7 +272,7 @@ If you intend to write the merged pattern as a single unended pattern, convert t
 
 ## Writing
 
-To write to a pattern do disk:
+To write a pattern to a file:
 
 ```python
 pyembroidery.write(pattern,"myembroidery.dst")
