@@ -20,9 +20,10 @@ def read_sew_stitches(f, out):
         if control == 0x04 or control == 0x02:
             out.move(signed8(b[0]), -signed8(b[1]))
             continue
-        if control == 0x10:
-            out.stitch(signed8(b[0]), -signed8(b[1]))
-            continue
+        if control == 0x10: # End of stitches
+            out.end()
+            return
+            
         break
     out.end()
 
