@@ -1,6 +1,6 @@
 import struct
 import zlib
-from math import sqrt
+from math import sin, sqrt
 
 from .EmbConstant import *
 from .EmbThread import EmbThread
@@ -239,6 +239,11 @@ class PngBuffer:
         self._gradient_color_position1 = 0.40
         self._gradient_color_position2 = 0.50
         self._gradient_color_position3 = 0.70
+        self.show_fabric = False
+        self.render_3d = False
+        self.needle_holes = False
+        self._highlight_alpha = 30
+        self._shadow_alpha = 68
 
     def modify_gradient(
         self,
@@ -309,7 +314,7 @@ class PngBuffer:
         else:
             raise ValueError("Did not occur within line.")
         v = amount * (to_shade - from_shade) + from_shade
-        return max(min(v, 1.0), 0.0)
+        return max(v, 0.0)
 
     def background(self, red, green, blue, alpha):
         for i in range(0, len(self.buf), 4):
@@ -317,6 +322,69 @@ class PngBuffer:
             self.buf[i + 1] = green
             self.buf[i + 2] = blue
             self.buf[i + 3] = alpha
+
+        if self.show_fabric:
+            self.apply_fabric_texture(red, green, blue, alpha)
+
+    def apply_fabric_texture(self, red, green, blue, alpha):
+        weave = 7
+        for y in range(self.height):
+            for x in range(self.width):
+                idx = ((self.width * y) + x) * 4
+                warp = ((x % weave) == 0)
+                weft = ((y % weave) == 0)
+                micro = sin((x + y) * 0.35) * 2.5
+                tone = micro
+                if warp:
+                    tone -= 11
+                if weft:
+                    tone += 7
+                if warp and weft:
+                    tone -= 3
+                r = max(0, min(255, red + int(tone)))
+                g = max(0, min(255, green + int(tone)))
+                b = max(0, min(255, blue + int(tone / 2)))
+                self.buf[idx] = r
+                self.buf[idx + 1] = g
+                self.buf[idx + 2] = b
+                self.buf[idx + 3] = alpha
+
+    def width_profile(self, pos, left, right):
+        span = max((left + right) - 1, 1)
+        center = span / 2.0
+        distance = abs((pos + left) - center) / max(center, 1.0)
+        return 0.84 + ((1.0 - distance) * 0.22)
+
+    def needle_hole(self, x, y):
+        if not self.render_3d or not self.needle_holes:
+            return
+        radius = max(1, self.line_width // 3)
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                if (dx * dx) + (dy * dy) > (radius * radius) + 1:
+                    continue
+                distance = sqrt((dx * dx) + (dy * dy))
+                falloff = distance / float(radius + 1)
+                self.plot(x + dx, y + dy, 0.45 + (falloff * 0.16), 82)
+
+    def should_draw_needle_hole(self, prev_point, point, next_point):
+        if not self.render_3d or not self.needle_holes:
+            return False
+        if prev_point is None or next_point is None:
+            return True
+        ax = point[0] - prev_point[0]
+        ay = point[1] - prev_point[1]
+        bx = next_point[0] - point[0]
+        by = next_point[1] - point[1]
+        len_a = abs(ax) + abs(ay)
+        len_b = abs(bx) + abs(by)
+        if len_a == 0 or len_b == 0:
+            return False
+        cross = abs((ax * by) - (ay * bx))
+        dot = (ax * bx) + (ay * by)
+        if dot < 0:
+            return True
+        return cross > max(8, (len_a + len_b) // 3)
 
     def plot(self, x, y, v=None, a=None):
         """
@@ -384,7 +452,9 @@ class PngBuffer:
         except IndexError:
             pass
 
-    def draw_line(self, x0, y0, x1, y1):
+    def draw_line(self, x0, y0, x1, y1, stitch_mode=False):
+        start_x = x0
+        start_y = y0
         dy = y1 - y0  # BRESENHAM LINE DRAW ALGORITHM
         dx = x1 - x0
         if dy < 0:
@@ -404,7 +474,7 @@ class PngBuffer:
             dy <<= 1  # dy is now 2*dy
             dx <<= 1
             fraction = dy - (dx >> 1)  # same as 2*dy - dx
-            self.line_for_point(x0, y0, False, odx, i)
+            self.line_for_point(x0, y0, False, odx, i, stitch_mode)
             i += 1
 
             while x0 != x1:
@@ -413,13 +483,13 @@ class PngBuffer:
                     fraction -= dx  # same as fraction -= 2*dx
                 x0 += step_x
                 fraction += dy  # same as fraction += 2*dy
-                self.line_for_point(x0, y0, False, odx, i)
+                self.line_for_point(x0, y0, False, odx, i, stitch_mode)
                 i += 1
         else:
             dy <<= 1  # dy is now 2*dy
             dx <<= 1  # dx is now 2*dx
             fraction = dx - (dy >> 1)
-            self.line_for_point(x0, y0, True, ody, i)
+            self.line_for_point(x0, y0, True, ody, i, stitch_mode)
             i += 1
             while y0 != y1:
                 if fraction >= 0:
@@ -427,22 +497,39 @@ class PngBuffer:
                     fraction -= dy
                 y0 += step_y
                 fraction += dx
-                self.line_for_point(x0, y0, True, ody, i)
+                self.line_for_point(x0, y0, True, ody, i, stitch_mode)
+                i += 1
 
-    def line_for_point(self, x, y, dy, max_pos, index):
+    def line_for_point(self, x, y, dy, max_pos, index, stitch_mode=False):
         w = self.line_width
         left = w >> 1
         right = w - left
-        if self.fancy and max_pos > 0:
-            v = self.gradient(index / max_pos)
+        along = (index / float(max_pos)) if max_pos > 0 else 0.5
+        if stitch_mode and self.render_3d:
+            v = 1.0
+        elif self.fancy and max_pos > 0:
+            v = self.gradient(along)
         else:
             v = 1.0
+        ridge = 1.0
+        if stitch_mode and self.render_3d:
+            ridge = 0.88 + (0.18 * (1.0 - abs(0.5 - along) * 2.0))
         if dy:
             for pos in range(-left, right):
-                self.plot(x + pos, y, v)
+                point_v = v * ridge
+                if stitch_mode and self.render_3d:
+                    point_v *= self.width_profile(pos, left, right)
+                    self.plot(x + pos + 1, y + 1, point_v * 0.62, self._shadow_alpha)
+                    self.plot(x + pos - 1, y - 1, point_v * 1.08, self._highlight_alpha)
+                self.plot(x + pos, y, point_v)
         else:
             for pos in range(-left, right):
-                self.plot(x, y + pos, v)
+                point_v = v * ridge
+                if stitch_mode and self.render_3d:
+                    point_v *= self.width_profile(pos, left, right)
+                    self.plot(x + 1, y + pos + 1, point_v * 0.62, self._shadow_alpha)
+                    self.plot(x - 1, y + pos - 1, point_v * 1.08, self._highlight_alpha)
+                self.plot(x, y + pos, point_v)
 
     def draw_text(self, x, y, string, rotate=False):
         for c in string:
@@ -501,22 +588,75 @@ def draw_guides(draw_buff, extends):
 
 
 def write(pattern, f, settings=None):
+    settings = settings or {}
     guides = settings.get("guides", False)
     extends = pattern.bounds()
     pattern.translate(-extends[0], -extends[1])
     width = int(extends[2] - extends[0])
     height = int(extends[3] - extends[1])
     draw_buff = PngBuffer(width, height)
-    draw_buff.fancy = settings.get("fancy", False)
-    if settings is not None:
-        background = settings.get("background")
-        if background is not None:
-            b = EmbThread()
-            b.set(background)
-            draw_buff.background(b.get_red(), b.get_green(), b.get_blue(), 0xFF)
-        linewidth = settings.get("linewidth")
-        if linewidth is not None and isinstance(linewidth, int):
-            draw_buff.line_width = linewidth
+    draw_buff.render_3d = settings.get("3d", settings.get("depth", False))
+    draw_buff.show_fabric = settings.get("fabric", draw_buff.render_3d)
+    draw_buff.needle_holes = settings.get("needle_holes", draw_buff.render_3d)
+    draw_buff.fancy = settings.get("fancy", draw_buff.render_3d)
+
+    highlight_alpha = settings.get("highlight_alpha")
+    if isinstance(highlight_alpha, int):
+        draw_buff._highlight_alpha = max(0, min(255, highlight_alpha))
+
+    shadow_alpha = settings.get("shadow_alpha")
+    if isinstance(shadow_alpha, int):
+        draw_buff._shadow_alpha = max(0, min(255, shadow_alpha))
+
+    default_gradient = {
+        "gradient_shade_ends": 0.48
+        if draw_buff.render_3d
+        else draw_buff._gradient_shade_ends,
+        "gradient_shade_edge": 1.08
+        if draw_buff.render_3d
+        else draw_buff._gradient_shade_edge,
+        "gradient_shade_center": 1.42
+        if draw_buff.render_3d
+        else draw_buff._gradient_shade_center,
+        "gradient_color_position1": 0.22
+        if draw_buff.render_3d
+        else draw_buff._gradient_color_position1,
+        "gradient_color_position2": 0.50
+        if draw_buff.render_3d
+        else draw_buff._gradient_color_position2,
+        "gradient_color_position3": 0.78
+        if draw_buff.render_3d
+        else draw_buff._gradient_color_position3,
+    }
+    draw_buff.modify_gradient(
+        gradient_shade_ends=settings.get(
+            "gradient_shade_ends", default_gradient["gradient_shade_ends"]
+        ),
+        gradient_shade_edge=settings.get(
+            "gradient_shade_edge", default_gradient["gradient_shade_edge"]
+        ),
+        gradient_shade_center=settings.get(
+            "gradient_shade_center", default_gradient["gradient_shade_center"]
+        ),
+        gradient_color_position1=settings.get(
+            "gradient_color_position1", default_gradient["gradient_color_position1"]
+        ),
+        gradient_color_position2=settings.get(
+            "gradient_color_position2", default_gradient["gradient_color_position2"]
+        ),
+        gradient_color_position3=settings.get(
+            "gradient_color_position3", default_gradient["gradient_color_position3"]
+        ),
+    )
+
+    background = settings.get("background")
+    if background is not None:
+        b = EmbThread()
+        b.set(background)
+        draw_buff.background(b.get_red(), b.get_green(), b.get_blue(), 0xFF)
+    linewidth = settings.get("linewidth")
+    if linewidth is not None and isinstance(linewidth, int):
+        draw_buff.line_width = linewidth
 
     for stitchblock in pattern.get_as_stitchblock():
         block = stitchblock[0]
@@ -524,15 +664,15 @@ def write(pattern, f, settings=None):
         draw_buff.set_color(
             thread.get_red(), thread.get_green(), thread.get_blue(), 255
         )
-        last_x = None
-        last_y = None
-        for stitch in block:
-            x = int(stitch[0])
-            y = int(stitch[1])
-            if last_x is not None:
-                draw_buff.draw_line(last_x, last_y, x, y)
-            last_x = x
-            last_y = y
+        points = [(int(stitch[0]), int(stitch[1])) for stitch in block]
+        for i, (x, y) in enumerate(points):
+            if i > 0:
+                last_x, last_y = points[i - 1]
+                draw_buff.draw_line(last_x, last_y, x, y, stitch_mode=True)
+            prev_point = points[i - 1] if i > 0 else None
+            next_point = points[i + 1] if i + 1 < len(points) else None
+            if draw_buff.should_draw_needle_hole(prev_point, (x, y), next_point):
+                draw_buff.needle_hole(x, y)
 
     if guides:
         draw_guides(draw_buff, extends)

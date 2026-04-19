@@ -21,6 +21,20 @@ class TestWrites(unittest.TestCase):
         write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "fancy": True})
         self.addCleanup(os.remove, file1)
 
+    def test_write_3d_png(self):
+        file1 = "file-flat.png"
+        file2 = "file-3d.png"
+        pattern = get_shift_pattern()
+        write_png(pattern, file1, {"background": "#F00", "linewidth": 5})
+        write_png(pattern, file2, {"background": "#F00", "linewidth": 5, "3d": True, "fabric": True})
+        with open(file1, "rb") as f1:
+            flat = f1.read()
+        with open(file2, "rb") as f2:
+            shaded = f2.read()
+        self.assertNotEqual(flat, shaded)
+        self.addCleanup(os.remove, file1)
+        self.addCleanup(os.remove, file2)
+
     def test_write_guides_png(self):
         file1 = "file-guides.png"
         write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "guides": True})
