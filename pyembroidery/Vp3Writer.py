@@ -181,8 +181,9 @@ def write_vp3_colorblock(f, first, center_x, center_y, stitches, thread):
         last_pos_y = 0
     start_position_from_center_x = first_pos_x - center_x
     start_position_from_center_y = -(first_pos_y - center_y)
-    write_int_32be(f, int(start_position_from_center_x) * 100)
-    write_int_32be(f, int(start_position_from_center_y) * 100)
+    # Round to the nearest grid point; the stitch deltas start from this position.
+    write_int_32be(f, int(round(start_position_from_center_x)) * 100)
+    write_int_32be(f, int(round(start_position_from_center_y)) * 100)
 
     vp3_write_thread(f, thread)
 
@@ -223,8 +224,9 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
     write_int_32be(f, 0)  # placeholder
 
     f.write(b"\x0A\xF6\x00")
-    last_x = first_pos_x
-    last_y = first_pos_y
+    # Track the integer position the reader will reconstruct.
+    last_x = int(round(first_pos_x))
+    last_y = int(round(first_pos_y))
 
     for stitch in stitches:
         x = stitch[0]
@@ -252,8 +254,10 @@ def write_stitches_block(f, stitches, first_pos_x, first_pos_y):
             # VP3 has no jump commands. These are skipped.
             # It moves to the relevant location without needing to block the needlebar.
             continue
-        dx = int(x - last_x)
-        dy = int(y - last_y)
+        # Round the absolute position, not the delta, so a point always maps
+        # to the nearest grid point regardless of the previous position.
+        dx = int(round(x)) - last_x
+        dy = int(round(y)) - last_y
         last_x += dx
         last_y += dy
         if flags == STITCH:
