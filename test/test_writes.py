@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from io import BytesIO
 import unittest
 
 from test.pattern_for_tests import *
@@ -25,6 +26,14 @@ class TestWrites(unittest.TestCase):
         file1 = "file-guides.png"
         write_png(get_shift_pattern(), file1, {"background": "#F00", "linewidth": 5, "guides": True})
         self.addCleanup(os.remove, file1)
+
+    def test_write_guides_png_smaller_than_label(self):
+        pattern = EmbPattern()
+        pattern.add_stitch_absolute(STITCH, 0, 0)
+        pattern.add_stitch_absolute(STITCH, 2, 2)
+        stream = BytesIO()
+        write_png(pattern, stream, {"guides": True})
+        self.assertTrue(stream.getvalue().startswith(b"\x89PNG\r\n\x1a\n"))
 
     def test_write_fancy_guides_png(self):
         file1 = "file-fancy-guides.png"

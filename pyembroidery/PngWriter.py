@@ -458,6 +458,8 @@ class PngBuffer:
                     else:
                         gx = x + cx + 2
                         gy = y + cy + 2
+                    if not (0 <= gx < self.width and 0 <= gy < self.height):
+                        continue
                     pos = (self.width * gy) + gx
                     idx = pos * 4
                     a2 = (9.0 - v) / 9.0
@@ -466,13 +468,10 @@ class PngBuffer:
                     b = (1.0 - a2) * self.buf[idx + 2]
                     a1 = self.buf[idx + 3] / 255.0
                     a = a2 + a1 * (1.0 - a2)
-                    try:
-                        self.buf[idx] = int(r)
-                        self.buf[idx + 1] = int(g)
-                        self.buf[idx + 2] = int(b)
-                        self.buf[idx + 3] = int(a * 255)
-                    except IndexError:
-                        pass
+                    self.buf[idx] = int(r)
+                    self.buf[idx + 1] = int(g)
+                    self.buf[idx + 2] = int(b)
+                    self.buf[idx + 3] = int(a * 255)
             if rotate:
                 y += 11
             else:
